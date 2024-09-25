@@ -1,5 +1,5 @@
 use crate::{
-    info::devices::ThreadSafeInfoDynamicDeviceStatus, AttributeBuilder, InterfaceBuilder, Reactor,
+    info::devices::ThreadSafeInfoDynamicDeviceStatus, AttributeBuilder, Device, InterfaceBuilder, Reactor
 };
 
 pub mod builder;
@@ -7,7 +7,9 @@ pub mod builder;
 #[derive(Clone)]
 pub struct Interface {
     ///
-    reactor: Reactor,
+    reactor: Reactor,  // deprecated because acces through device
+    ///
+    device: Device,
     //
     pub device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
     ///
@@ -21,6 +23,7 @@ impl Interface {
     pub fn create_interface<N: Into<String>>(&mut self, name: N) -> InterfaceBuilder {
         InterfaceBuilder::new(
             self.reactor.clone(),
+            self.device.clone(),
             self.device_dyn_info.clone(),
             format!("{}/{}", self.topic, name.into()), // take the device topic as root
         )
@@ -37,6 +40,7 @@ impl From<builder::InterfaceBuilder> for Interface {
     fn from(builder: builder::InterfaceBuilder) -> Self {
         Interface {
             reactor: builder.reactor,
+            device: builder.device,
             device_dyn_info: builder.device_dyn_info,
             topic: builder.topic,
         }

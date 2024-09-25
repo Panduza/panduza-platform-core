@@ -1,6 +1,9 @@
+use serde::de;
+
 use crate::info::devices::ElementInterface;
 use crate::info::devices::StructuralElement;
 
+use crate::Device;
 use crate::{info::devices::ThreadSafeInfoDynamicDeviceStatus, Reactor};
 
 use super::Interface;
@@ -8,6 +11,8 @@ use super::Interface;
 pub struct InterfaceBuilder {
     //
     pub reactor: Reactor,
+    ///
+    pub device: Device,
     ///
     /// Option because '_' device will not provide one
     ///
@@ -20,12 +25,14 @@ pub struct InterfaceBuilder {
 
 impl InterfaceBuilder {
     pub fn new<N: Into<String>>(
-        reactor: Reactor,
+        reactor: Reactor, // deprecated because acces through device
+        device: Device,
         device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
         topic: N,
     ) -> Self {
         Self {
             reactor: reactor,
+            device: device,
             device_dyn_info: device_dyn_info,
             topic: topic.into(),
             tags: Vec::new(),

@@ -52,7 +52,9 @@ pub struct Device {
     // pub settings: serde_json::Value,
     pub logger: DeviceLogger,
 
-    //
+    ///
+    /// Manage all MQTT communications
+    /// 
     reactor: Reactor,
 
     // Object to provide data to the info device
@@ -112,6 +114,15 @@ impl Device {
         }
     }
 
+    /// Simple getter for Reactor
+    ///
+    pub fn reactor(&self) -> &Reactor {
+        &self.reactor
+    }
+
+
+
+
     pub async fn spawn<F>(&mut self, future: F)
     where
         F: Future<Output = TaskResult> + Send + 'static,
@@ -125,6 +136,7 @@ impl Device {
     pub fn create_interface<N: Into<String>>(&mut self, name: N) -> InterfaceBuilder {
         InterfaceBuilder::new(
             self.reactor.clone(),
+            self.clone(),
             self.info_dyn_dev_status.clone(),
             format!("{}/{}", self.topic, name.into()), // take the device topic as root
         )

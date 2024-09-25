@@ -204,6 +204,8 @@ impl DeviceStructure {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::json;
+
     use super::*;
 
     #[test]
@@ -299,6 +301,8 @@ mod tests {
 
         // checks
         let is_element_exist = structure.into_json_value();
-        assert_eq!(is_element_exist, json!({}));
+        assert_eq!(is_element_exist, json!({
+            "topic1": { "children":{}, "tags":[] }
+        }));
     }
 }
