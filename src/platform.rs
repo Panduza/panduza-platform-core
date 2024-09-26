@@ -139,7 +139,7 @@ impl Platform {
         // state machine + subtask monitoring
 
         let mut dddddd2 = dev.clone();
-        self.main_task_sender
+        self.device_task_sender
             .spawn(
                 async move {
                     dddddd2.run_fsm().await;
@@ -149,7 +149,7 @@ impl Platform {
             )
             .unwrap();
 
-        self.main_task_sender
+        self.device_task_sender
             .spawn(
                 async move {
                     monitor.run().await;
@@ -198,10 +198,6 @@ impl Platform {
                     self.logger.warn("All tasks completed, stop the platform");
                     break;
                 }
-                // _ = self.end_of_all_device_tasks() => {
-                //     // self.logger.warn("All tasks completed, stop the platform");
-                //     break;
-                // }
             }
         }
     }
@@ -209,46 +205,87 @@ impl Platform {
     /// Wait for all tasks to complete
     ///
     async fn end_of_all_main_tasks(&mut self) {
-        while let Some(join_result) = self.main_task_pool.join_next().await {
-            // self.services.lock().await.stop_requested();
 
-            match join_result {
-                Ok(task_result) => match task_result {
-                    Ok(_) => {
-                        self.logger.warn("Task completed");
-                    }
+        
+        tokio::select! {
+            a = self.main_task_pool.join_next() => {
+                match a.unwrap() {
+                    Ok(a) => match a {
+                        Ok(_) => {
+                            self.logger.warn("Task completed");
+                        }
+                        Err(e) => {
+                            self.logger.error(format!("Task failed: {}", e));
+                            self.main_task_pool.abort_all();
+                        }
+                    },
                     Err(e) => {
-                        self.logger.error(format!("Task failed: {}", e));
-                        self.main_task_pool.abort_all();
+                        self.logger.error(format!("Join failed: {}", e));
                     }
-                },
-                Err(e) => {
-                    self.logger.error(format!("Join failed: {}", e));
+                }
+            }
+            b = self.device_task_pool.join_next() => {
+                match b.unwrap() {
+                    Ok(b) => match b {
+                        Ok(_) => {
+                            self.logger.warn("Task completed");
+                        }
+                        Err(e) => {
+                            self.logger.error(format!("Task failed: {}", e));
+                            self.device_task_pool.abort_all();
+                        }
+                    },
+                    Err(e) => {
+                        self.logger.error(format!("Join failed: {}", e));
+                    }
                 }
             }
         }
+
+
+        // while let Some(join_result) =
+            
+        
+        //   {
+        //     // self.services.lock().await.stop_requested();
+
+        //     match join_result {
+        //         Ok(task_result) => match task_result {
+        //             Ok(_) => {
+        //                 self.logger.warn("Task completed");
+        //             }
+        //             Err(e) => {
+        //                 self.logger.error(format!("Task failed: {}", e));
+        //                 self.main_task_pool.abort_all();
+        //             }
+        //         },
+        //         Err(e) => {
+        //             self.logger.error(format!("Join failed: {}", e));
+        //         }
+        //     }
+        // }
     }
 
-    async fn end_of_all_device_tasks(&mut self) {
-        while let Some(join_result) = self.device_task_pool.join_next().await {
-            // self.services.lock().await.stop_requested();
+    // async fn end_of_all_device_tasks(device_task_pool: &mut JoinSet<TaskResult>) {
+    //     while let Some(join_result) = device_task_pool.join_next().await {
+    //         // self.services.lock().await.stop_requested();
 
-            match join_result {
-                Ok(task_result) => match task_result {
-                    Ok(_) => {
-                        self.logger.warn("Task completed");
-                    }
-                    Err(e) => {
-                        self.logger.error(format!("Task failed: {}", e));
-                        self.device_task_pool.abort_all();
-                    }
-                },
-                Err(e) => {
-                    self.logger.error(format!("Join failed: {}", e));
-                }
-            }
-        }
-    }
+    //         match join_result {
+    //             Ok(task_result) => match task_result {
+    //                 Ok(_) => {
+    //                     // self.logger.warn("Task completed");
+    //                 }
+    //                 Err(e) => {
+    //                     // self.logger.error(format!("Task failed: {}", e));
+    //                     device_task_pool.abort_all();
+    //                 }
+    //             },
+    //             Err(e) => {
+    //                 // self.logger.error(format!("Join failed: {}", e));
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 //         // Start the main service task directly
