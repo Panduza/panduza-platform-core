@@ -187,12 +187,12 @@ impl Platform {
                 main_task = main_task_receiver_clone_lock.rx.recv() => {
                     // Function to effectily spawn tasks requested by the system
                     let ah = self.main_task_pool.spawn(main_task.unwrap());
-                    self.logger.debug(format!( "New task created ! [{:?}]", ah ));
+                    self.logger.debug(format!( "New main task created ! [{:?}]", ah ));
                 },
                 device_task = device_task_receiver_clone_lock.rx.recv() => {
                     // Function to effectily spawn tasks requested by the system
                     let ah = self.device_task_pool.spawn(device_task.unwrap());
-                    self.logger.debug(format!( "New task created ! [{:?}]", ah ));
+                    self.logger.debug(format!( "New device task created ! [{:?}]", ah ));
                 },
                 _ = self.end_of_all_main_tasks() => {
                     self.logger.warn("All tasks completed, stop the platform");
@@ -212,15 +212,15 @@ impl Platform {
                 match a.unwrap() {
                     Ok(a) => match a {
                         Ok(_) => {
-                            self.logger.warn("Task completed");
+                            self.logger.warn("main Task completed");
                         }
                         Err(e) => {
-                            self.logger.error(format!("Task failed: {}", e));
+                            self.logger.error(format!("main Task failed: {}", e));
                             self.main_task_pool.abort_all();
                         }
                     },
                     Err(e) => {
-                        self.logger.error(format!("Join failed: {}", e));
+                        self.logger.error(format!("main Join failed: {}", e));
                     }
                 }
             }
@@ -228,15 +228,15 @@ impl Platform {
                 match b.unwrap() {
                     Ok(b) => match b {
                         Ok(_) => {
-                            self.logger.warn("Task completed");
+                            self.logger.warn("device Task completed");
                         }
                         Err(e) => {
-                            self.logger.error(format!("Task failed: {}", e));
+                            self.logger.error(format!("device Task failed: {}", e));
                             self.device_task_pool.abort_all();
                         }
                     },
                     Err(e) => {
-                        self.logger.error(format!("Join failed: {}", e));
+                        self.logger.error(format!("device Join failed: {}", e));
                     }
                 }
             }
