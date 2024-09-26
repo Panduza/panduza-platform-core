@@ -209,35 +209,45 @@ impl Platform {
         
         tokio::select! {
             a = self.main_task_pool.join_next() => {
-                match a.unwrap() {
-                    Ok(a) => match a {
-                        Ok(_) => {
-                            self.logger.warn("main Task completed");
-                        }
+                if a.is_some() {       
+                    match a.unwrap() {
+                        Ok(a) => match a {
+                            Ok(_) => {
+                                self.logger.warn("main Task completed");
+                            }
+                            Err(e) => {
+                                self.logger.error(format!("main Task failed: {}", e));
+                                self.main_task_pool.abort_all();
+                            }
+                        },
                         Err(e) => {
-                            self.logger.error(format!("main Task failed: {}", e));
-                            self.main_task_pool.abort_all();
+                            self.logger.error(format!("main Join failed: {}", e));
                         }
-                    },
-                    Err(e) => {
-                        self.logger.error(format!("main Join failed: {}", e));
                     }
+                }
+                else {
+                    println!("main none join handle")
                 }
             }
             b = self.device_task_pool.join_next() => {
-                match b.unwrap() {
-                    Ok(b) => match b {
-                        Ok(_) => {
-                            self.logger.warn("device Task completed");
-                        }
+                if b.is_some() {       
+                    match b.unwrap() {
+                        Ok(b) => match b {
+                            Ok(_) => {
+                                self.logger.warn("device Task completed");
+                            }
+                            Err(e) => {
+                                self.logger.error(format!("device Task failed: {}", e));
+                                self.device_task_pool.abort_all();
+                            }
+                        },
                         Err(e) => {
-                            self.logger.error(format!("device Task failed: {}", e));
-                            self.device_task_pool.abort_all();
+                            self.logger.error(format!("device Join failed: {}", e));
                         }
-                    },
-                    Err(e) => {
-                        self.logger.error(format!("device Join failed: {}", e));
                     }
+                }
+                else {
+                    println!("main none join handle")
                 }
             }
         }
