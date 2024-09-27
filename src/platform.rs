@@ -18,6 +18,8 @@ use tokio::time::sleep;
 // use crate::device;
 // use crate::connection;
 
+use crate::services::service_task;
+
 use crate::info::InfoDevice;
 use crate::{task_channel::create_task_channel, TaskReceiver, TaskResult, TaskSender};
 
@@ -127,6 +129,11 @@ impl Platform {
                 .boxed(),
             )
             .unwrap();
+
+
+        //
+        // Start service task
+        self.main_task_sender.spawn(service_task().boxed()).unwrap();
 
         //
         let mut production_order = ProductionOrder::new("panduza.fake_register_map", "memory_map");
@@ -247,7 +254,7 @@ impl Platform {
                     }
                 }
                 else {
-                    println!("main none join handle")
+                    println!("device none join handle")
                 }
             }
         }
