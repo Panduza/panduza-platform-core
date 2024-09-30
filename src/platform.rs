@@ -136,7 +136,8 @@ impl Platform {
         self.main_task_sender.spawn(service_task().boxed()).unwrap();
 
         //
-        let mut production_order = ProductionOrder::new("panduza.fake_register_map", "memory_map");
+        // let mut production_order = ProductionOrder::new("panduza.fake_register_map", "memory_map");
+        let mut production_order = ProductionOrder::new("panduza.picoha-ssb", "pico");
         // let mut production_order = ProductionOrder::new("panduza.picoha-dio", "testdevice");
         production_order.device_settings = json!({});
         let (mut monitor, mut dev) =
