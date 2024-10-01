@@ -12,6 +12,11 @@ pub struct Plugin {
     pub version: *const i8,
     pub test: extern "C" fn(),
     pub join: extern "C" fn()
+
+
+    // get_producers -> function to get producers
+    // produce -> function to create a new device
+    //
 }
 
 impl Plugin {
@@ -24,3 +29,4 @@ impl Plugin {
         }
     }
 }
+
