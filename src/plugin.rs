@@ -1,4 +1,3 @@
-use std::{ffi::{c_char, CString}, str::FromStr};
 
 ///
 /// This structure provides the plugin interface
@@ -7,18 +6,18 @@ use std::{ffi::{c_char, CString}, str::FromStr};
 ///
 #[repr(C)]
 pub struct Plugin {
-    pub name: String ,
-    // pub version: *const c_char,
+    ///
+    /// 
+    pub name: *const i8,
+    pub version: *const i8,
     pub test: extern "C" fn()
 }
 
 impl Plugin {
     pub fn new(name: &str, version: &str, test: extern "C" fn()) -> Self {
-        
-
         Plugin {
-            name: String::from_str(name).unwrap(),
-            // version: version.as_ptr(),
+            name: name.as_ptr() as *const i8,
+            version: version.as_ptr() as *const i8,
             test: test
         }
     }
