@@ -10,15 +10,17 @@ pub struct Plugin {
     /// 
     pub name: *const i8,
     pub version: *const i8,
-    pub test: extern "C" fn()
+    pub test: extern "C" fn(),
+    pub join: extern "C" fn()
 }
 
 impl Plugin {
-    pub fn new(name: &str, version: &str, test: extern "C" fn()) -> Self {
+    pub fn new(name: &str, version: &str, test: extern "C" fn(), join: extern "C" fn()) -> Self {
         Plugin {
             name: name.as_ptr() as *const i8,
             version: version.as_ptr() as *const i8,
-            test: test
+            test: test,
+            join: join
         }
     }
 }
