@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{atomic::{AtomicBool, Ordering}, Arc};
 use tokio::{sync::Mutex, task::JoinSet};
 use crate::{TaskReceiver, TaskResult, TaskSender};
 
@@ -14,6 +14,9 @@ struct Runtime {
     // pointer to a reactor
 
 
+    ///
+    /// 
+    keep_alive: Arc<AtomicBool>,
     ///
     /// Pool
     task_pool: JoinSet<TaskResult>,
@@ -41,7 +44,7 @@ impl Runtime {
         )?;
 
         //
-        loop {
+        while self.keep_alive.load(Ordering::Relaxed) {
             tokio::select! {
                 device_task = task_receiver.rx.recv() => {
                     // Function to effectily spawn tasks requested by the system
