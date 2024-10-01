@@ -78,3 +78,10 @@ pub use task_channel::TaskSender;
 
 /// Return type for spawned task
 pub type TaskResult = Result<(), Error>;
+
+
+
+
+//
+pub mod plugin;
+pub use plugin::Plugin;
