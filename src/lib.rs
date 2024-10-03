@@ -10,6 +10,7 @@ pub use logger::DeviceLogger;
 pub use logger::FactoryLogger;
 pub use logger::GenericLogger;
 pub use logger::PlatformLogger;
+pub use logger::RuntimeLogger;
 
 ///
 mod factory;
@@ -88,6 +89,7 @@ pub use plugin::Plugin;
 
 
 pub mod runtime;
+pub use runtime::Runtime;
 
 
 pub mod log;

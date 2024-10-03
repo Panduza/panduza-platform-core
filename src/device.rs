@@ -114,6 +114,13 @@ impl Device {
         }
     }
 
+    ///
+    /// Set the plugin name inside the logger
+    ///
+    pub fn set_plugin<A: Into<String>>(&mut self, text: A) {
+        self.logger.set_plugin(text);
+    }
+
     /// Simple getter for Reactor
     ///
     pub fn reactor(&self) -> &Reactor {

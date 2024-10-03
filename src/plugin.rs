@@ -1,3 +1,4 @@
+pub mod macro_helper;
 use std::ffi::CStr;
 
 pub struct Builder {}
@@ -14,11 +15,11 @@ pub struct Plugin {
     pub name: *const i8,
     pub version: *const i8,
     pub test: extern "C" fn(),
-    pub join: extern "C" fn(),
+    pub join: unsafe extern "C" fn(),
 
     ///
     /// Produce a device matching the given json string configuration
-    pub produce: extern "C" fn(*const i8),
+    pub produce: unsafe extern "C" fn(*const i8) -> u32,
     //
     //
     // get_producers -> function to get producers
@@ -31,8 +32,8 @@ impl Plugin {
         name: &'static CStr,
         version: &CStr,
         test: extern "C" fn(),
-        join: extern "C" fn(),
-        produce: extern "C" fn(*const i8),
+        join: unsafe extern "C" fn(),
+        produce: unsafe extern "C" fn(*const i8) -> u32,
     ) -> Self {
         Plugin {
             name: name.as_ptr() as *const i8,

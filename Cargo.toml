@@ -8,7 +8,7 @@ version = "0.1.0"
 
 
 # Main async framework for the platform
-tokio = { version = "1", features = ["full", "tracing"] }
+tokio = { version = "1.40.0", features = ["full", "tracing"] }
 
 
 # 
@@ -55,8 +55,8 @@ tracing = { version = "0.1", features = [
     # "max_level_error",
     # "max_level_warn",
     # "max_level_info",
-    "max_level_debug",
-    # "max_level_trace",
+    # "max_level_debug",
+    "max_level_trace",
     # "release_max_level_off",
     # "release_max_level_error",
     # "release_max_level_warn",
@@ -79,3 +79,9 @@ tracing-appender = "0.2.3"
 # colored = { version="2.0.0", optional = true }
 colored = "2.0.0"
 
+rand = "0.8.5"
+
+[features]
+
+# Enable tracing in stdout
+log = []

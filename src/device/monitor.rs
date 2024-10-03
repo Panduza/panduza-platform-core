@@ -43,8 +43,8 @@ impl DeviceMonitor {
     ) -> (DeviceMonitor, Device) {
         //
         // Move in data and consume production order
-        let name = production_order.device_name;
-        let settings = production_order.device_settings;
+        let name = production_order.name;
+        let settings = production_order.settings;
         //
         // Create the task channel between the device and its monitoring object
         let (task_tx, task_rx) = create_task_channel::<DeviceTaskResult>(50);

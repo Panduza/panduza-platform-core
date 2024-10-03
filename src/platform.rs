@@ -130,42 +130,41 @@ impl Platform {
             )
             .unwrap();
 
-
         //
         // Start service task
         self.main_task_sender.spawn(service_task().boxed()).unwrap();
 
         //
         // let mut production_order = ProductionOrder::new("panduza.fake_register_map", "memory_map");
-        let mut production_order = ProductionOrder::new("panduza.picoha-ssb", "pico");
+        // let mut production_order = ProductionOrder::new("panduza.picoha-ssb", "pico");
         // let mut production_order = ProductionOrder::new("panduza.picoha-dio", "testdevice");
-        production_order.device_settings = json!({});
-        let (mut monitor, mut dev) =
-            self.factory
-                .produce(reactor, Some(info_pack.clone()), production_order);
+        // production_order.device_settings = json!({});
+        // let (mut monitor, mut dev) =
+        //     self.factory
+        //         .produce(reactor, Some(info_pack.clone()), production_order);
 
         // state machine + subtask monitoring
 
-        let mut dddddd2 = dev.clone();
-        self.device_task_sender
-            .spawn(
-                async move {
-                    dddddd2.run_fsm().await;
-                    Ok(())
-                }
-                .boxed(),
-            )
-            .unwrap();
+        // let mut dddddd2 = dev.clone();
+        // self.device_task_sender
+        //     .spawn(
+        //         async move {
+        //             dddddd2.run_fsm().await;
+        //             Ok(())
+        //         }
+        //         .boxed(),
+        //     )
+        //     .unwrap();
 
-        self.device_task_sender
-            .spawn(
-                async move {
-                    monitor.run().await;
-                    Ok(())
-                }
-                .boxed(),
-            )
-            .unwrap();
+        // self.device_task_sender
+        //     .spawn(
+        //         async move {
+        //             monitor.run().await;
+        //             Ok(())
+        //         }
+        //         .boxed(),
+        //     )
+        //     .unwrap();
 
         //
         // need to spawn the idle task
@@ -184,8 +183,8 @@ impl Platform {
         // - all tasks to complete
         let main_task_receiver_clone = self.main_task_receiver.clone();
         let mut main_task_receiver_clone_lock = main_task_receiver_clone.lock().await;
-        let device_task_receiver_clone = self.device_task_receiver.clone();
-        let mut device_task_receiver_clone_lock = device_task_receiver_clone.lock().await;
+        // let device_task_receiver_clone = self.device_task_receiver.clone();
+        // let mut device_task_receiver_clone_lock = device_task_receiver_clone.lock().await;
         loop {
             tokio::select! {
                 _ = signal::ctrl_c() => {
@@ -197,14 +196,15 @@ impl Platform {
                     let ah = self.main_task_pool.spawn(main_task.unwrap());
                     self.logger.debug(format!( "New main task created ! [{:?}]", ah ));
                 },
-                device_task = device_task_receiver_clone_lock.rx.recv() => {
-                    // Function to effectily spawn tasks requested by the system
-                    let ah = self.device_task_pool.spawn(device_task.unwrap());
-                    self.logger.debug(format!( "New device task created ! [{:?}]", ah ));
-                },
+                // device_task = device_task_receiver_clone_lock.rx.recv() => {
+                //     // Function to effectily spawn tasks requested by the system
+                //     let ah = self.device_task_pool.spawn(device_task.unwrap());
+                //     self.logger.debug(format!( "New device task created ! [{:?}]", ah ));
+                // },
                 _ = self.end_of_all_main_tasks() => {
                     self.logger.warn("All tasks completed, stop the platform");
-                    break;
+                    tokio::time::sleep(Duration::from_secs(5)).await;
+                    // break;
                 }
             }
         }
@@ -213,11 +213,9 @@ impl Platform {
     /// Wait for all tasks to complete
     ///
     async fn end_of_all_main_tasks(&mut self) {
-
-        
         tokio::select! {
             a = self.main_task_pool.join_next() => {
-                if a.is_some() {       
+                if a.is_some() {
                     match a.unwrap() {
                         Ok(a) => match a {
                             Ok(_) => {
@@ -237,33 +235,10 @@ impl Platform {
                     println!("main none join handle")
                 }
             }
-            b = self.device_task_pool.join_next() => {
-                if b.is_some() {       
-                    match b.unwrap() {
-                        Ok(b) => match b {
-                            Ok(_) => {
-                                self.logger.warn("device Task completed");
-                            }
-                            Err(e) => {
-                                self.logger.error(format!("device Task failed: {}", e));
-                                self.device_task_pool.abort_all();
-                            }
-                        },
-                        Err(e) => {
-                            self.logger.error(format!("device Join failed: {}", e));
-                        }
-                    }
-                }
-                else {
-                    println!("device none join handle")
-                }
-            }
         }
 
-
         // while let Some(join_result) =
-            
-        
+
         //   {
         //     // self.services.lock().await.stop_requested();
 

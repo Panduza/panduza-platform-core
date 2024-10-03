@@ -60,7 +60,7 @@ impl Factory {
         info_pack: Option<InfoPack>,
         production_order: ProductionOrder,
     ) -> (DeviceMonitor, Device) {
-        let producer = self.producers.get(production_order.device_ref()).unwrap();
+        let producer = self.producers.get(production_order.dref()).unwrap();
         let device_operations = producer.produce().unwrap();
 
         // Box<dyn DeviceOperations>

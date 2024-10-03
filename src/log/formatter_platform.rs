@@ -10,7 +10,7 @@ use tracing_subscriber::fmt::{
 };
 use tracing_subscriber::registry::LookupSpan;
 
-use crate::log::hash_visitor::HashVisitor;
+use crate::{log::hash_visitor::HashVisitor, plugin};
 
 /// Color words in quotes
 ///
@@ -100,6 +100,22 @@ where
             // write!(&mut writer, "-{}-", id_number )?;
 
             // Display class
+            let plugin_opt = visitor.entries().get("plugin");
+            match plugin_opt {
+                Some(plugin_name) => {
+                    if plugin_name.trim_matches('"').is_empty() {
+
+                    }
+                    else {
+                        write!(&mut writer, "{}", 
+                            format!("> {} ", plugin_name.trim_matches('"'))
+                        .to_string().yellow()) ?;
+                    }
+                },
+                None =>{},
+            }
+
+            // Display class
             let class_opt = visitor.entries().get("class");
             match class_opt {
                 Some(class_name) => {
@@ -108,6 +124,9 @@ where
                         match class_name.trim_matches('"') {
                             "Platform" => {
                                 write!(&mut writer, "{}", "[P] ".to_string().red())?;
+                            }
+                            "Runtime" => {
+                                write!(&mut writer, "{}", "[R] ".to_string().red())?;
                             }
                             "Factory" => {
                                 write!(&mut writer, "{}", "[F] ".to_string().magenta())?;
@@ -137,29 +156,32 @@ where
                                 );
                                 write!(&mut writer, "{}", f.bright_cyan())?;
                             }
-                            _ => {}
+                            _ => {
+                                println!("UNMANAGED CLASS NAME {:?} !!!", class_name)
+                            }
                         }
                     }
                 }
                 None => {
-                    // Broker message
-                    if cfg!(feature = "broker-log") {
-                        write!(&mut writer, "{}", "[BROKER] ".to_string())?;
-                    }
+                    println!("NO CLASS NAME !!!")
+                    // // Broker message
+                    // if cfg!(feature = "broker-log") {
+                    //     write!(&mut writer, "{}", "[BROKER] ".to_string())?;
+                    // }
                 }
             }
 
-            // If broker message show it only if broker-log is activated
-            if class_opt.is_none() {
-                if cfg!(feature = "broker-log") {
+            // // If broker message show it only if broker-log is activated
+            // if class_opt.is_none() {
+            //     if cfg!(feature = "broker-log") {
+            //         return write_log_message(metadata, writer, res);
+            //     }
+            // } else {
+            //     // Level
+            //     if cfg!(feature = "log") {
                     return write_log_message(metadata, writer, res);
-                }
-            } else {
-                // Level
-                if cfg!(feature = "log") {
-                    return write_log_message(metadata, writer, res);
-                }
-            }
+            //     }
+            // }
         }
 
         // Return the formatted event
