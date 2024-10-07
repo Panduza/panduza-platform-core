@@ -22,6 +22,8 @@ pub enum Error {
     DeserializeFailure(String),
     #[error("Error related to plugin management")]
     PluginError(String),
+    #[error("Error managing a cross task channel")]
+    ChannelError(String),
     #[error("Error")]
     Generic(String),
     #[error("We just don't know what happened")]
