@@ -20,6 +20,8 @@ pub enum Error {
     SerializeFailure(String),
     #[error("Error during deserialization")]
     DeserializeFailure(String),
+    #[error("Error related to plugin management")]
+    PluginError(String),
     #[error("Error")]
     Generic(String),
     #[error("We just don't know what happened")]
