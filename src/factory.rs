@@ -1,8 +1,6 @@
 pub mod production_order;
-
-use std::collections::HashMap;
-
 use crate::{Device, DeviceMonitor, FactoryLogger, InfoPack, Producer, ProductionOrder, Reactor};
+use std::{collections::HashMap, ffi::CString};
 
 /// Factory to create devices from a configuration json
 ///
@@ -49,6 +47,27 @@ impl Factory {
             format!("{}.{}", producer.manufacturer(), producer.model()),
             producer,
         );
+    }
+
+    ///
+    ///
+    ///
+    pub fn producer_refs(&self) -> Vec<String> {
+        let mut list = Vec::new();
+        for (dref, _) in &self.producers {
+            list.push(dref.clone());
+        }
+        list
+    }
+
+    ///
+    ///
+    ///
+    pub fn producer_refs_as_c_string(&self) -> Result<CString, crate::Error> {
+        let json_str = serde_json::to_string(&self.producer_refs())
+            .expect("Failed to serialize producer_refs to JSON");
+        CString::new(json_str)
+            .map_err(|e| crate::Error::InternalLogic(format!("Failed to build CString ({:?})", e)))
     }
 
     ///

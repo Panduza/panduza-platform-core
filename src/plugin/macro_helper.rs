@@ -1,6 +1,7 @@
 #[macro_export]
 macro_rules! plugin_interface {
     () => {
+        use std::ffi::CString;
         use std::{
             sync::{Arc, Mutex},
             thread::{self, JoinHandle},
@@ -19,7 +20,9 @@ macro_rules! plugin_interface {
         ///
         static mut RUNTIME_STARTED: bool = false;
 
-        static mut FACTORY: Option<Arc<Mutex<Factory>>> = None;
+        static mut FACTORY: Option<Factory> = None;
+
+        static mut FACTORY_PRODUCER_REFS: Option<CString> = None;
 
         static mut THREAD_HANDLE: Option<JoinHandle<()>> = None;
 
@@ -46,8 +49,7 @@ macro_rules! plugin_interface {
 
             //
             //
-            let mut factory = Factory::new();
-            factory.add_producers(plugin_producers());
+            let factory = FACTORY.take();
 
             //
             let settings = ReactorSettings::new("localhost", 1883, None);
@@ -55,7 +57,7 @@ macro_rules! plugin_interface {
 
             //
             //
-            let mut runtime = Runtime::new(factory, reactor);
+            let mut runtime = Runtime::new(factory.unwrap(), reactor);
             runtime.set_plugin("pza-plugin-fakes");
 
             //
@@ -88,6 +90,11 @@ macro_rules! plugin_interface {
             THREAD_HANDLE.take().unwrap().join().unwrap();
         }
 
+        pub unsafe extern "C" fn producer_refs() -> *const i8 {
+            println!("{:?}", FACTORY_PRODUCER_REFS);
+            FACTORY_PRODUCER_REFS.as_ref().unwrap().as_c_str().as_ptr()
+        }
+
         pub unsafe extern "C" fn produce(str_production_order: *const i8) -> u32 {
             //
             // Start runtime if not already
@@ -109,7 +116,10 @@ macro_rules! plugin_interface {
             let mut factory = Factory::new();
             factory.add_producers(plugin_producers());
             unsafe {
-                FACTORY = Some(Arc::new(Mutex::new(factory)));
+                println!("{:?}", factory.producer_refs());
+                FACTORY_PRODUCER_REFS = Some(factory.producer_refs_as_c_string().unwrap());
+                println!("{:?}", FACTORY_PRODUCER_REFS);
+                FACTORY = Some(factory);
             }
 
             // if reactor none
@@ -117,7 +127,7 @@ macro_rules! plugin_interface {
 
             // build runtine
 
-            let p = Plugin::new(c"tok", c"v0.1", pok, join, produce);
+            let p = Plugin::new(c"tok", c"v0.1", pok, join, producer_refs, produce);
 
             // println!("pp {:?}", *(p.name) as u8);
 

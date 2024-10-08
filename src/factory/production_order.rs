@@ -13,7 +13,7 @@ pub struct ProductionOrder {
     pub dref: String,
 
     ///
-    pub settings: DeviceSettings,
+    pub settings: Option<DeviceSettings>,
 }
 
 impl ProductionOrder {
@@ -23,7 +23,7 @@ impl ProductionOrder {
         ProductionOrder {
             name: d_name.into(),
             dref: d_ref.into(),
-            settings: serde_json::Value::Null,
+            settings: None,
         }
     }
 
@@ -33,7 +33,7 @@ impl ProductionOrder {
         ProductionOrder {
             name: "test".to_string(),
             dref: "rtok".to_string(),
-            settings: json!({}),
+            settings: None,
         }
     }
 

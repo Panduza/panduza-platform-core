@@ -54,7 +54,7 @@ pub struct Device {
 
     ///
     /// Manage all MQTT communications
-    /// 
+    ///
     reactor: Reactor,
 
     // Object to provide data to the info device
@@ -97,7 +97,7 @@ impl Device {
         spawner: TaskSender<Result<(), Error>>,
         name: String,
         operations: Box<dyn DeviceOperations>,
-        settings: DeviceSettings,
+        settings: Option<DeviceSettings>,
     ) -> Device {
         // Create the object
         Device {
@@ -126,9 +126,6 @@ impl Device {
     pub fn reactor(&self) -> &Reactor {
         &self.reactor
     }
-
-
-
 
     pub async fn spawn<F>(&mut self, future: F)
     where
@@ -232,7 +229,7 @@ impl Device {
     ///
     /// Clone settings of the device
     ///
-    pub async fn settings(&self) -> DeviceSettings {
+    pub async fn settings(&self) -> Option<DeviceSettings> {
         self.inner.lock().await.settings.clone()
     }
 
