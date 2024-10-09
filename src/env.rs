@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 static DEFAULT_DIR_UNIX: &str = "/etc/panduza";
-static DEFAULT_DIR_WINDOWS: &str = r"C:\ProgramData\Panduza";
 
 ///
 /// Provide the default directory where to put platform configs (tree.json, connection.json...)
@@ -26,6 +25,14 @@ pub fn system_default_config_dir() -> Result<PathBuf, std::io::Error> {
 ///
 pub fn system_default_device_tree_file() -> Result<PathBuf, std::io::Error> {
     let tree_path = system_default_config_dir().unwrap().join("tree.json");
+    Ok(tree_path)
+}
+
+///
+///
+///
+pub fn system_default_plugins_dir() -> Result<PathBuf, std::io::Error> {
+    let tree_path = system_default_config_dir().unwrap().join("plugins");
     Ok(tree_path)
 }
 
