@@ -170,8 +170,8 @@ impl Runtime {
 
                 },
                 _ = self.end_of_all_tasks() => {
-                    self.logger.warn("All tasks completed, stop the platform");
-                    // tokio::time::sleep(Duration::from_secs(5)).await;
+                    self.logger.warn("All tasks completed");
+                    tokio::time::sleep(Duration::from_secs(2)).await;
                 }
             }
         }
@@ -188,27 +188,23 @@ impl Runtime {
     /// Wait for all tasks to complete
     ///
     async fn end_of_all_tasks(&mut self) {
-        tokio::select! {
-        a = self.task_pool.join_next() => {
-            if a.is_some() {
-                match a.unwrap() {
-                    Ok(a) => match a {
-                        Ok(_zzz) => {
-                            self.logger.warn("main Task completed");
-                        }
-                        Err(e) => {
-                            self.logger.error(format!("main Task failed: {}", e));
-                            self.task_pool.abort_all();
-                        }
-                    },
-                    Err(e) => {
-                        self.logger.error(format!("main Join failed: {}", e));
+        //
+        // Make tasks run
+        while let Some(join_result) = self.task_pool.join_next().await {
+            match join_result {
+                Ok(jr) => match jr {
+                    Ok(_) => {
+                        self.logger.warn("Task completed successly");
                     }
+                    Err(e) => {
+                        self.logger.error(format!("Task end badly: {:?}", e));
+                        self.task_pool.abort_all();
+                    }
+                },
+                Err(e) => {
+                    self.logger.error(format!("Task join_next error: {:?}", e));
                 }
             }
-            else {
-                println!("main none join handle")
-            }
-        }}
+        }
     }
 }

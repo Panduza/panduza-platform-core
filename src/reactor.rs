@@ -47,6 +47,8 @@ impl MessageHandler for PzaScanMessageHandler {
 ///
 #[derive(Clone)]
 pub struct Reactor {
+    is_started: bool,
+
     /// Root topic (namespace/pza)
     root_topic: String,
 
@@ -73,6 +75,7 @@ impl Reactor {
         let hostname = hostname::get().unwrap().to_string_lossy().to_string();
 
         Reactor {
+            is_started: false,
             root_topic: format!("pza/{}", hostname),
             message_client: None,
             message_dispatcher: Arc::new(Mutex::new(MessageDispatcher::new())),
@@ -96,6 +99,10 @@ impl Reactor {
         &mut self,
         mut main_task_sender: TaskSender<TaskResult>,
     ) -> Result<(), crate::Error> {
+        if self.is_started {
+            return Ok(());
+        }
+
         let mut mqttoptions = MqttOptions::new(
             format!("rumqtt-sync-{}", Self::generate_random_string(5)),
             "localhost",
@@ -126,7 +133,10 @@ impl Reactor {
                 Ok(())
             }
             .boxed(),
-        )
+        )?;
+
+        self.is_started = true;
+        Ok(())
     }
 
     pub fn create_new_attribute(
