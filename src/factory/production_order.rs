@@ -1,7 +1,4 @@
 use std::ffi::{CStr, CString};
-
-use serde_json::json;
-
 pub type DeviceSettings = serde_json::Value;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]

@@ -78,7 +78,7 @@ pub struct Device {
 
     // platform_services: crate::platform::services::AmServices,
     // // logger: Logger,
-    state: State,
+    state: Arc<Mutex<State>>,
     state_change_notifier: Arc<Notify>,
     //
     //
@@ -108,7 +108,7 @@ impl Device {
             inner: DeviceInner::new(reactor.clone(), settings).into(),
             inner_operations: Arc::new(Mutex::new(operations)),
             topic: format!("{}/{}", reactor.root_topic(), name),
-            state: State::Booting,
+            state: Arc::new(Mutex::new(State::Booting)),
             state_change_notifier: Arc::new(Notify::new()),
             spawner: spawner,
         }
@@ -173,10 +173,11 @@ impl Device {
             self.state_change_notifier.notified().await;
 
             // Helper log
-            self.logger.debug(format!("FSM State {}", self.state));
+            let stateee = self.state.lock().await.clone();
+            self.logger.debug(format!("FSM State {}", stateee));
 
             // Perform state task
-            match self.state {
+            match stateee {
                 State::Booting => {
                     if let Some(mut info_pack) = self.info_pack.clone() {
                         self.logger.debug("FSM try to add_deivce in info pack");
@@ -245,11 +246,11 @@ impl Device {
     ///
     pub async fn move_to_state(&mut self, new_state: State) {
         // Set the new state
-        self.state = new_state;
+        *self.state.lock().await = new_state.clone();
 
         // Alert monitoring device "_"
         if let Some(sts) = &mut self.info_dyn_dev_status {
-            sts.lock().await.change_state(self.state.clone());
+            sts.lock().await.change_state(new_state.clone());
         }
 
         // Notify FSM

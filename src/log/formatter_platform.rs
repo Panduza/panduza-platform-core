@@ -10,7 +10,7 @@ use tracing_subscriber::fmt::{
 };
 use tracing_subscriber::registry::LookupSpan;
 
-use crate::{log::hash_visitor::HashVisitor, plugin};
+use crate::log::hash_visitor::HashVisitor;
 
 /// Color words in quotes
 ///

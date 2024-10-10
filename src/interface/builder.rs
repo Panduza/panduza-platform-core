@@ -1,12 +1,8 @@
-use serde::de;
-
+use super::Interface;
 use crate::info::devices::ElementInterface;
 use crate::info::devices::StructuralElement;
-
 use crate::Device;
 use crate::{info::devices::ThreadSafeInfoDynamicDeviceStatus, Reactor};
-
-use super::Interface;
 
 pub struct InterfaceBuilder {
     //

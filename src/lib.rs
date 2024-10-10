@@ -19,7 +19,7 @@ pub use factory::production_order::ProductionOrder;
 pub use factory::Factory;
 
 //
-mod device;
+pub mod device;
 pub use device::monitor::DeviceMonitor;
 pub use device::Device;
 pub use device::DeviceInner;

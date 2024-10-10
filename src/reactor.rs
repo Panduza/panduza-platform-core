@@ -10,14 +10,13 @@ use crate::info::devices::ThreadSafeInfoDynamicDeviceStatus;
 use crate::MessageClient;
 use crate::{AttributeBuilder, Error, MessageDispatcher, MessageHandler, TaskResult, TaskSender};
 use chrono::prelude::*;
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use rumqttc::AsyncClient;
 use rumqttc::{MqttOptions, QoS};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
-
-use rand::distributions::{Alphanumeric, Distribution};
-use rand::Rng;
 
 struct PzaScanMessageHandler {
     message_client: MessageClient,
@@ -86,7 +85,7 @@ impl Reactor {
     }
 
     fn generate_random_string(length: usize) -> String {
-        let mut rng = rand::thread_rng();
+        let rng = rand::thread_rng();
         rng.sample_iter(Alphanumeric)
             .take(length)
             .map(|c| c as char)
@@ -97,7 +96,6 @@ impl Reactor {
         &mut self,
         mut main_task_sender: TaskSender<TaskResult>,
     ) -> Result<(), crate::Error> {
-        println!("ReactorCore is running");
         let mut mqttoptions = MqttOptions::new(
             format!("rumqtt-sync-{}", Self::generate_random_string(5)),
             "localhost",

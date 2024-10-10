@@ -65,7 +65,7 @@ macro_rules! plugin_interface {
             //
             //
             let mut runtime = Runtime::new(factory.unwrap(), reactor);
-            runtime.set_plugin("pza-plugin-fakes");
+            runtime.set_plugin($plg_name);
 
             //
             //
