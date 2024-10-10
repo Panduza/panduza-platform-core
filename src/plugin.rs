@@ -14,7 +14,10 @@ pub struct Plugin {
     ///
     pub name: *const i8,
     pub version: *const i8,
-    pub test: extern "C" fn(),
+
+    ///
+    /// Must be called to join the plugin thread
+    ///
     pub join: unsafe extern "C" fn(),
 
     ///
@@ -28,18 +31,12 @@ pub struct Plugin {
     /// Produce a device matching the given json string configuration
     ///
     pub produce: unsafe extern "C" fn(*const i8) -> u32,
-    //
-    //
-    // get_producers -> function to get producers
-    // produce -> function to create a new device
-    //
 }
 
 impl Plugin {
     pub fn new(
         name: &'static CStr,
         version: &CStr,
-        test: extern "C" fn(),
         join: unsafe extern "C" fn(),
         producer_refs: unsafe extern "C" fn() -> *const i8,
         produce: unsafe extern "C" fn(*const i8) -> u32,
@@ -47,7 +44,6 @@ impl Plugin {
         Plugin {
             name: name.as_ptr() as *const i8,
             version: version.as_ptr() as *const i8,
-            test: test,
             join: join,
             producer_refs: producer_refs,
             produce: produce,

@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! plugin_interface {
-    () => {
+    ($plg_name:literal) => {
         use std::ffi::CString;
         use std::{
             sync::{Arc, Mutex},
@@ -9,7 +9,8 @@ macro_rules! plugin_interface {
         };
 
         use panduza_platform_core::{
-            Factory, Plugin, Producer, ProductionOrder, Reactor, ReactorSettings, Runtime,
+            Factory, PlatformLogger, Plugin, Producer, ProductionOrder, Reactor, ReactorSettings,
+            Runtime,
         };
         use serde_json::Result;
         use serde_json::Value;
@@ -19,6 +20,16 @@ macro_rules! plugin_interface {
         /// True when the runtime has been initialized
         ///
         static mut RUNTIME_STARTED: bool = false;
+
+        ///
+        ///
+        ///
+        static mut LOGGER: Option<PlatformLogger> = None;
+
+        ///
+        ///
+        ///
+        static mut PLG_NAME: Option<CString> = None;
 
         static mut FACTORY: Option<Factory> = None;
 
@@ -42,10 +53,6 @@ macro_rules! plugin_interface {
             if RUNTIME_STARTED {
                 return;
             }
-
-            //
-            //
-            panduza_platform_core::log::init();
 
             //
             //
@@ -76,33 +83,23 @@ macro_rules! plugin_interface {
             RUNTIME_STARTED = true;
         }
 
-        pub extern "C" fn pok() {
-            println!("pooook");
-
-            unsafe {
-                start_runtime();
-            }
-
-            // handle.join().unwrap();
-        }
-
         pub unsafe extern "C" fn join() {
             THREAD_HANDLE.take().unwrap().join().unwrap();
         }
 
         pub unsafe extern "C" fn producer_refs() -> *const i8 {
-            println!("{:?}", FACTORY_PRODUCER_REFS);
+            LOGGER.as_ref().unwrap().trace(format!("producer_refs !"));
             FACTORY_PRODUCER_REFS.as_ref().unwrap().as_c_str().as_ptr()
         }
 
         pub unsafe extern "C" fn produce(str_production_order: *const i8) -> u32 {
+            LOGGER.as_ref().unwrap().trace("produce");
+
             //
             // Start runtime if not already
             start_runtime();
 
             let po = ProductionOrder::from_c_str_ptr(str_production_order).unwrap();
-            println!("{:?}", po);
-
             POS.as_mut().unwrap().try_send(po).unwrap();
 
             // Success
@@ -111,14 +108,24 @@ macro_rules! plugin_interface {
 
         #[no_mangle]
         pub unsafe extern "C" fn plugin_entry_point() -> Plugin {
+            //
+            //
+            PLG_NAME = Some(CString::new($plg_name).unwrap());
+
+            //
+            // Init logging system
+            panduza_platform_core::log::init();
+            let mut logger = PlatformLogger::new();
+            logger.set_plugin($plg_name);
+            logger.info("plugin_entry_point");
+            LOGGER = Some(logger);
+
             // if factory none
             // init factory
             let mut factory = Factory::new();
             factory.add_producers(plugin_producers());
             unsafe {
-                println!("{:?}", factory.producer_refs());
                 FACTORY_PRODUCER_REFS = Some(factory.producer_refs_as_c_string().unwrap());
-                println!("{:?}", FACTORY_PRODUCER_REFS);
                 FACTORY = Some(factory);
             }
 
@@ -127,10 +134,13 @@ macro_rules! plugin_interface {
 
             // build runtine
 
-            let p = Plugin::new(c"tok", c"v0.1", pok, join, producer_refs, produce);
-
-            // println!("pp {:?}", *(p.name) as u8);
-
+            let p = Plugin::new(
+                PLG_NAME.as_ref().unwrap().as_c_str(),
+                c"v0.1",
+                join,
+                producer_refs,
+                produce,
+            );
             return p;
         }
     };

@@ -22,7 +22,7 @@ impl GenericLogger {
             i1: i1.into(),
             i2: i2.into(),
             i3: i3.into(),
-            plugin: String::new()
+            plugin: String::new(),
         };
     }
 
@@ -121,7 +121,6 @@ impl RuntimeLogger {
     }
 }
 
-
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -148,8 +147,16 @@ impl PlatformLogger {
     pub fn debug<A: Into<String>>(&self, text: A) {
         self.base.debug(text);
     }
+    pub fn trace<A: Into<String>>(&self, text: A) {
+        self.base.trace(text);
+    }
+    pub fn set_plugin<A: Into<String>>(&mut self, text: A) {
+        self.base.plugin = text.into();
+    }
+    pub fn get_plugin(&self) -> String {
+        self.base.plugin.clone()
+    }
 }
-
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------

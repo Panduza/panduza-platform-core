@@ -104,15 +104,17 @@ where
             match plugin_opt {
                 Some(plugin_name) => {
                     if plugin_name.trim_matches('"').is_empty() {
-
-                    }
-                    else {
-                        write!(&mut writer, "{}", 
+                    } else {
+                        write!(
+                            &mut writer,
+                            "{}",
                             format!("> {} ", plugin_name.trim_matches('"'))
-                        .to_string().yellow()) ?;
+                                .to_string()
+                                .blue()
+                        )?;
                     }
-                },
-                None =>{},
+                }
+                None => {}
             }
 
             // Display class
@@ -179,7 +181,7 @@ where
             // } else {
             //     // Level
             //     if cfg!(feature = "log") {
-                    return write_log_message(metadata, writer, res);
+            return write_log_message(metadata, writer, res);
             //     }
             // }
         }
