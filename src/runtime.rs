@@ -10,9 +10,9 @@ use std::{
     },
     time::Duration,
 };
-use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::mpsc::Sender;
+use tokio::sync::{mpsc::channel, Notify};
 use tokio::task::JoinSet;
 
 ///
@@ -40,8 +40,11 @@ pub struct Runtime {
     ///
     reactor: Reactor,
     ///
-    ///
+    /// Flag to know if we the runtime must continue its work
     keep_alive: Arc<AtomicBool>,
+    ///
+    /// Flag to know alert the platform, it must stop
+    must_stop: Arc<AtomicBool>,
     ///
     /// Pool
     task_pool: JoinSet<TaskResult>,
@@ -51,6 +54,11 @@ pub struct Runtime {
     ///
     /// Receiver, catch task request and start them inside this runtime
     task_receiver: Option<TaskReceiver<TaskResult>>,
+    ///
+    /// Notify when a new task has been loaded
+    ///
+    new_task_notifier: Arc<Notify>,
+
     ///
     /// Sender, allow a sub function to request a register a production order
     production_order_sender: Sender<ProductionOrder>,
@@ -70,9 +78,11 @@ impl Runtime {
             factory: factory,
             reactor: reactor,
             keep_alive: Arc::new(AtomicBool::new(true)),
+            must_stop: Arc::new(AtomicBool::new(false)),
             task_pool: JoinSet::new(),
             task_sender: t_tx.clone(),
             task_receiver: Some(t_rx),
+            new_task_notifier: Arc::new(Notify::new()),
             production_order_sender: po_tx.clone(),
             production_order_receiver: Some(po_rx),
         }
@@ -134,9 +144,10 @@ impl Runtime {
                     // Function to effectily spawn tasks requested by the system
                     let ah = self.task_pool.spawn(task.unwrap());
                     self.logger.info(format!( "New device task created ! [{:?}]", ah ));
+                    self.new_task_notifier.notify_waiters();
                 },
                 production_order = p_order_receiver.recv() => {
-                    tokio::time::sleep(Duration::from_secs(5)).await;
+
                     self.logger.debug(format!( "PROD REQUEST ! [{:?}]", production_order ));
 
                     // let mut production_order = ProductionOrder::new("panduza.picoha-dio", "testdevice");
@@ -169,9 +180,15 @@ impl Runtime {
                         .unwrap();
 
                 },
-                _ = self.end_of_all_tasks() => {
-                    self.logger.warn("All tasks completed");
-                    tokio::time::sleep(Duration::from_secs(2)).await;
+                //
+                // task to create monitor plugin manager notifications
+                //
+                continue_running = self.end_of_all_tasks() => {
+                    //
+                    // Manage platform end
+                    if !continue_running {
+                        break;
+                    }
                 }
             }
         }
@@ -187,7 +204,7 @@ impl Runtime {
 
     /// Wait for all tasks to complete
     ///
-    async fn end_of_all_tasks(&mut self) {
+    async fn end_of_all_tasks(&mut self) -> bool {
         //
         // Make tasks run
         while let Some(join_result) = self.task_pool.join_next().await {
@@ -204,6 +221,21 @@ impl Runtime {
                 Err(e) => {
                     self.logger.error(format!("Task join_next error: {:?}", e));
                 }
+            }
+        }
+        //
+        // Reaching here means that there is no task anymore
+        self.logger.warn("All tasks completed");
+        match self.must_stop.load(Ordering::Relaxed) {
+            true => {
+                // No task and stop request => quit this loop
+                false
+            }
+            false => {
+                // Wait for an other task to be loaded
+                self.logger.warn("Wait for new tasks");
+                self.new_task_notifier.notified().await;
+                true
             }
         }
     }

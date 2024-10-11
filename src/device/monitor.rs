@@ -80,8 +80,8 @@ impl DeviceMonitor {
 
                 task = subtask_receiver_clone_lock.rx.recv() => {
                     // Function to effectily spawn tasks requested by the system
-                    let ah = self.subtask_pool.spawn(task.unwrap());
-                    println!("New task created ! [{:?}]", ah );
+                    let _ah = self.subtask_pool.spawn(task.unwrap());
+                    // println!("New task created ! [{:?}]", ah );
                     subtask_pool_not_empty_notifier_clone.notify_one();
                 },
                 _ = self.end_of_all_tasks() => {
