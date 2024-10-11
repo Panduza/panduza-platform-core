@@ -3,13 +3,14 @@
 // and to run the task monitoring
 
 use crate::task_channel::create_task_channel;
-use crate::{Error, InfoPack, ProductionOrder};
+use crate::{Error, InfoPack, Notification, ProductionOrder};
 use std::sync::Arc;
 
 use super::Device;
 use crate::{DeviceOperations, Reactor, TaskReceiver};
 use std::time::Duration;
 
+use tokio::sync::mpsc::Sender;
 use tokio::sync::Notify;
 use tokio::time::sleep;
 use tokio::{sync::Mutex, task::JoinSet};
@@ -37,7 +38,7 @@ impl DeviceMonitor {
     /// Constructor
     pub fn new(
         reactor: Reactor,
-        info_pack: Option<InfoPack>,
+        r_notifier: Option<Sender<Notification>>,
         operations: Box<dyn DeviceOperations>,
         production_order: ProductionOrder,
     ) -> (DeviceMonitor, Device) {
@@ -52,7 +53,7 @@ impl DeviceMonitor {
         // Create the device object
         let device = Device::new(
             reactor.clone(),
-            info_pack,
+            r_notifier,
             task_tx,
             name,
             operations,

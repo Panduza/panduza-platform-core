@@ -1,13 +1,13 @@
 mod inner;
 
 use std::{fmt::Display, future::Future, sync::Arc};
-use tokio::sync::Notify;
+use tokio::sync::{mpsc::Sender, Notify};
 
 pub use inner::DeviceInner;
 
 use crate::{
     info::devices::InfoDynamicDeviceStatus, reactor::Reactor, AttributeBuilder, DeviceLogger,
-    DeviceOperations, DeviceSettings, Error, InfoPack, TaskResult, TaskSender,
+    DeviceOperations, DeviceSettings, Error, InfoPack, Notification, TaskResult, TaskSender,
 };
 
 use tokio::sync::Mutex;
@@ -57,13 +57,14 @@ pub struct Device {
     ///
     reactor: Reactor,
 
-    // Object to provide data to the info device
-    /// Main pack
-    info_pack: Option<InfoPack>,
+    // // Object to provide data to the info device
+    // /// Main pack
+    // info_pack: Option<InfoPack>,
 
-    ///
-    /// Device must share its status with the device "_" through this info object
-    info_dyn_dev_status: Option<Arc<Mutex<InfoDynamicDeviceStatus>>>,
+    // ///
+    // /// Device must share its status with the device "_" through this info object
+    // info_dyn_dev_status: Option<Arc<Mutex<InfoDynamicDeviceStatus>>>,
+    pub r_notifier: Option<Sender<Notification>>,
 
     // started: bool,
     /// Inner object
@@ -93,7 +94,7 @@ impl Device {
     ///
     pub fn new(
         reactor: Reactor,
-        info_pack: Option<InfoPack>,
+        r_notifier: Option<Sender<Notification>>,
         spawner: TaskSender<Result<(), Error>>,
         name: String,
         operations: Box<dyn DeviceOperations>,
@@ -103,8 +104,9 @@ impl Device {
         Device {
             logger: DeviceLogger::new(name.clone()),
             reactor: reactor.clone(),
-            info_pack: info_pack,
-            info_dyn_dev_status: None,
+            // info_pack: info_pack,
+            // info_dyn_dev_status: None,
+            r_notifier: r_notifier,
             inner: DeviceInner::new(reactor.clone(), settings).into(),
             inner_operations: Arc::new(Mutex::new(operations)),
             topic: format!("{}/{}", reactor.root_topic(), name),
@@ -141,7 +143,7 @@ impl Device {
         InterfaceBuilder::new(
             self.reactor.clone(),
             self.clone(),
-            self.info_dyn_dev_status.clone(),
+            // self.info_dyn_dev_status.clone(),
             format!("{}/{}", self.topic, name.into()), // take the device topic as root
         )
     }
@@ -151,7 +153,7 @@ impl Device {
     ///
     pub fn create_attribute<N: Into<String>>(&mut self, name: N) -> AttributeBuilder {
         self.reactor
-            .create_new_attribute(self.info_dyn_dev_status.clone())
+            .create_new_attribute(self.r_notifier.clone())
             .with_topic(format!("{}/{}", self.topic, name.into())) // take the device topic as root
     }
 
@@ -179,13 +181,13 @@ impl Device {
             // Perform state task
             match stateee {
                 State::Booting => {
-                    if let Some(mut info_pack) = self.info_pack.clone() {
-                        self.logger.debug("FSM try to add_deivce in info pack");
-                        self.info_dyn_dev_status = Some(info_pack.add_device(self.name()).await);
-                        self.logger.debug("FSM finish info pack");
-                    } else {
-                        self.logger.debug("FSM NO INFO PACK !");
-                    }
+                    // if let Some(mut info_pack) = self.info_pack.clone() {
+                    //     self.logger.debug("FSM try to add_deivce in info pack");
+                    //     self.info_dyn_dev_status = Some(info_pack.add_device(self.name()).await);
+                    //     self.logger.debug("FSM finish info pack");
+                    // } else {
+                    //     self.logger.debug("FSM NO INFO PACK !");
+                    // }
                     self.move_to_state(State::Initializating).await;
                 }
                 State::Connecting => {} // wait for reactor signal
@@ -249,8 +251,8 @@ impl Device {
         *self.state.lock().await = new_state.clone();
 
         // Alert monitoring device "_"
-        if let Some(sts) = &mut self.info_dyn_dev_status {
-            sts.lock().await.change_state(new_state.clone());
+        if let Some(r_notifier) = &mut self.r_notifier {
+            // sts.lock().await.change_state(new_state.clone());
         }
 
         // Notify FSM

@@ -1,5 +1,10 @@
 pub mod production_order;
-use crate::{Device, DeviceMonitor, FactoryLogger, InfoPack, Producer, ProductionOrder, Reactor};
+use tokio::sync::mpsc::Sender;
+
+use crate::{
+    Device, DeviceMonitor, FactoryLogger, InfoPack, Notification, Producer, ProductionOrder,
+    Reactor,
+};
 use std::{collections::HashMap, ffi::CString};
 
 /// Factory to create devices from a configuration json
@@ -76,7 +81,7 @@ impl Factory {
     pub fn produce(
         &self,
         reactor: Reactor,
-        info_pack: Option<InfoPack>,
+        r_notifier: Option<Sender<Notification>>,
         production_order: ProductionOrder,
     ) -> (DeviceMonitor, Device) {
         let producer = self.producers.get(production_order.dref()).unwrap();
@@ -86,7 +91,7 @@ impl Factory {
 
         DeviceMonitor::new(
             reactor.clone(),
-            info_pack,
+            r_notifier,
             device_operations,
             production_order,
         )

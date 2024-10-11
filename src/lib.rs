@@ -84,3 +84,5 @@ pub use runtime::Runtime;
 pub mod log;
 
 pub mod env;
+
+pub use runtime::notification::Notification;

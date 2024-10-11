@@ -5,10 +5,11 @@ use futures::FutureExt;
 pub use settings::ReactorSettings;
 mod message_engine;
 use message_engine::MessageEngine;
+use tokio::sync::mpsc::Sender;
 pub mod message_dispatcher;
 use crate::info::devices::ThreadSafeInfoDynamicDeviceStatus;
-use crate::MessageClient;
 use crate::{AttributeBuilder, Error, MessageDispatcher, MessageHandler, TaskResult, TaskSender};
+use crate::{MessageClient, Notification};
 use chrono::prelude::*;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
@@ -141,12 +142,13 @@ impl Reactor {
 
     pub fn create_new_attribute(
         &self,
-        device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
+        // device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
+        r_notifier: Option<Sender<Notification>>,
     ) -> AttributeBuilder {
         AttributeBuilder::new(
             self.message_client.as_ref().unwrap().clone(),
             Arc::downgrade(&self.message_dispatcher),
-            device_dyn_info,
+            r_notifier,
         )
     }
 

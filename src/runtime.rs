@@ -1,14 +1,13 @@
+pub mod notification;
 use crate::{
     task_channel::create_task_channel, Factory, ProductionOrder, Reactor, RuntimeLogger,
     TaskReceiver, TaskResult, TaskSender,
 };
 use futures::FutureExt;
-use std::{
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
-    time::Duration,
+use notification::Notification;
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
 };
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::mpsc::Sender;
@@ -24,6 +23,11 @@ static TASK_CHANNEL_SIZE: usize = 64;
 ///
 ///
 static PROD_ORDER_CHANNEL_SIZE: usize = 64;
+
+///
+///
+///
+static NOTIFICATION_CHANNEL_SIZE: usize = 512;
 
 ///
 /// Provide a way to run and managed a pack of devices
@@ -64,6 +68,16 @@ pub struct Runtime {
     production_order_sender: Sender<ProductionOrder>,
     /// Sender, allow a sub function to request a register a production order
     production_order_receiver: Option<Receiver<ProductionOrder>>,
+
+    ///
+    /// Notifications that comes from devices
+    /// They will help the underscore device to give informations to the user
+    ///
+    notifications: Vec<Notification>,
+    ///
+    notification_sender: Sender<Notification>,
+    ///
+    notification_receiver: Option<Receiver<Notification>>,
 }
 
 impl Runtime {
@@ -73,6 +87,8 @@ impl Runtime {
     pub fn new(factory: Factory, reactor: Reactor) -> Self {
         let (t_tx, t_rx) = create_task_channel::<TaskResult>(TASK_CHANNEL_SIZE);
         let (po_tx, po_rx) = channel::<ProductionOrder>(PROD_ORDER_CHANNEL_SIZE);
+        let (not_tx, not_rx) = channel::<Notification>(NOTIFICATION_CHANNEL_SIZE);
+
         Self {
             logger: RuntimeLogger::new(),
             factory: factory,
@@ -85,6 +101,9 @@ impl Runtime {
             new_task_notifier: Arc::new(Notify::new()),
             production_order_sender: po_tx.clone(),
             production_order_receiver: Some(po_rx),
+            notifications: Vec::new(),
+            notification_sender: not_tx.clone(),
+            notification_receiver: Some(not_rx),
         }
     }
 
