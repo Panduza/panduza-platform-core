@@ -156,6 +156,15 @@ impl Runtime {
                 ))?;
 
         //
+        // Remove production order receiver from self
+        let mut notification_receiver =
+            self.notification_receiver
+                .take()
+                .ok_or(crate::Error::InternalLogic(
+                    "Object 'notification_receiver' is 'None'".to_string(),
+                ))?;
+
+        //
         while self.keep_alive.load(Ordering::Relaxed) {
             tokio::select! {
                 task = task_receiver.rx.recv() => {
@@ -172,7 +181,7 @@ impl Runtime {
                     // production_order.device_settings = json!({});
                     let (mut monitor, mut dev) =
                         self.factory
-                            .produce(self.reactor.clone(), None, production_order.unwrap());
+                            .produce(self.reactor.clone(), Some(self.notification_sender.clone()), production_order.unwrap());
 
                     dev.set_plugin(self.logger.get_plugin());
 
@@ -197,6 +206,12 @@ impl Runtime {
                         )
                         .unwrap();
 
+                },
+                notif = notification_receiver.recv() => {
+
+                    // self.logger.trace(format!( "NOTIF [{:?}]", notif ));
+
+                    self.notifications.push(notif.unwrap());
                 },
                 //
                 // task to create monitor plugin manager notifications

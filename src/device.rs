@@ -1,4 +1,5 @@
 mod inner;
+use crate::notification::StateNotification;
 use crate::InterfaceBuilder;
 use crate::{
     reactor::Reactor, AttributeBuilder, DeviceLogger, DeviceOperations, DeviceSettings, Error,
@@ -247,8 +248,18 @@ impl Device {
 
         // Alert monitoring device "_"
         if let Some(r_notifier) = &mut self.r_notifier {
+            r_notifier
+                .try_send(Notification::StateChanged(StateNotification::new()))
+                .unwrap();
             // sts.lock().await.change_state(new_state.clone());
+
+            // self.logger
+            //     .debug("!!!!!!! DEBUG !!!!!!! r_notifier send 'StateNotification'");
         }
+        // else {
+        //     self.logger
+        //         .debug("!!!!!!! DEBUG !!!!!!! r_notifier is 'None'");
+        // }
 
         // Notify FSM
         self.state_change_notifier.notify_one();

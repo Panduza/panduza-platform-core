@@ -113,6 +113,9 @@ impl RuntimeLogger {
     pub fn debug<A: Into<String>>(&self, text: A) {
         self.base.debug(text);
     }
+    pub fn trace<A: Into<String>>(&self, text: A) {
+        self.base.trace(text);
+    }
     pub fn set_plugin<A: Into<String>>(&mut self, text: A) {
         self.base.plugin = text.into();
     }

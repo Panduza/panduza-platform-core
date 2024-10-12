@@ -1,4 +1,4 @@
-use crate::Notification;
+use crate::{notification::structural::attribute::AttributeMode, Notification};
 use std::sync::Weak;
 
 use tokio::sync::mpsc::Sender;
@@ -90,22 +90,17 @@ impl CmdOnlyMsgAttBuilder {
     pub async fn finish_with_codec<TYPE: MessageCodec>(self) -> CmdOnlyMsgAtt<TYPE> {
         //
         //
-        let bis1 = self.base.topic.clone().unwrap();
+
         let bis = self.base.topic.clone().unwrap();
-        let name = bis.split('/').last().unwrap();
+
         if let Some(r_notifier) = self.base.r_notifier.clone() {
-            // device_dyn_info
-            //     .lock()
-            //     .await
-            //     .structure_insert(
-            //         bis1.clone(),
-            //         StructuralElement::Attribute(ElementAttribute::new(
-            //             name.to_string(),
-            //             TYPE::typee(),
-            //             AttributeMode::AttOnly,
-            //         )),
-            //     )
-            //     .unwrap();
+            r_notifier
+                .try_send(Notification::new_attribute_element_created_notificationnew(
+                    bis,
+                    TYPE::typee(),
+                    AttributeMode::CmdOnly,
+                ))
+                .unwrap();
         }
 
         CmdOnlyMsgAtt::from(self.base).init().await.unwrap()
@@ -125,22 +120,15 @@ impl BidirMsgAttBuilder {
     pub async fn finish_with_codec<TYPE: MessageCodec>(self) -> BidirMsgAtt<TYPE> {
         //
         //
-        let bis1 = self.base.topic.clone().unwrap();
         let bis = self.base.topic.clone().unwrap();
-        let name = bis.split('/').last().unwrap();
         if let Some(r_notifier) = self.base.r_notifier.clone() {
-            // device_dyn_info
-            //     .lock()
-            //     .await
-            //     .structure_insert(
-            //         bis1.clone(),
-            //         StructuralElement::Attribute(ElementAttribute::new(
-            //             name.to_string(),
-            //             TYPE::typee(),
-            //             AttributeMode::AttOnly,
-            //         )),
-            //     )
-            //     .unwrap();
+            r_notifier
+                .try_send(Notification::new_attribute_element_created_notificationnew(
+                    bis,
+                    TYPE::typee(),
+                    AttributeMode::Bidir,
+                ))
+                .unwrap();
         }
 
         BidirMsgAtt::from(self.base)
@@ -166,22 +154,15 @@ impl AttOnlyMsgBuilder {
     pub async fn finish_with_codec<TYPE: MessageCodec>(self) -> AttOnlyMsgAtt<TYPE> {
         //
         //
-        let bis1 = self.base.topic.clone().unwrap();
         let bis = self.base.topic.clone().unwrap();
-        let name = bis.split('/').last().unwrap();
         if let Some(r_notifier) = self.base.r_notifier.clone() {
-            // device_dyn_info
-            //     .lock()
-            //     .await
-            //     .structure_insert(
-            //         bis1.clone(),
-            //         StructuralElement::Attribute(ElementAttribute::new(
-            //             name.to_string(),
-            //             TYPE::typee(),
-            //             AttributeMode::AttOnly,
-            //         )),
-            //     )
-            //     .unwrap();
+            r_notifier
+                .try_send(Notification::new_attribute_element_created_notificationnew(
+                    bis,
+                    TYPE::typee(),
+                    AttributeMode::AttOnly,
+                ))
+                .unwrap();
         }
 
         AttOnlyMsgAtt::from(self.base)

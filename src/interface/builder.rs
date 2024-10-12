@@ -44,26 +44,15 @@ impl InterfaceBuilder {
     ///
     ///
     ///
-    pub async fn finish(self) -> Interface {
+    pub fn finish(self) -> Interface {
         let bis = self.topic.clone();
-        let name = bis.split('/').last().unwrap();
         if let Some(r_notifier) = self.device.r_notifier.clone() {
-
-            // ElementCreated(ElementNotification),
-            // full topic
-            // interface or attribute
-
-            // device_dyn_info
-            //     .lock()
-            //     .await
-            //     .structure_insert(
-            //         self.topic.clone(),
-            //         StructuralElement::Interface(ElementInterface::new(
-            //             name.to_string(),
-            //             self.tags.clone(),
-            //         )),
-            //     )
-            //     .unwrap();
+            r_notifier
+                .try_send(Notification::new_interface_element_created_notification(
+                    bis,
+                    self.tags.clone(),
+                ))
+                .unwrap();
         }
         // insert in status
         Interface::from(self)

@@ -31,6 +31,12 @@ pub struct Plugin {
     /// Produce a device matching the given json string configuration
     ///
     pub produce: unsafe extern "C" fn(*const i8) -> u32,
+
+    ///
+    /// Return the notifications
+    ///
+    ///
+    pub pull_notifications: unsafe extern "C" fn() -> *const i8,
 }
 
 impl Plugin {
@@ -40,6 +46,7 @@ impl Plugin {
         join: unsafe extern "C" fn(),
         producer_refs: unsafe extern "C" fn() -> *const i8,
         produce: unsafe extern "C" fn(*const i8) -> u32,
+        pull_notifications: unsafe extern "C" fn() -> *const i8,
     ) -> Self {
         Plugin {
             name: name.as_ptr() as *const i8,
@@ -47,6 +54,7 @@ impl Plugin {
             join: join,
             producer_refs: producer_refs,
             produce: produce,
+            pull_notifications: pull_notifications,
         }
     }
 

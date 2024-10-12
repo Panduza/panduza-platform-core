@@ -106,6 +106,19 @@ macro_rules! plugin_interface {
             0
         }
 
+        ///
+        /// Pull notifications from the runtime
+        ///
+        pub unsafe extern "C" fn pull_notifications() -> *const i8 {
+
+            // pull notigs from runtime
+            // store them in static obj as serailed obj
+            // return the pointer
+
+            // LOGGER.as_ref().unwrap().trace(format!("producer_refs !"));
+            // FACTORY_PRODUCER_REFS.as_ref().unwrap().as_c_str().as_ptr()
+        }
+
         #[no_mangle]
         pub unsafe extern "C" fn plugin_entry_point() -> Plugin {
             //
@@ -140,6 +153,7 @@ macro_rules! plugin_interface {
                 join,
                 producer_refs,
                 produce,
+                pull_notifications,
             );
             return p;
         }

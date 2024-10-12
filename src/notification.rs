@@ -4,8 +4,8 @@ pub mod state;
 pub mod structural;
 
 pub use state::StateNotification;
-use structural::InterfaceNotification;
 pub use structural::StructuralNotification;
+use structural::{attribute::AttributeMode, AttributeNotification, InterfaceNotification};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Notification {
@@ -15,16 +15,35 @@ pub enum Notification {
 }
 
 impl Notification {
+    ///
+    ///
+    ///
     pub fn new_state_changed_notification() -> Notification {
         Notification::StateChanged(StateNotification::new())
     }
 
+    ///
+    ///
+    ///
     pub fn new_interface_element_created_notification<N: Into<String>>(
         topic: N,
         tags: Vec<String>,
     ) -> Notification {
         Notification::ElementCreated(StructuralNotification::Interface(
             InterfaceNotification::new(topic, tags),
+        ))
+    }
+
+    ///
+    ///
+    ///
+    pub fn new_attribute_element_created_notificationnew<N: Into<String>, T: Into<String>>(
+        topic: N,
+        typee: T,
+        mode: AttributeMode,
+    ) -> Notification {
+        Notification::ElementCreated(StructuralNotification::Attribute(
+            AttributeNotification::new(topic, typee, mode),
         ))
     }
 }
