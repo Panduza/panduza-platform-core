@@ -1,19 +1,14 @@
 mod inner;
-
-use std::{fmt::Display, future::Future, sync::Arc};
-use tokio::sync::{mpsc::Sender, Notify};
-
-pub use inner::DeviceInner;
-
-use crate::{
-    info::devices::InfoDynamicDeviceStatus, reactor::Reactor, AttributeBuilder, DeviceLogger,
-    DeviceOperations, DeviceSettings, Error, InfoPack, Notification, TaskResult, TaskSender,
-};
-
-use tokio::sync::Mutex;
-
 use crate::InterfaceBuilder;
+use crate::{
+    reactor::Reactor, AttributeBuilder, DeviceLogger, DeviceOperations, DeviceSettings, Error,
+    Notification, TaskResult, TaskSender,
+};
 use futures::FutureExt;
+pub use inner::DeviceInner;
+use std::{fmt::Display, future::Future, sync::Arc};
+use tokio::sync::Mutex;
+use tokio::sync::{mpsc::Sender, Notify};
 pub mod monitor;
 
 /// States of the main Interface FSM

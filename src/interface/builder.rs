@@ -1,9 +1,7 @@
 use super::Interface;
-use crate::info::devices::ElementInterface;
-use crate::info::devices::StructuralElement;
 use crate::Device;
 use crate::Notification;
-use crate::{info::devices::ThreadSafeInfoDynamicDeviceStatus, Reactor};
+use crate::Reactor;
 use tokio::sync::mpsc::Sender;
 
 pub struct InterfaceBuilder {
@@ -50,6 +48,11 @@ impl InterfaceBuilder {
         let bis = self.topic.clone();
         let name = bis.split('/').last().unwrap();
         if let Some(r_notifier) = self.device.r_notifier.clone() {
+
+            // ElementCreated(ElementNotification),
+            // full topic
+            // interface or attribute
+
             // device_dyn_info
             //     .lock()
             //     .await

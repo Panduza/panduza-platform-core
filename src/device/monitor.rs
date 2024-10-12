@@ -3,7 +3,7 @@
 // and to run the task monitoring
 
 use crate::task_channel::create_task_channel;
-use crate::{Error, InfoPack, Notification, ProductionOrder};
+use crate::{Error, Notification, ProductionOrder};
 use std::sync::Arc;
 
 use super::Device;

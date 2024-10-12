@@ -1,10 +1,9 @@
-pub mod notification;
+use crate::Notification;
 use crate::{
     task_channel::create_task_channel, Factory, ProductionOrder, Reactor, RuntimeLogger,
     TaskReceiver, TaskResult, TaskSender,
 };
 use futures::FutureExt;
-use notification::Notification;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,

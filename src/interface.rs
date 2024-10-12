@@ -1,7 +1,4 @@
-use crate::{
-    info::devices::ThreadSafeInfoDynamicDeviceStatus, AttributeBuilder, Device, InterfaceBuilder,
-    Reactor,
-};
+use crate::{AttributeBuilder, Device, InterfaceBuilder, Reactor};
 
 pub mod builder;
 

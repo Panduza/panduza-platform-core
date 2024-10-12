@@ -7,7 +7,6 @@ mod message_engine;
 use message_engine::MessageEngine;
 use tokio::sync::mpsc::Sender;
 pub mod message_dispatcher;
-use crate::info::devices::ThreadSafeInfoDynamicDeviceStatus;
 use crate::{AttributeBuilder, Error, MessageDispatcher, MessageHandler, TaskResult, TaskSender};
 use crate::{MessageClient, Notification};
 use chrono::prelude::*;

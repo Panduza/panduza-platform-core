@@ -2,8 +2,7 @@ pub mod production_order;
 use tokio::sync::mpsc::Sender;
 
 use crate::{
-    Device, DeviceMonitor, FactoryLogger, InfoPack, Notification, Producer, ProductionOrder,
-    Reactor,
+    Device, DeviceMonitor, FactoryLogger, Notification, Producer, ProductionOrder, Reactor,
 };
 use std::{collections::HashMap, ffi::CString};
 

@@ -53,10 +53,6 @@ pub use reactor::Reactor;
 pub type MessageClient = rumqttc::AsyncClient;
 
 //
-mod info;
-pub use info::pack::InfoPack;
-
-//
 mod codec;
 pub use codec::boolean::BooleanCodec;
 pub use codec::json::JsonCodec;
@@ -85,4 +81,5 @@ pub mod log;
 
 pub mod env;
 
-pub use runtime::notification::Notification;
+mod notification;
+pub use notification::Notification;

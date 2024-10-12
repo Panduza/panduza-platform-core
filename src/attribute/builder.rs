@@ -1,15 +1,10 @@
-use crate::info::devices::AttributeMode;
-use crate::info::devices::StructuralElement;
 use crate::Notification;
 use std::sync::Weak;
 
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
 
-use crate::{
-    info::devices::{ElementAttribute, ThreadSafeInfoDynamicDeviceStatus},
-    BidirMsgAtt, MessageClient, MessageCodec, MessageDispatcher,
-};
+use crate::{BidirMsgAtt, MessageClient, MessageCodec, MessageDispatcher};
 
 use super::{att_only_msg_att::AttOnlyMsgAtt, cmd_only_msg_att::CmdOnlyMsgAtt};
 
