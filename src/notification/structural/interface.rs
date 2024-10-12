@@ -2,18 +2,24 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 ///
-///
+/// Notification about interface creation
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InterfaceNotification {
-    name: String,
-    tags: Vec<String>,
+    ///
+    /// Interface topic with name as last layer
+    ///
+    pub topic: String,
+    ///
+    /// Interfaces tags
+    ///
+    pub tags: Vec<String>,
 }
 
 impl InterfaceNotification {
-    pub fn new<N: Into<String>>(name: N, tags: Vec<String>) -> Self {
+    pub fn new<N: Into<String>>(topic: N, tags: Vec<String>) -> Self {
         Self {
-            name: name.into(),
+            topic: topic.into(),
             tags,
         }
     }
@@ -51,14 +57,4 @@ impl InterfaceNotification {
     //     //     return sublayer.is_element_exist(new_la);
     //     // }
     // }
-
-    ///
-    pub fn tags(&self) -> &Vec<String> {
-        &self.tags
-    }
-
-    ///
-    pub fn name(&self) -> &String {
-        &self.name
-    }
 }
