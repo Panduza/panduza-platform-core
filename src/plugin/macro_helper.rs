@@ -1,19 +1,19 @@
 #[macro_export]
 macro_rules! plugin_interface {
     ($plg_name:literal) => {
-        use std::ffi::CString;
-        use std::{
-            sync::{Arc, Mutex},
-            thread::{self, JoinHandle},
-            time::Duration,
-        };
-
+        use panduza_platform_core::NotificationGroup;
         use panduza_platform_core::{
             Factory, PlatformLogger, Plugin, Producer, ProductionOrder, Reactor, ReactorSettings,
             Runtime,
         };
         use serde_json::Result;
         use serde_json::Value;
+        use std::ffi::CString;
+        use std::{
+            sync::{Arc, Mutex},
+            thread::{self, JoinHandle},
+            time::Duration,
+        };
         use tokio::time::sleep;
 
         ///
@@ -30,6 +30,12 @@ macro_rules! plugin_interface {
         ///
         ///
         static mut PLG_NAME: Option<CString> = None;
+
+        ///
+        ///
+        ///
+        static mut RUNTIME_NOTIFICATIONS_GROUP: Option<Arc<std::sync::Mutex<NotificationGroup>>> =
+            None;
 
         static mut FACTORY: Option<Factory> = None;
 
@@ -66,6 +72,7 @@ macro_rules! plugin_interface {
             //
             let mut runtime = Runtime::new(factory.unwrap(), reactor);
             runtime.set_plugin($plg_name);
+            RUNTIME_NOTIFICATIONS_GROUP = Some(runtime.clone_notifications());
 
             //
             //
@@ -110,13 +117,12 @@ macro_rules! plugin_interface {
         /// Pull notifications from the runtime
         ///
         pub unsafe extern "C" fn pull_notifications() -> *const i8 {
-
-            // pull notigs from runtime
-            // store them in static obj as serailed obj
-            // return the pointer
-
-            // LOGGER.as_ref().unwrap().trace(format!("producer_refs !"));
-            // FACTORY_PRODUCER_REFS.as_ref().unwrap().as_c_str().as_ptr()
+            return RUNTIME_NOTIFICATIONS_GROUP
+                .as_ref()
+                .unwrap()
+                .lock()
+                .unwrap()
+                .pull_and_serialize();
         }
 
         #[no_mangle]

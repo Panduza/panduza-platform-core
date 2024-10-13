@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+pub mod group;
 pub mod state;
 pub mod structural;
 

@@ -82,4 +82,5 @@ pub mod log;
 pub mod env;
 
 mod notification;
+pub use notification::group::NotificationGroup;
 pub use notification::Notification;

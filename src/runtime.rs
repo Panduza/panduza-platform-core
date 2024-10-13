@@ -1,8 +1,9 @@
-use crate::Notification;
 use crate::{
     task_channel::create_task_channel, Factory, ProductionOrder, Reactor, RuntimeLogger,
     TaskReceiver, TaskResult, TaskSender,
 };
+use crate::{Notification, NotificationGroup};
+use futures::lock::Mutex;
 use futures::FutureExt;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -72,7 +73,7 @@ pub struct Runtime {
     /// Notifications that comes from devices
     /// They will help the underscore device to give informations to the user
     ///
-    notifications: Vec<Notification>,
+    notifications: Arc<std::sync::Mutex<NotificationGroup>>,
     ///
     notification_sender: Sender<Notification>,
     ///
@@ -100,7 +101,7 @@ impl Runtime {
             new_task_notifier: Arc::new(Notify::new()),
             production_order_sender: po_tx.clone(),
             production_order_receiver: Some(po_rx),
-            notifications: Vec::new(),
+            notifications: Arc::new(std::sync::Mutex::new(NotificationGroup::new())),
             notification_sender: not_tx.clone(),
             notification_receiver: Some(not_rx),
         }
@@ -125,6 +126,13 @@ impl Runtime {
     ///
     pub fn clone_production_order_sender(&self) -> Sender<ProductionOrder> {
         self.production_order_sender.clone()
+    }
+
+    ///
+    ///
+    ///
+    pub fn clone_notifications(&self) -> Arc<std::sync::Mutex<NotificationGroup>> {
+        self.notifications.clone()
     }
 
     ///
@@ -211,7 +219,7 @@ impl Runtime {
 
                     // self.logger.trace(format!( "NOTIF [{:?}]", notif ));
 
-                    self.notifications.push(notif.unwrap());
+                    self.notifications.lock().unwrap().push(notif.unwrap());
                 },
                 //
                 // task to create monitor plugin manager notifications
