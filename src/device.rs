@@ -1,19 +1,15 @@
 mod inner;
-
-use std::{fmt::Display, future::Future, sync::Arc};
-use tokio::sync::Notify;
-
-pub use inner::DeviceInner;
-
-use crate::{
-    info::devices::InfoDynamicDeviceStatus, reactor::Reactor, AttributeBuilder, DeviceLogger,
-    DeviceOperations, DeviceSettings, Error, InfoPack, TaskResult, TaskSender,
-};
-
-use tokio::sync::Mutex;
-
+use crate::notification::StateNotification;
 use crate::InterfaceBuilder;
+use crate::{
+    reactor::Reactor, AttributeBuilder, DeviceLogger, DeviceOperations, DeviceSettings, Error,
+    Notification, TaskResult, TaskSender,
+};
 use futures::FutureExt;
+pub use inner::DeviceInner;
+use std::{fmt::Display, future::Future, sync::Arc};
+use tokio::sync::Mutex;
+use tokio::sync::{mpsc::Sender, Notify};
 pub mod monitor;
 
 /// States of the main Interface FSM
@@ -54,16 +50,17 @@ pub struct Device {
 
     ///
     /// Manage all MQTT communications
-    /// 
+    ///
     reactor: Reactor,
 
-    // Object to provide data to the info device
-    /// Main pack
-    info_pack: Option<InfoPack>,
+    // // Object to provide data to the info device
+    // /// Main pack
+    // info_pack: Option<InfoPack>,
 
-    ///
-    /// Device must share its status with the device "_" through this info object
-    info_dyn_dev_status: Option<Arc<Mutex<InfoDynamicDeviceStatus>>>,
+    // ///
+    // /// Device must share its status with the device "_" through this info object
+    // info_dyn_dev_status: Option<Arc<Mutex<InfoDynamicDeviceStatus>>>,
+    pub r_notifier: Option<Sender<Notification>>,
 
     // started: bool,
     /// Inner object
@@ -78,7 +75,7 @@ pub struct Device {
 
     // platform_services: crate::platform::services::AmServices,
     // // logger: Logger,
-    state: State,
+    state: Arc<Mutex<State>>,
     state_change_notifier: Arc<Notify>,
     //
     //
@@ -93,25 +90,33 @@ impl Device {
     ///
     pub fn new(
         reactor: Reactor,
-        info_pack: Option<InfoPack>,
+        r_notifier: Option<Sender<Notification>>,
         spawner: TaskSender<Result<(), Error>>,
         name: String,
         operations: Box<dyn DeviceOperations>,
-        settings: DeviceSettings,
+        settings: Option<DeviceSettings>,
     ) -> Device {
         // Create the object
         Device {
             logger: DeviceLogger::new(name.clone()),
             reactor: reactor.clone(),
-            info_pack: info_pack,
-            info_dyn_dev_status: None,
+            // info_pack: info_pack,
+            // info_dyn_dev_status: None,
+            r_notifier: r_notifier,
             inner: DeviceInner::new(reactor.clone(), settings).into(),
             inner_operations: Arc::new(Mutex::new(operations)),
             topic: format!("{}/{}", reactor.root_topic(), name),
-            state: State::Booting,
+            state: Arc::new(Mutex::new(State::Booting)),
             state_change_notifier: Arc::new(Notify::new()),
             spawner: spawner,
         }
+    }
+
+    ///
+    /// Set the plugin name inside the logger
+    ///
+    pub fn set_plugin<A: Into<String>>(&mut self, text: A) {
+        self.logger.set_plugin(text);
     }
 
     /// Simple getter for Reactor
@@ -119,9 +124,6 @@ impl Device {
     pub fn reactor(&self) -> &Reactor {
         &self.reactor
     }
-
-
-
 
     pub async fn spawn<F>(&mut self, future: F)
     where
@@ -137,7 +139,7 @@ impl Device {
         InterfaceBuilder::new(
             self.reactor.clone(),
             self.clone(),
-            self.info_dyn_dev_status.clone(),
+            // self.info_dyn_dev_status.clone(),
             format!("{}/{}", self.topic, name.into()), // take the device topic as root
         )
     }
@@ -147,7 +149,7 @@ impl Device {
     ///
     pub fn create_attribute<N: Into<String>>(&mut self, name: N) -> AttributeBuilder {
         self.reactor
-            .create_new_attribute(self.info_dyn_dev_status.clone())
+            .create_new_attribute(self.r_notifier.clone())
             .with_topic(format!("{}/{}", self.topic, name.into())) // take the device topic as root
     }
 
@@ -169,18 +171,19 @@ impl Device {
             self.state_change_notifier.notified().await;
 
             // Helper log
-            self.logger.debug(format!("FSM State {}", self.state));
+            let stateee = self.state.lock().await.clone();
+            self.logger.debug(format!("FSM State {}", stateee));
 
             // Perform state task
-            match self.state {
+            match stateee {
                 State::Booting => {
-                    if let Some(mut info_pack) = self.info_pack.clone() {
-                        self.logger.debug("FSM try to add_deivce in info pack");
-                        self.info_dyn_dev_status = Some(info_pack.add_device(self.name()).await);
-                        self.logger.debug("FSM finish info pack");
-                    } else {
-                        self.logger.debug("FSM NO INFO PACK !");
-                    }
+                    // if let Some(mut info_pack) = self.info_pack.clone() {
+                    //     self.logger.debug("FSM try to add_deivce in info pack");
+                    //     self.info_dyn_dev_status = Some(info_pack.add_device(self.name()).await);
+                    //     self.logger.debug("FSM finish info pack");
+                    // } else {
+                    //     self.logger.debug("FSM NO INFO PACK !");
+                    // }
                     self.move_to_state(State::Initializating).await;
                 }
                 State::Connecting => {} // wait for reactor signal
@@ -225,7 +228,7 @@ impl Device {
     ///
     /// Clone settings of the device
     ///
-    pub async fn settings(&self) -> DeviceSettings {
+    pub async fn settings(&self) -> Option<DeviceSettings> {
         self.inner.lock().await.settings.clone()
     }
 
@@ -241,12 +244,22 @@ impl Device {
     ///
     pub async fn move_to_state(&mut self, new_state: State) {
         // Set the new state
-        self.state = new_state;
+        *self.state.lock().await = new_state.clone();
 
         // Alert monitoring device "_"
-        if let Some(sts) = &mut self.info_dyn_dev_status {
-            sts.lock().await.change_state(self.state.clone());
+        if let Some(r_notifier) = &mut self.r_notifier {
+            r_notifier
+                .try_send(Notification::StateChanged(StateNotification::new()))
+                .unwrap();
+            // sts.lock().await.change_state(new_state.clone());
+
+            // self.logger
+            //     .debug("!!!!!!! DEBUG !!!!!!! r_notifier send 'StateNotification'");
         }
+        // else {
+        //     self.logger
+        //         .debug("!!!!!!! DEBUG !!!!!!! r_notifier is 'None'");
+        // }
 
         // Notify FSM
         self.state_change_notifier.notify_one();

@@ -1,22 +1,23 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::Error;
 
-#[derive(Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AttributeMode {
     AttOnly,
     CmdOnly,
     Bidir,
 }
 
-pub struct ElementAttribute {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttributeNotification {
     name: String,
     typee: String,
     mode: AttributeMode,
 }
 
-impl ElementAttribute {
+impl AttributeNotification {
     ///
     ///
     ///

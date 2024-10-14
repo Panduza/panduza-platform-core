@@ -5,11 +5,13 @@ use futures::FutureExt;
 pub use settings::ReactorSettings;
 mod message_engine;
 use message_engine::MessageEngine;
+use tokio::sync::mpsc::Sender;
 pub mod message_dispatcher;
-use crate::info::devices::ThreadSafeInfoDynamicDeviceStatus;
-use crate::MessageClient;
 use crate::{AttributeBuilder, Error, MessageDispatcher, MessageHandler, TaskResult, TaskSender};
+use crate::{MessageClient, Notification};
 use chrono::prelude::*;
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use rumqttc::AsyncClient;
 use rumqttc::{MqttOptions, QoS};
 use std::sync::Arc;
@@ -45,6 +47,8 @@ impl MessageHandler for PzaScanMessageHandler {
 ///
 #[derive(Clone)]
 pub struct Reactor {
+    is_started: bool,
+
     /// Root topic (namespace/pza)
     root_topic: String,
 
@@ -71,6 +75,7 @@ impl Reactor {
         let hostname = hostname::get().unwrap().to_string_lossy().to_string();
 
         Reactor {
+            is_started: false,
             root_topic: format!("pza/{}", hostname),
             message_client: None,
             message_dispatcher: Arc::new(Mutex::new(MessageDispatcher::new())),
@@ -82,12 +87,27 @@ impl Reactor {
         self.root_topic.clone()
     }
 
+    fn generate_random_string(length: usize) -> String {
+        let rng = rand::thread_rng();
+        rng.sample_iter(Alphanumeric)
+            .take(length)
+            .map(|c| c as char)
+            .collect()
+    }
+
     pub fn start(
         &mut self,
         mut main_task_sender: TaskSender<TaskResult>,
     ) -> Result<(), crate::Error> {
-        println!("ReactorCore is running");
-        let mut mqttoptions = MqttOptions::new("rumqtt-sync", "localhost", 1883);
+        if self.is_started {
+            return Ok(());
+        }
+
+        let mut mqttoptions = MqttOptions::new(
+            format!("rumqtt-sync-{}", Self::generate_random_string(5)),
+            "localhost",
+            1883,
+        );
         mqttoptions.set_keep_alive(Duration::from_secs(3));
 
         let (client, event_loop) = AsyncClient::new(mqttoptions, 100);
@@ -109,21 +129,25 @@ impl Reactor {
                     .register_message_attribute("pza".to_string(), h);
                 client.subscribe("pza", QoS::AtLeastOnce).await.unwrap();
                 message_engine.run().await;
-                println!("ReactorCore is not runiing !!!!!!!!!!!!!!!!!!!!!!");
+                println!("!!!!!!!!!!!! ReactorCore STOP not runiing !!!!!!!!!!!!!!!!!!!!!!");
                 Ok(())
             }
             .boxed(),
-        )
+        )?;
+
+        self.is_started = true;
+        Ok(())
     }
 
     pub fn create_new_attribute(
         &self,
-        device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
+        // device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
+        r_notifier: Option<Sender<Notification>>,
     ) -> AttributeBuilder {
         AttributeBuilder::new(
             self.message_client.as_ref().unwrap().clone(),
             Arc::downgrade(&self.message_dispatcher),
-            device_dyn_info,
+            r_notifier,
         )
     }
 

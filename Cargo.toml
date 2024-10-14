@@ -8,7 +8,7 @@ version = "0.1.0"
 
 
 # Main async framework for the platform
-tokio = { version = "1", features = ["full", "tracing"] }
+tokio = { version = "1.40.0", features = ["full", "tracing"] }
 
 
 # 
@@ -51,11 +51,11 @@ serde = { version = "1.0", features = ["derive"] }
 # in the resulting binary unless the verbosity level is specified dynamically.
 # This level is configured separately for release and debug builds.
 tracing = { version = "0.1", features = [
-    # "max_level_off",
+    "max_level_off",
     # "max_level_error",
     # "max_level_warn",
     # "max_level_info",
-    "max_level_debug",
+    # "max_level_debug",
     # "max_level_trace",
     # "release_max_level_off",
     # "release_max_level_error",
@@ -64,3 +64,24 @@ tracing = { version = "0.1", features = [
     # "release_max_level_debug",
     # "release_max_level_trace"
 ] }
+
+
+# 
+tracing-core = { version = "0.1.32" }
+
+# Fmt subscriber
+tracing-subscriber = "0.3"
+
+tracing-appender = "0.2.3"
+
+
+# To managed logs in colored format
+# colored = { version="2.0.0", optional = true }
+colored = "2.0.0"
+
+rand = "0.8.5"
+
+[features]
+
+# Enable tracing in stdout
+log = []

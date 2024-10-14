@@ -1,13 +1,10 @@
-use crate::info::devices::AttributeMode;
-use crate::info::devices::StructuralElement;
+use crate::{notification::structural::attribute::AttributeMode, Notification};
 use std::sync::Weak;
 
+use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
 
-use crate::{
-    info::devices::{ElementAttribute, ThreadSafeInfoDynamicDeviceStatus},
-    BidirMsgAtt, MessageClient, MessageCodec, MessageDispatcher,
-};
+use crate::{BidirMsgAtt, MessageClient, MessageCodec, MessageDispatcher};
 
 use super::{att_only_msg_att::AttOnlyMsgAtt, cmd_only_msg_att::CmdOnlyMsgAtt};
 
@@ -22,7 +19,8 @@ pub struct AttributeBuilder {
     pub message_dispatcher: Weak<Mutex<MessageDispatcher>>,
 
     ///
-    pub device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
+    // pub device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
+    r_notifier: Option<Sender<Notification>>,
 
     /// Topic of the attribute
     pub topic: Option<String>,
@@ -33,12 +31,13 @@ impl AttributeBuilder {
     pub fn new(
         message_client: MessageClient,
         message_dispatcher: Weak<Mutex<MessageDispatcher>>,
-        device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
+        // device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
+        r_notifier: Option<Sender<Notification>>,
     ) -> AttributeBuilder {
         AttributeBuilder {
             message_client,
             message_dispatcher,
-            device_dyn_info,
+            r_notifier,
             topic: None,
         }
     }
@@ -91,21 +90,16 @@ impl CmdOnlyMsgAttBuilder {
     pub async fn finish_with_codec<TYPE: MessageCodec>(self) -> CmdOnlyMsgAtt<TYPE> {
         //
         //
-        let bis1 = self.base.topic.clone().unwrap();
+
         let bis = self.base.topic.clone().unwrap();
-        let name = bis.split('/').last().unwrap();
-        if let Some(device_dyn_info) = self.base.device_dyn_info.clone() {
-            device_dyn_info
-                .lock()
-                .await
-                .structure_insert(
-                    bis1.clone(),
-                    StructuralElement::Attribute(ElementAttribute::new(
-                        name.to_string(),
-                        TYPE::typee(),
-                        AttributeMode::AttOnly,
-                    )),
-                )
+
+        if let Some(r_notifier) = self.base.r_notifier.clone() {
+            r_notifier
+                .try_send(Notification::new_attribute_element_created_notificationnew(
+                    bis,
+                    TYPE::typee(),
+                    AttributeMode::CmdOnly,
+                ))
                 .unwrap();
         }
 
@@ -126,21 +120,14 @@ impl BidirMsgAttBuilder {
     pub async fn finish_with_codec<TYPE: MessageCodec>(self) -> BidirMsgAtt<TYPE> {
         //
         //
-        let bis1 = self.base.topic.clone().unwrap();
         let bis = self.base.topic.clone().unwrap();
-        let name = bis.split('/').last().unwrap();
-        if let Some(device_dyn_info) = self.base.device_dyn_info.clone() {
-            device_dyn_info
-                .lock()
-                .await
-                .structure_insert(
-                    bis1.clone(),
-                    StructuralElement::Attribute(ElementAttribute::new(
-                        name.to_string(),
-                        TYPE::typee(),
-                        AttributeMode::AttOnly,
-                    )),
-                )
+        if let Some(r_notifier) = self.base.r_notifier.clone() {
+            r_notifier
+                .try_send(Notification::new_attribute_element_created_notificationnew(
+                    bis,
+                    TYPE::typee(),
+                    AttributeMode::Bidir,
+                ))
                 .unwrap();
         }
 
@@ -167,21 +154,14 @@ impl AttOnlyMsgBuilder {
     pub async fn finish_with_codec<TYPE: MessageCodec>(self) -> AttOnlyMsgAtt<TYPE> {
         //
         //
-        let bis1 = self.base.topic.clone().unwrap();
         let bis = self.base.topic.clone().unwrap();
-        let name = bis.split('/').last().unwrap();
-        if let Some(device_dyn_info) = self.base.device_dyn_info.clone() {
-            device_dyn_info
-                .lock()
-                .await
-                .structure_insert(
-                    bis1.clone(),
-                    StructuralElement::Attribute(ElementAttribute::new(
-                        name.to_string(),
-                        TYPE::typee(),
-                        AttributeMode::AttOnly,
-                    )),
-                )
+        if let Some(r_notifier) = self.base.r_notifier.clone() {
+            r_notifier
+                .try_send(Notification::new_attribute_element_created_notificationnew(
+                    bis,
+                    TYPE::typee(),
+                    AttributeMode::AttOnly,
+                ))
                 .unwrap();
         }
 

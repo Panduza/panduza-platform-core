@@ -10,6 +10,7 @@ pub use logger::DeviceLogger;
 pub use logger::FactoryLogger;
 pub use logger::GenericLogger;
 pub use logger::PlatformLogger;
+pub use logger::RuntimeLogger;
 
 ///
 mod factory;
@@ -17,12 +18,8 @@ pub use factory::production_order::DeviceSettings;
 pub use factory::production_order::ProductionOrder;
 pub use factory::Factory;
 
-// The heavy machine
-mod platform;
-pub use platform::Platform;
-
 //
-mod device;
+pub mod device;
 pub use device::monitor::DeviceMonitor;
 pub use device::Device;
 pub use device::DeviceInner;
@@ -56,10 +53,6 @@ pub use reactor::Reactor;
 pub type MessageClient = rumqttc::AsyncClient;
 
 //
-mod info;
-pub use info::pack::InfoPack;
-
-//
 mod codec;
 pub use codec::boolean::BooleanCodec;
 pub use codec::json::JsonCodec;
@@ -70,8 +63,24 @@ pub use codec::string::StringCodec;
 pub use codec::string_list::StringListCodec;
 
 mod task_channel;
+pub use task_channel::create_task_channel;
 pub use task_channel::TaskReceiver;
 pub use task_channel::TaskSender;
 
 /// Return type for spawned task
 pub type TaskResult = Result<(), Error>;
+
+//
+pub mod plugin;
+pub use plugin::Plugin;
+
+pub mod runtime;
+pub use runtime::Runtime;
+
+pub mod log;
+
+pub mod env;
+
+mod notification;
+pub use notification::group::NotificationGroup;
+pub use notification::Notification;

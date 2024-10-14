@@ -1,8 +1,10 @@
 pub mod production_order;
+use tokio::sync::mpsc::Sender;
 
-use std::collections::HashMap;
-
-use crate::{Device, DeviceMonitor, FactoryLogger, InfoPack, Producer, ProductionOrder, Reactor};
+use crate::{
+    Device, DeviceMonitor, FactoryLogger, Notification, Producer, ProductionOrder, Reactor,
+};
+use std::{collections::HashMap, ffi::CString};
 
 /// Factory to create devices from a configuration json
 ///
@@ -52,22 +54,43 @@ impl Factory {
     }
 
     ///
+    ///
+    ///
+    pub fn producer_refs(&self) -> Vec<String> {
+        let mut list = Vec::new();
+        for (dref, _) in &self.producers {
+            list.push(dref.clone());
+        }
+        list
+    }
+
+    ///
+    ///
+    ///
+    pub fn producer_refs_as_c_string(&self) -> Result<CString, crate::Error> {
+        let json_str = serde_json::to_string(&self.producer_refs())
+            .expect("Failed to serialize producer_refs to JSON");
+        CString::new(json_str)
+            .map_err(|e| crate::Error::InternalLogic(format!("Failed to build CString ({:?})", e)))
+    }
+
+    ///
     /// production_order => json with ref, name, settings
     ///
     pub fn produce(
         &self,
         reactor: Reactor,
-        info_pack: Option<InfoPack>,
+        r_notifier: Option<Sender<Notification>>,
         production_order: ProductionOrder,
     ) -> (DeviceMonitor, Device) {
-        let producer = self.producers.get(production_order.device_ref()).unwrap();
+        let producer = self.producers.get(production_order.dref()).unwrap();
         let device_operations = producer.produce().unwrap();
 
         // Box<dyn DeviceOperations>
 
         DeviceMonitor::new(
             reactor.clone(),
-            info_pack,
+            r_notifier,
             device_operations,
             production_order,
         )

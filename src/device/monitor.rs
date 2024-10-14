@@ -3,13 +3,14 @@
 // and to run the task monitoring
 
 use crate::task_channel::create_task_channel;
-use crate::{Error, InfoPack, ProductionOrder};
+use crate::{Error, Notification, ProductionOrder};
 use std::sync::Arc;
 
 use super::Device;
 use crate::{DeviceOperations, Reactor, TaskReceiver};
 use std::time::Duration;
 
+use tokio::sync::mpsc::Sender;
 use tokio::sync::Notify;
 use tokio::time::sleep;
 use tokio::{sync::Mutex, task::JoinSet};
@@ -37,14 +38,14 @@ impl DeviceMonitor {
     /// Constructor
     pub fn new(
         reactor: Reactor,
-        info_pack: Option<InfoPack>,
+        r_notifier: Option<Sender<Notification>>,
         operations: Box<dyn DeviceOperations>,
         production_order: ProductionOrder,
     ) -> (DeviceMonitor, Device) {
         //
         // Move in data and consume production order
-        let name = production_order.device_name;
-        let settings = production_order.device_settings;
+        let name = production_order.name;
+        let settings = production_order.settings;
         //
         // Create the task channel between the device and its monitoring object
         let (task_tx, task_rx) = create_task_channel::<DeviceTaskResult>(50);
@@ -52,7 +53,7 @@ impl DeviceMonitor {
         // Create the device object
         let device = Device::new(
             reactor.clone(),
-            info_pack,
+            r_notifier,
             task_tx,
             name,
             operations,
@@ -80,8 +81,8 @@ impl DeviceMonitor {
 
                 task = subtask_receiver_clone_lock.rx.recv() => {
                     // Function to effectily spawn tasks requested by the system
-                    let ah = self.subtask_pool.spawn(task.unwrap());
-                    println!("New task created ! [{:?}]", ah );
+                    let _ah = self.subtask_pool.spawn(task.unwrap());
+                    // println!("New task created ! [{:?}]", ah );
                     subtask_pool_not_empty_notifier_clone.notify_one();
                 },
                 _ = self.end_of_all_tasks() => {

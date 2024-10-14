@@ -8,6 +8,8 @@ pub enum Error {
     MessageAttributeSubscribeError(String),
     #[error("Internal weak pointer cannot be upgraded")]
     InternalPointerUpgrade,
+    #[error("Invalid argument given to the function")]
+    InvalidArgument(String),
     #[error("Internal logic lead to this error")]
     InternalLogic(String),
     #[error("Error when trying to spawn a task")]
@@ -18,6 +20,10 @@ pub enum Error {
     SerializeFailure(String),
     #[error("Error during deserialization")]
     DeserializeFailure(String),
+    #[error("Error related to plugin management")]
+    PluginError(String),
+    #[error("Error managing a cross task channel")]
+    ChannelError(String),
     #[error("Error")]
     Generic(String),
     #[error("We just don't know what happened")]
