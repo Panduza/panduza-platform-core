@@ -117,12 +117,16 @@ macro_rules! plugin_interface {
         /// Pull notifications from the runtime
         ///
         pub unsafe extern "C" fn pull_notifications() -> *const i8 {
+            LOGGER.as_ref().unwrap().debug("pull_notifications");
+
             return RUNTIME_NOTIFICATIONS_GROUP
                 .as_ref()
                 .unwrap()
                 .lock()
                 .unwrap()
                 .pull_and_serialize();
+
+            // return std::ptr::null();
         }
 
         #[no_mangle]

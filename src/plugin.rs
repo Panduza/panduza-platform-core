@@ -1,7 +1,12 @@
 pub mod macro_helper;
 use std::ffi::CStr;
 
-pub struct Builder {}
+///
+/// !!!!!
+/// Increment this number after a Plugin structure modification
+/// !!!!!
+///
+static C_INTERFACE_VERSION: u32 = 0;
 
 ///
 /// This structure provides the plugin interface
@@ -10,6 +15,12 @@ pub struct Builder {}
 ///
 #[repr(C)]
 pub struct Plugin {
+    ///
+    /// Version of this structure which is the interface
+    /// between plugins and platform
+    ///
+    pub c_interface_version: u32,
+
     ///
     ///
     pub name: *const i8,
@@ -49,6 +60,7 @@ impl Plugin {
         pull_notifications: unsafe extern "C" fn() -> *const i8,
     ) -> Self {
         Plugin {
+            c_interface_version: C_INTERFACE_VERSION,
             name: name.as_ptr() as *const i8,
             version: version.as_ptr() as *const i8,
             join: join,
