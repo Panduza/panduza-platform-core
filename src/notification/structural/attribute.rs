@@ -49,10 +49,10 @@ impl AttributeNotification {
         &self.mode
     }
 
-    ///
-    /// Attribute does not hold any elements
-    ///
-    pub fn is_element_exist(&self, layers: Vec<String>) -> Result<bool, Error> {
-        Ok(false)
-    }
+    // ///
+    // /// Attribute does not hold any elements
+    // ///
+    // pub fn is_element_exist(&self, layers: Vec<String>) -> Result<bool, Error> {
+    //     Ok(false)
+    // }
 }

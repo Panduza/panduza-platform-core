@@ -5,15 +5,15 @@ use crate::device::State;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StateNotification {
     ///
-    object: String,
+    pub topic: String,
 
-    state: State,
+    pub state: State,
 }
 
 impl StateNotification {
     pub fn new(name: String, state: State) -> Self {
         Self {
-            object: name,
+            topic: name,
             state: state,
         }
     }

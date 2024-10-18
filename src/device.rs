@@ -1,5 +1,4 @@
 mod inner;
-use crate::notification::StateNotification;
 use crate::InterfaceBuilder;
 use crate::{
     reactor::Reactor, AttributeBuilder, DeviceLogger, DeviceOperations, DeviceSettings, Error,
