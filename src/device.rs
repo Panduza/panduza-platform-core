@@ -250,15 +250,12 @@ impl Device {
         // Alert monitoring device "_"
         if let Some(r_notifier) = &mut self.r_notifier {
             r_notifier
-                .try_send(Notification::StateChanged(StateNotification::new(
+                .try_send(Notification::new_state_changed_notification(
                     self.topic.clone(),
                     new_state.clone(),
-                )))
+                ))
                 .unwrap();
             // sts.lock().await.change_state(new_state.clone());
-
-            // self.logger
-            //     .debug("!!!!!!! DEBUG !!!!!!! r_notifier send 'StateNotification'");
         }
         // else {
         //     self.logger
