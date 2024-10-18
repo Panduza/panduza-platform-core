@@ -7,6 +7,7 @@ use crate::{
 };
 use futures::FutureExt;
 pub use inner::DeviceInner;
+use serde::{Deserialize, Serialize};
 use std::{fmt::Display, future::Future, sync::Arc};
 use tokio::sync::Mutex;
 use tokio::sync::{mpsc::Sender, Notify};
@@ -14,7 +15,7 @@ pub mod monitor;
 
 /// States of the main Interface FSM
 ///
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum State {
     Booting,
     Connecting,
@@ -249,7 +250,10 @@ impl Device {
         // Alert monitoring device "_"
         if let Some(r_notifier) = &mut self.r_notifier {
             r_notifier
-                .try_send(Notification::StateChanged(StateNotification::new()))
+                .try_send(Notification::StateChanged(StateNotification::new(
+                    self.topic.clone(),
+                    new_state.clone(),
+                )))
                 .unwrap();
             // sts.lock().await.change_state(new_state.clone());
 
