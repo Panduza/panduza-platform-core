@@ -95,7 +95,7 @@ impl CmdOnlyMsgAttBuilder {
 
         if let Some(r_notifier) = self.base.r_notifier.clone() {
             r_notifier
-                .try_send(Notification::new_attribute_element_created_notificationnew(
+                .try_send(Notification::new_attribute_element_created_notification(
                     bis,
                     TYPE::typee(),
                     AttributeMode::CmdOnly,
@@ -123,7 +123,7 @@ impl BidirMsgAttBuilder {
         let bis = self.base.topic.clone().unwrap();
         if let Some(r_notifier) = self.base.r_notifier.clone() {
             r_notifier
-                .try_send(Notification::new_attribute_element_created_notificationnew(
+                .try_send(Notification::new_attribute_element_created_notification(
                     bis,
                     TYPE::typee(),
                     AttributeMode::Bidir,
@@ -157,7 +157,7 @@ impl AttOnlyMsgBuilder {
         let bis = self.base.topic.clone().unwrap();
         if let Some(r_notifier) = self.base.r_notifier.clone() {
             r_notifier
-                .try_send(Notification::new_attribute_element_created_notificationnew(
+                .try_send(Notification::new_attribute_element_created_notification(
                     bis,
                     TYPE::typee(),
                     AttributeMode::AttOnly,

@@ -40,7 +40,7 @@ impl Notification {
     ///
     ///
     ///
-    pub fn new_attribute_element_created_notificationnew<N: Into<String>, T: Into<String>>(
+    pub fn new_attribute_element_created_notification<N: Into<String>, T: Into<String>>(
         topic: N,
         typee: T,
         mode: AttributeMode,
