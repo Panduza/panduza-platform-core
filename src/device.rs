@@ -246,6 +246,8 @@ impl Device {
         // Set the new state
         *self.state.lock().await = new_state.clone();
 
+        println!("new state !!! {:?}", new_state.clone());
+
         // Alert monitoring device "_"
         if let Some(r_notifier) = &mut self.r_notifier {
             r_notifier
@@ -254,7 +256,6 @@ impl Device {
                     new_state.clone(),
                 ))
                 .unwrap();
-            // sts.lock().await.change_state(new_state.clone());
         }
         // else {
         //     self.logger
