@@ -24,6 +24,13 @@ impl InterfaceNotification {
         }
     }
 
+    ///
+    /// Topic getter
+    ///
+    pub fn topic(&self) -> String {
+        self.topic.clone()
+    }
+
     pub fn into_json_value(&self) -> serde_json::Value {
         //
         // let mut children = serde_json::Map::new();

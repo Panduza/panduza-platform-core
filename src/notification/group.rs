@@ -36,7 +36,18 @@ impl NotificationGroup {
     ///
     ///
     pub fn pull_and_serialize(&mut self) -> *const i8 {
+        //
+        // despair logs
+        // println!("DEBUG: pull_and_serialize()");
+
+        //
+        // Clone notification elements to make them static
         self.pulled_elements = self.elements.clone();
+
+        //
+        // despair logs
+        // println!("DEBUG: {:?}", self.pulled_elements);
+
         self.elements.clear();
         let json_str = serde_json::to_string(&self.pulled_elements)
             .expect("Failed to serialize pulled_elements to JSON");

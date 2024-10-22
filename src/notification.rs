@@ -8,6 +8,8 @@ pub use state::StateNotification;
 pub use structural::StructuralNotification;
 use structural::{attribute::AttributeMode, AttributeNotification, InterfaceNotification};
 
+use crate::device::State;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Notification {
     StateChanged(StateNotification),
@@ -19,8 +21,8 @@ impl Notification {
     ///
     ///
     ///
-    pub fn new_state_changed_notification() -> Notification {
-        Notification::StateChanged(StateNotification::new())
+    pub fn new_state_changed_notification(name: String, state: State) -> Notification {
+        Notification::StateChanged(StateNotification::new(name, state))
     }
 
     ///
@@ -38,7 +40,7 @@ impl Notification {
     ///
     ///
     ///
-    pub fn new_attribute_element_created_notificationnew<N: Into<String>, T: Into<String>>(
+    pub fn new_attribute_element_created_notification<N: Into<String>, T: Into<String>>(
         topic: N,
         typee: T,
         mode: AttributeMode,

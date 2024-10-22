@@ -3,7 +3,7 @@ use crate::{
     TaskReceiver, TaskResult, TaskSender,
 };
 use crate::{Notification, NotificationGroup};
-use futures::lock::Mutex;
+// use futures::lock::Mutex;
 use futures::FutureExt;
 use std::sync::{
     atomic::{AtomicBool, Ordering},

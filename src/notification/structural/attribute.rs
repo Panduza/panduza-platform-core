@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::Error;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AttributeMode {
     AttOnly,
@@ -29,6 +27,13 @@ impl AttributeNotification {
         }
     }
 
+    ///
+    /// Topic getter
+    ///
+    pub fn topic(&self) -> String {
+        self.name.clone()
+    }
+
     pub fn into_json_value(&self) -> serde_json::Value {
         json!({
             // "name": self.name,
@@ -49,10 +54,10 @@ impl AttributeNotification {
         &self.mode
     }
 
-    ///
-    /// Attribute does not hold any elements
-    ///
-    pub fn is_element_exist(&self, layers: Vec<String>) -> Result<bool, Error> {
-        Ok(false)
-    }
+    // ///
+    // /// Attribute does not hold any elements
+    // ///
+    // pub fn is_element_exist(&self, layers: Vec<String>) -> Result<bool, Error> {
+    //     Ok(false)
+    // }
 }

@@ -2,7 +2,6 @@ use super::Interface;
 use crate::Device;
 use crate::Notification;
 use crate::Reactor;
-use tokio::sync::mpsc::Sender;
 
 pub struct InterfaceBuilder {
     //

@@ -117,26 +117,35 @@ macro_rules! plugin_interface {
         /// Pull notifications from the runtime
         ///
         pub unsafe extern "C" fn pull_notifications() -> *const i8 {
+            //
+            // Debug log
             LOGGER.as_ref().unwrap().debug("pull_notifications");
 
-            return RUNTIME_NOTIFICATIONS_GROUP
-                .as_ref()
-                .unwrap()
-                .lock()
-                .unwrap()
-                .pull_and_serialize();
-
-            // return std::ptr::null();
+            //
+            // Pull notifications from the runtime
+            match &RUNTIME_NOTIFICATIONS_GROUP {
+                Some(notifications) => {
+                    return notifications.lock().unwrap().pull_and_serialize();
+                }
+                None => {
+                    LOGGER
+                        .as_ref()
+                        .unwrap()
+                        .error("RUNTIME_NOTIFICATIONS_GROUP is 'None'");
+                    return std::ptr::null();
+                }
+            }
         }
 
         #[no_mangle]
         pub unsafe extern "C" fn plugin_entry_point() -> Plugin {
             //
-            //
+            // Create a static reference for the plugin name
+            // in order to provide a static pointer to the main program
             PLG_NAME = Some(CString::new($plg_name).unwrap());
 
             //
-            // Init logging system
+            // Init logging system on the plugin
             panduza_platform_core::log::init();
             let mut logger = PlatformLogger::new();
             logger.set_plugin($plg_name);
@@ -152,11 +161,12 @@ macro_rules! plugin_interface {
                 FACTORY = Some(factory);
             }
 
-            // if reactor none
-            // init reactor
+            //
+            // Start runtime
+            start_runtime();
 
-            // build runtine
-
+            //
+            //
             let p = Plugin::new(
                 PLG_NAME.as_ref().unwrap().as_c_str(),
                 c"v0.1",
