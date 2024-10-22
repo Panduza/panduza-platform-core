@@ -37,14 +37,16 @@ impl NotificationGroup {
     ///
     pub fn pull_and_serialize(&mut self) -> *const i8 {
         //
-        //
-        println!("DEBUG: pull_and_serialize()");
+        // despair logs
+        // println!("DEBUG: pull_and_serialize()");
 
+        //
+        // Clone notification elements to make them static
         self.pulled_elements = self.elements.clone();
 
         //
-        //
-        println!("DEBUG: {:?}", self.pulled_elements);
+        // despair logs
+        // println!("DEBUG: {:?}", self.pulled_elements);
 
         self.elements.clear();
         let json_str = serde_json::to_string(&self.pulled_elements)
