@@ -83,6 +83,7 @@ pub mod env;
 
 mod notification;
 pub use notification::group::NotificationGroup;
+pub use notification::structural::attribute::AttributeMode;
 pub use notification::Notification;
 pub use notification::StateNotification;
 pub use notification::StructuralNotification;

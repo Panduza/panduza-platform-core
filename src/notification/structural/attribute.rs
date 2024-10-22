@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::Error;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AttributeMode {
     AttOnly,
