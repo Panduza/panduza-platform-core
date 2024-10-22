@@ -29,6 +29,13 @@ impl AttributeNotification {
         }
     }
 
+    ///
+    /// Topic getter
+    ///
+    pub fn topic(&self) -> String {
+        self.name.clone()
+    }
+
     pub fn into_json_value(&self) -> serde_json::Value {
         json!({
             // "name": self.name,
