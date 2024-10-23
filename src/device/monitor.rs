@@ -113,14 +113,14 @@ impl DeviceMonitor {
                         println!("Task completed");
                     }
                     Err(e) => {
-                        println!("Sub Task failed: {}", e.to_string());
+                        println!("Sub Task failed: {:?}", e);
                         self.subtask_pool.abort_all();
 
                         self.device.go_error().await;
                     }
                 },
                 Err(e) => {
-                    println!("Join failed: {}", e);
+                    println!("Join failed: {:?}", e);
                 }
             }
         }
