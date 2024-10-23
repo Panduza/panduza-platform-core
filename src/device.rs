@@ -239,6 +239,11 @@ impl Device {
         }
     }
 
+    pub async fn go_error(&mut self) {
+        // println!("GO ERROR");
+        self.move_to_state(State::Error).await;
+    }
+
     ///
     /// Function to change the current state of the device FSM
     ///
