@@ -119,7 +119,7 @@ macro_rules! plugin_interface {
         pub unsafe extern "C" fn pull_notifications() -> *const i8 {
             //
             // Debug log
-            LOGGER.as_ref().unwrap().debug("pull_notifications");
+            // LOGGER.as_ref().unwrap().debug("pull_notifications");
 
             //
             // Pull notifications from the runtime
