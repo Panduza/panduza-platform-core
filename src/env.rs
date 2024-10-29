@@ -11,11 +11,30 @@ pub fn system_default_config_dir() -> Result<PathBuf, std::io::Error> {
     match OS {
         "linux" => Ok(PathBuf::from_str(DEFAULT_DIR_UNIX).unwrap()),
         "windows" => Ok(PathBuf::from(dirs::public_dir().unwrap()).join("panduza")),
-        _ => {
+        os_name => {
+            println!("!!! Unsupported => {:?} !!!", os_name);
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 "Unsupported OS",
-            ))
+            ));
+        }
+    }
+}
+
+///
+/// TODO: change std::io::Error into a panduza Error
+///
+pub fn system_dyn_lib_extension() -> Result<String, std::io::Error> {
+    match OS {
+        "linux" => Ok("so".to_string()),
+        "windows" => Ok("dll".to_string()),
+        "macos" => Ok("dylib".to_string()),
+        os_name => {
+            println!("!!! Unsupported => {:?} !!!", os_name);
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Unsupported OS",
+            ));
         }
     }
 }
