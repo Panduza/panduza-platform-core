@@ -1,4 +1,5 @@
 use std::env::consts::OS;
+use std::fs;
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -80,4 +81,31 @@ pub fn system_plugins_dir_paths() -> Vec<PathBuf> {
     res.push(windows_path);
 
     return res;
+}
+
+///
+/// Copy the plugin file 'plg_name' from 'plg_dir' into the system directory
+///
+pub fn system_copy_plugin_to_default_location(plg_dir: String, plg_name: &str) {
+    let ext = system_dyn_lib_extension().unwrap();
+
+    let plg_name_with_ext = format!("{}.{}", plg_name, ext);
+
+    let lib_path = PathBuf::from(plg_dir).join(&plg_name_with_ext);
+
+    let system_plugins_dir = system_default_plugins_dir().unwrap();
+
+    fs::create_dir_all(system_plugins_dir.clone()).unwrap();
+
+    let system_plugins_path = system_plugins_dir.join(plg_name_with_ext);
+
+    println!("*******");
+    println!(
+        "copy ({}) into ({})",
+        lib_path.display(),
+        system_plugins_path.display()
+    );
+    println!("*******");
+
+    fs::copy(lib_path, system_plugins_path).unwrap();
 }
