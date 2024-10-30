@@ -40,6 +40,21 @@ pub fn system_dyn_lib_extension() -> Result<String, std::io::Error> {
     }
 }
 
+pub fn system_dyn_lib_prefix() -> Result<String, std::io::Error> {
+    match OS {
+        "linux" => Ok("lib".to_string()),
+        "windows" => Ok("".to_string()),
+        "macos" => Ok("lib".to_string()),
+        os_name => {
+            println!("!!! Unsupported => {:?} !!!", os_name);
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Unsupported OS",
+            ));
+        }
+    }
+}
+
 ///
 ///
 ///
@@ -89,7 +104,9 @@ pub fn system_plugins_dir_paths() -> Vec<PathBuf> {
 pub fn system_copy_plugin_to_default_location(plg_dir: String, plg_name: &str) {
     let ext = system_dyn_lib_extension().unwrap();
 
-    let plg_name_with_ext = format!("{}.{}", plg_name, ext);
+    let pref = system_dyn_lib_prefix().unwrap();
+
+    let plg_name_with_ext = format!("{}{}.{}", pref, plg_name, ext);
 
     let lib_path = PathBuf::from(plg_dir).join(&plg_name_with_ext);
 
