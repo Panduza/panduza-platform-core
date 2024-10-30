@@ -59,6 +59,8 @@ pub use codec::json::JsonCodec;
 pub use codec::memory_command::MemoryCommandCodec;
 pub use codec::memory_command::MemoryCommandMode;
 pub use codec::number::NumberCodec;
+pub use codec::number_list::NumberListCodec;
+pub use codec::raw::RawCodec;
 pub use codec::string::StringCodec;
 pub use codec::string_list::StringListCodec;
 
