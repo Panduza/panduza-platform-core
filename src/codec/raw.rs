@@ -18,6 +18,14 @@ impl From<bytes::Bytes> for RawCodec {
     }
 }
 
+impl From<&[u8]> for RawCodec {
+    fn from(data: &[u8]) -> Self {
+        Self {
+            data: bytes::Bytes::copy_from_slice(data),
+        }
+    }
+}
+
 ///
 /// To ease display
 ///
