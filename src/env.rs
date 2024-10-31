@@ -88,12 +88,9 @@ pub fn system_plugins_dir_paths() -> Vec<PathBuf> {
 
     // main and alternate
 
-    let windows_path = PathBuf::from(dirs::public_dir().unwrap())
-        .join("panduza")
-        .join("plugins");
-    // println!("The current directory is {}", windows_path.display()); // cd/plugins
+    let default_path = system_default_plugins_dir().unwrap();
 
-    res.push(windows_path);
+    res.push(default_path);
 
     return res;
 }
