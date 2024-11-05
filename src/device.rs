@@ -14,7 +14,7 @@ pub mod monitor;
 
 /// States of the main Interface FSM
 ///
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub enum State {
     Booting,
     Connecting,
@@ -24,6 +24,8 @@ pub enum State {
     Error,
     Cleaning,
     Stopping,
+    #[default]
+    Undefined,
 }
 
 impl Display for State {
@@ -37,6 +39,7 @@ impl Display for State {
             State::Warning => write!(f, "Warning"),
             State::Cleaning => write!(f, "Cleaning"),
             State::Stopping => write!(f, "Stopping"),
+            State::Undefined => write!(f, "Undefined"),
         }
     }
 }
@@ -219,6 +222,7 @@ impl Device {
                 State::Warning => {}
                 State::Cleaning => {}
                 State::Stopping => {}
+                State::Undefined => {}
             }
         }
 
