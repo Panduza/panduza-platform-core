@@ -13,13 +13,15 @@ jobs:
             - name: Checkout project
               uses: actions/checkout@v4
 
-            - name: Display cargo version
+            - name: Install tools
               run: sudo apt install jq
 
-            - name: Display cargo version
-              run: cargo metadata --format-version=1 --no-deps | jq '.packages[0].version'
+            - name: Crate Cargo Version
+              run: |
+                cargo metadata --format-version=1 --no-deps | jq '.packages[0].version'
+                cargo metadata --format-version=1 --no-deps | jq '.packages[0].version' > cargo_version.txt
 
-            - name: GitHub Tag Name example
+            - name: GitHub Tag Name
               run: |
                 echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
                 echo "Tag name from github.ref_name: ${{  github.ref_name }}"
