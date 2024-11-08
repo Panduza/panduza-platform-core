@@ -1,0 +1,27 @@
+name: test_tag
+
+on:
+    push:
+        tags:
+            - '*'
+    
+jobs:
+
+    check_that_tag_match_cargo:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout project
+              uses: actions/checkout@v4
+
+            - name: Display cargo version
+              run: apt install jq
+
+            - name: Display cargo version
+              run: cargo --version
+
+            - name: GitHub Tag Name example
+              run: |
+                echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
+                echo "Tag name from github.ref_name: ${{  github.ref_name }}"
+
+                
