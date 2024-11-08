@@ -18,8 +18,8 @@ jobs:
 
             - name: Crate Cargo Version
               run: |
-                cargo metadata --format-version=1 --no-deps | jq '.packages[0].version'
-                cargo metadata --format-version=1 --no-deps | jq '.packages[0].version' > cargo_version.txt
+                cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].version'
+                cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].version' > cargo_version.txt
 
             - name: GitHub Tag Name
               run: |
