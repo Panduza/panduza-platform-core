@@ -23,4 +23,13 @@ jobs:
               run: |
                 echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
                 echo "Tag name from github.ref_name: ${{  github.ref_name }}"
-
+            
+            - name: Compare tag name and cargo version
+              run: |
+                tag_name=$(echo "${GITHUB_REF_NAME}" | cut -d '/' -f 3)
+                cargo_version=$(cat cargo_version.txt)
+    
+                if [[ "$tag_name" != "$cargo_version" ]]; then
+                echo "Tag name ($tag_name) does not match cargo version ($cargo_version)"
+                exit 1
+                fi
