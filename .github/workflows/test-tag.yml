@@ -7,7 +7,7 @@ on:
     
 jobs:
 
-    check_that_tag_match_cargo:
+    check_tag_match_cargo:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout project
