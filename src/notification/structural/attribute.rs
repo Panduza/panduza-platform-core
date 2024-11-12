@@ -13,17 +13,24 @@ pub struct AttributeNotification {
     name: String,
     typee: String,
     mode: AttributeMode,
+    settings: Option<serde_json::Value>,
 }
 
 impl AttributeNotification {
     ///
     ///
     ///
-    pub fn new<N: Into<String>, T: Into<String>>(name: N, typee: T, mode: AttributeMode) -> Self {
+    pub fn new<N: Into<String>, T: Into<String>>(
+        name: N,
+        typee: T,
+        mode: AttributeMode,
+        settings: Option<serde_json::Value>,
+    ) -> Self {
         Self {
             name: name.into(),
             typee: typee.into(),
             mode,
+            settings: settings,
         }
     }
 
@@ -34,13 +41,13 @@ impl AttributeNotification {
         self.name.clone()
     }
 
-    pub fn into_json_value(&self) -> serde_json::Value {
-        json!({
-            // "name": self.name,
-            "type": self.typee,
-            "mode": self.mode
-        })
-    }
+    // pub fn into_json_value(&self) -> serde_json::Value {
+    //     json!({
+    //         // "name": self.name,
+    //         "type": self.typee,
+    //         "mode": self.mode
+    //     })
+    // }
 
     ///
     pub fn name(&self) -> &String {

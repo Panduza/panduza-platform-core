@@ -1,13 +1,11 @@
+use super::{att_only_msg_att::AttOnlyMsgAtt, cmd_only_msg_att::CmdOnlyMsgAtt};
 use crate::{notification::structural::attribute::AttributeMode, Notification};
+use crate::{BidirMsgAtt, MessageClient, MessageCodec, MessageDispatcher};
 use std::sync::Weak;
-
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
 
-use crate::{BidirMsgAtt, MessageClient, MessageCodec, MessageDispatcher};
-
-use super::{att_only_msg_att::AttOnlyMsgAtt, cmd_only_msg_att::CmdOnlyMsgAtt};
-
+///
 /// Object that allow to build an generic attribute
 ///
 pub struct AttributeBuilder {
@@ -24,6 +22,11 @@ pub struct AttributeBuilder {
 
     /// Topic of the attribute
     pub topic: Option<String>,
+
+    ///
+    /// Attribute Settings
+    ///
+    pub settings: Option<serde_json::Value>,
 }
 
 impl AttributeBuilder {
@@ -39,11 +42,20 @@ impl AttributeBuilder {
             message_dispatcher,
             r_notifier,
             topic: None,
+            settings: None,
         }
     }
     /// Attach a topic
     pub fn with_topic<T: Into<String>>(mut self, topic: T) -> Self {
         self.topic = Some(topic.into());
+        self
+    }
+
+    ///
+    /// Attach settings to the attribute
+    ///
+    pub fn with_settings(mut self, settings: serde_json::Value) -> Self {
+        self.settings = Some(settings);
         self
     }
 
@@ -99,6 +111,7 @@ impl CmdOnlyMsgAttBuilder {
                     bis,
                     TYPE::typee(),
                     AttributeMode::CmdOnly,
+                    self.base.settings.clone(),
                 ))
                 .unwrap();
         }
@@ -127,6 +140,7 @@ impl BidirMsgAttBuilder {
                     bis,
                     TYPE::typee(),
                     AttributeMode::Bidir,
+                    self.base.settings.clone(),
                 ))
                 .unwrap();
         }
@@ -161,6 +175,7 @@ impl AttOnlyMsgBuilder {
                     bis,
                     TYPE::typee(),
                     AttributeMode::AttOnly,
+                    self.base.settings.clone(),
                 ))
                 .unwrap();
         }
