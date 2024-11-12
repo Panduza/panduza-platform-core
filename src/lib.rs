@@ -91,3 +91,5 @@ pub use notification::structural::InterfaceNotification;
 pub use notification::Notification;
 pub use notification::StateNotification;
 pub use notification::StructuralNotification;
+
+pub mod settings;
