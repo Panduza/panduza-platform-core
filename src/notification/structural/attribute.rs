@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+use serde_json::Value as JsonValue;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AttributeMode {
@@ -13,7 +13,7 @@ pub struct AttributeNotification {
     name: String,
     typee: String,
     mode: AttributeMode,
-    settings: Option<serde_json::Value>,
+    settings: Option<JsonValue>,
 }
 
 impl AttributeNotification {
@@ -24,7 +24,7 @@ impl AttributeNotification {
         name: N,
         typee: T,
         mode: AttributeMode,
-        settings: Option<serde_json::Value>,
+        settings: Option<JsonValue>,
     ) -> Self {
         Self {
             name: name.into(),
@@ -41,14 +41,6 @@ impl AttributeNotification {
         self.name.clone()
     }
 
-    // pub fn into_json_value(&self) -> serde_json::Value {
-    //     json!({
-    //         // "name": self.name,
-    //         "type": self.typee,
-    //         "mode": self.mode
-    //     })
-    // }
-
     ///
     pub fn name(&self) -> &String {
         &self.name
@@ -60,11 +52,7 @@ impl AttributeNotification {
     pub fn mode(&self) -> &AttributeMode {
         &self.mode
     }
-
-    // ///
-    // /// Attribute does not hold any elements
-    // ///
-    // pub fn is_element_exist(&self, layers: Vec<String>) -> Result<bool, Error> {
-    //     Ok(false)
-    // }
+    pub fn settings(&self) -> &Option<JsonValue> {
+        &self.settings
+    }
 }
