@@ -3,8 +3,11 @@ use serde_json::Value as JsonValue;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AttributeMode {
+    #[serde(rename = "RO")]
     AttOnly,
+    #[serde(rename = "WO")]
     CmdOnly,
+    #[serde(rename = "RW")]
     Bidir,
 }
 
