@@ -58,6 +58,17 @@ impl From<u32> for SiCodec {
     }
 }
 
+///
+/// Allow implicit convertion
+///
+impl From<i32> for SiCodec {
+    fn from(value: i32) -> SiCodec {
+        SiCodec {
+            value: value.to_string(),
+        }
+    }
+}
+
 // ///
 // /// Allow implicit convertion
 // ///
