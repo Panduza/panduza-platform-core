@@ -10,6 +10,17 @@ pub struct SiCodec {
 ///
 /// Allow implicit convertion
 ///
+impl From<f32> for SiCodec {
+    fn from(value: f32) -> SiCodec {
+        SiCodec {
+            value: serde_json::json!(value),
+        }
+    }
+}
+
+///
+/// Allow implicit convertion
+///
 impl From<u32> for SiCodec {
     fn from(value: u32) -> SiCodec {
         SiCodec {
