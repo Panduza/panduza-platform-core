@@ -12,6 +12,9 @@ struct SiSettings {
 }
 
 impl SiSettings {
+    ///
+    ///
+    ///
     pub fn new<N: Into<String>>(unit: N, min: i32, max: i32) -> Self {
         Self {
             unit: unit.into(),
