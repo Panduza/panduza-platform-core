@@ -5,13 +5,13 @@ use serde_json::Value as JsonValue;
 ///
 ///
 ///
-struct EnumSi {
+struct SiSettings {
     unit: String,
     min: i32,
     max: i32,
 }
 
-impl EnumSi {
+impl SiSettings {
     pub fn new<N: Into<String>>(unit: N, min: i32, max: i32) -> Self {
         Self {
             unit: unit.into(),
@@ -21,7 +21,7 @@ impl EnumSi {
     }
 }
 
-impl Into<JsonValue> for EnumSi {
+impl Into<JsonValue> for SiSettings {
     fn into(self) -> JsonValue {
         serde_json::to_value(self).unwrap()
     }
