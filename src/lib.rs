@@ -93,3 +93,5 @@ pub use notification::StateNotification;
 pub use notification::StructuralNotification;
 
 pub mod settings;
+pub use settings::eenum::EnumSettings;
+pub use settings::si::SiSettings;

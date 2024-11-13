@@ -5,7 +5,7 @@ use serde_json::Value as JsonValue;
 ///
 ///
 ///
-struct SiSettings {
+pub struct SiSettings {
     unit: String,
     min: i32,
     max: i32,
