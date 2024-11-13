@@ -55,6 +55,7 @@ pub type MessageClient = rumqttc::AsyncClient;
 //
 mod codec;
 pub use codec::boolean::BooleanCodec;
+pub use codec::eenum::EnumCodec;
 pub use codec::json::JsonCodec;
 pub use codec::memory_command::MemoryCommandCodec;
 pub use codec::memory_command::MemoryCommandMode;
