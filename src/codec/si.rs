@@ -34,6 +34,12 @@ impl SiCodec {
             value: format_number(value, decimals as usize),
         }
     }
+
+    pub fn into_f32(&self) -> Result<f32, Error> {
+        self.value
+            .parse()
+            .map_err(|e| Error::DeserializeFailure(format!("{:?}", e)))
+    }
 }
 
 ///
