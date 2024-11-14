@@ -100,5 +100,12 @@ pub use settings::eenum::EnumSettings;
 pub use settings::si::SiSettings;
 
 /// Built-in drivers to help coding plugins
-/// Specific features need to be activated to enable then
+///
+/// # Enabling
+///
+/// Specific features need to be activated to enable drivers
+///
+/// - usb => for usb drivers (also enable usb)
+/// - serial => for serial drivers (also enable usb)
+///
 pub mod drivers;
