@@ -26,6 +26,18 @@ pub enum Error {
     ChannelError(String),
     #[error("Error")]
     Generic(String),
+
+    #[error("Driver operation failure")]
+    DriverError(String),
     #[error("We just don't know what happened")]
     Wtf,
+}
+
+// FormatDriverError
+
+#[macro_export]
+macro_rules! format_driver_error {
+    ($($arg:tt)*) => {
+        Error::DriverError(format!($($arg)*))
+    };
 }

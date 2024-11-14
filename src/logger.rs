@@ -210,3 +210,34 @@ impl DeviceLogger {
         self.base.plugin = text.into();
     }
 }
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct DriverLogger {
+    base: GenericLogger,
+}
+impl DriverLogger {
+    pub fn new<B: Into<String>, C: Into<String>, D: Into<String>>(i1: B, i2: C, i3: D) -> Self {
+        Self {
+            base: GenericLogger::new("Driver", i1.into(), i2.into(), i3.into()),
+        }
+    }
+    pub fn error<A: Into<String>>(&self, text: A) {
+        self.base.error(text);
+    }
+    pub fn warn<A: Into<String>>(&self, text: A) {
+        self.base.warn(text);
+    }
+    pub fn info<A: Into<String>>(&self, text: A) {
+        self.base.info(text);
+    }
+    pub fn debug<A: Into<String>>(&self, text: A) {
+        self.base.debug(text);
+    }
+    pub fn set_plugin<A: Into<String>>(&mut self, text: A) {
+        self.base.plugin = text.into();
+    }
+}

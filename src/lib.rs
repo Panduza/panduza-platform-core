@@ -7,6 +7,7 @@ pub use error::Error;
 /// Loggers
 mod logger;
 pub use logger::DeviceLogger;
+pub use logger::DriverLogger;
 pub use logger::FactoryLogger;
 pub use logger::GenericLogger;
 pub use logger::PlatformLogger;
@@ -97,3 +98,7 @@ pub use notification::StructuralNotification;
 pub mod settings;
 pub use settings::eenum::EnumSettings;
 pub use settings::si::SiSettings;
+
+/// Built-in drivers to help coding plugins
+/// Specific features need to be activated to enable then
+pub mod drivers;
