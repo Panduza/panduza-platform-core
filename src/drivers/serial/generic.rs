@@ -9,6 +9,7 @@ use std::time::Duration;
 use tokio::io::AsyncReadExt;
 use tokio::sync::Mutex;
 use tokio::time::sleep;
+use tokio::time::timeout;
 
 use crate::format_driver_error;
 use crate::log_debug;
@@ -20,21 +21,17 @@ pub struct Driver {
     ///
     ///
     ///
-    logger: DriverLogger,
+    pub logger: DriverLogger,
 
     ///
     ///
     ///
-    settings: SerialSettings,
+    pub settings: SerialSettings,
 
-    port: SerialPort,
+    pub port: SerialPort,
 
-    time_lock: Option<TimeLock>,
+    pub time_lock: Option<TimeLock>,
 }
-
-/// Connector is just a mutex protected driver
-///
-pub type Connector = Arc<Mutex<Driver>>;
 
 impl Driver {
     /// Create a new instance of the driver
@@ -103,6 +100,20 @@ impl Driver {
         }
 
         return write_result;
+    }
+
+    ///
+    /// Perform a read operation and protect the operation against timeouts
+    ///
+    pub async fn read_timeout(&self, response: &mut [u8]) -> Result<usize, Error> {
+        let operation_result = timeout(self.settings.read_timeout, self.port.read(response)).await;
+        match operation_result {
+            Ok(read_result) => {
+                return read_result
+                    .map_err(|e| format_driver_error!("Unable to read on serial port {:?}", e))
+            }
+            Err(e) => return Err(format_driver_error!("Read timeout: {:?}", e)),
+        }
     }
 
     /// Lock the connector to write a command then wait for the answers
