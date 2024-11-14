@@ -133,7 +133,7 @@ where
                             "Factory" => {
                                 write!(&mut writer, "{}", "[F] ".to_string().magenta())?;
                             }
-                            "Connector" => {
+                            "Driver" => {
                                 let f = format!(
                                     "[{}/{}/{}] ",
                                     visitor.entries().get("i1").unwrap().trim_matches('"'),
