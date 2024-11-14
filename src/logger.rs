@@ -241,3 +241,10 @@ impl DriverLogger {
         self.base.plugin = text.into();
     }
 }
+
+#[macro_export]
+macro_rules! log_info {
+    ($logger:ident, $($arg:tt)*) => {
+        $logger.info(format!($($arg)*))
+    };
+}

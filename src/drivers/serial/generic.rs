@@ -11,6 +11,7 @@ use tokio::sync::Mutex;
 use tokio::time::sleep;
 
 use crate::format_driver_error;
+use crate::log_info;
 
 /// Serial GENERIC driver
 ///
@@ -46,12 +47,16 @@ impl Driver {
             .unwrap_or("undefined".to_string())
             .clone();
 
+        //
+        let logger = DriverLogger::new("serial", "generic", &port_name);
+        log_info!(logger, "Open serial driver {:?}", &port_name);
+
         let port = SerialPort::open(&port_name, settings.baudrate)
             .map_err(|e| format_driver_error!("Port {:?} {:?}", &port_name, e))?;
 
         // Create instance
         Ok(Driver {
-            logger: DriverLogger::new("serial", "generic", port_name),
+            logger: logger,
             settings: settings.clone(),
             port: port,
             time_lock: None,

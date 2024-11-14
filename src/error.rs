@@ -33,8 +33,6 @@ pub enum Error {
     Wtf,
 }
 
-// FormatDriverError
-
 #[macro_export]
 macro_rules! format_driver_error {
     ($($arg:tt)*) => {
