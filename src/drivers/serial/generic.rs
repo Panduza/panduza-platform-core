@@ -48,11 +48,21 @@ impl Driver {
             .clone();
 
         //
+        // Prepare logger
         let logger = DriverLogger::new("serial", "generic", &port_name);
-        log_info!(logger, "Open serial driver {:?}", &port_name);
+        log_info!(logger, "Opening serial driver {:?}...", &port_name);
 
+        //
+        // Open port
         let port = SerialPort::open(&port_name, settings.baudrate)
             .map_err(|e| format_driver_error!("Port {:?} {:?}", &port_name, e))?;
+
+        //
+        // Info logs
+        log_info!(logger, "Open success !");
+        if let Some(duration) = &settings.time_lock_duration {
+            log_info!(logger, "Time lock enabled = {:?}", duration);
+        }
 
         // Create instance
         Ok(Driver {
