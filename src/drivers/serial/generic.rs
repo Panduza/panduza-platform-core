@@ -11,6 +11,7 @@ use tokio::sync::Mutex;
 use tokio::time::sleep;
 
 use crate::format_driver_error;
+use crate::log_debug;
 use crate::log_info;
 
 /// Serial GENERIC driver
@@ -149,6 +150,10 @@ impl Driver {
         response: &mut [u8],
         end: u8,
     ) -> Result<usize, Error> {
+        //
+        // Debug
+        log_debug!(self.logger, "Write data: {:?}", command);
+
         // Write
         self.write_time_locked(command).await?;
 
@@ -162,10 +167,20 @@ impl Driver {
                 .map_err(|e| format_driver_error!("Unable to read on serial port {:?}", e))?;
             response[n] = single_buf[0];
             n += 1;
+
+            //
+            // Debug
+            log_debug!(self.logger, "Read one {:?}", response[..n].to_vec());
+
             if single_buf[0] == end {
                 break;
             }
         }
+
+        //
+        // Debug
+        log_debug!(self.logger, "End reading !");
+
         Ok(n)
     }
 }

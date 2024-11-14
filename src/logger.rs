@@ -244,7 +244,14 @@ impl DriverLogger {
 
 #[macro_export]
 macro_rules! log_info {
-    ($logger:ident, $($arg:tt)*) => {
+    ($logger:expr , $($arg:tt)*) => {
         $logger.info(format!($($arg)*))
+    };
+}
+
+#[macro_export]
+macro_rules! log_debug {
+    ($logger:expr , $($arg:tt)*) => {
+        $logger.debug(format!($($arg)*))
     };
 }
