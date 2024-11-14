@@ -60,7 +60,7 @@ impl Driver {
         self.base.write_time_locked(internal_cmd.as_slice()).await?;
 
         // Read
-        let count = self.base.read_timeout(response).await?;
+        let count = self.base.read_until_timeout(response, &self.eol).await?;
 
         return Ok(count - self.eol.len());
     }

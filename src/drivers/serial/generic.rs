@@ -116,6 +116,52 @@ impl Driver {
         }
     }
 
+    ///
+    /// Perform a read operation and protect the operation against timeouts
+    ///
+    pub async fn read_until(&mut self, response: &mut [u8], eol: &Vec<u8>) -> Result<usize, Error> {
+        // Read the response until "end"
+        let mut n = 0;
+        loop {
+            let mut single_buf = [0u8; 1];
+            self.port
+                .read_exact(&mut single_buf)
+                .await
+                .map_err(|e| format_driver_error!("Unable to read on serial port {:?}", e))?;
+            response[n] = single_buf[0];
+            n += 1;
+
+            //
+            // Debug
+            log_debug!(self.logger, "Read one {:?}", response[..n].to_vec());
+
+            if n >= eol.len() {
+                if response[n - eol.len()..n].to_vec() == *eol {
+                    return Ok(n);
+                }
+            }
+        }
+    }
+
+    ///
+    /// Perform a read operation and protect the operation against timeouts
+    ///
+    pub async fn read_until_timeout(
+        &mut self,
+        response: &mut [u8],
+        eol: &Vec<u8>,
+    ) -> Result<usize, Error> {
+        let operation_result =
+            timeout(self.settings.read_timeout, self.read_until(response, eol)).await;
+        match operation_result {
+            Ok(read_result) => {
+                return read_result
+                    .map_err(|e| format_driver_error!("Unable to read on serial port {:?}", e))
+            }
+            Err(e) => return Err(format_driver_error!("Read timeout: {:?}", e)),
+        }
+    }
+
     /// Lock the connector to write a command then wait for the answers
     ///
     pub async fn write_then_read(
