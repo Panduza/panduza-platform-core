@@ -9,7 +9,7 @@ pub use settings::Settings;
 use crate::Error;
 
 #[async_trait]
-pub trait SerialDriver: Sync + Send {
+pub trait SerialDriver: Sync + Send + 'static {
     async fn write(&mut self, command: &[u8]) -> Result<usize, Error>;
 
     async fn write_then_read(
