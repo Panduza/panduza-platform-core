@@ -9,7 +9,7 @@ use crate::format_driver_error;
 use crate::log_debug;
 use crate::log_info;
 
-use super::SerialDriver;
+use crate::protocol::CommandResponseProtocol;
 use async_trait::async_trait;
 
 ///
@@ -21,6 +21,8 @@ pub struct Driver {
     base: GenericDriver,
 
     eol: Vec<u8>,
+
+    read_buffer: [u8; 1024],
 }
 
 impl Driver {
@@ -32,42 +34,56 @@ impl Driver {
         Ok(Self {
             base: base,
             eol: eol,
+            read_buffer: [0; 1024],
         })
     }
 }
 
 #[async_trait]
-impl SerialDriver for Driver {
-    async fn write(&mut self, command: &[u8]) -> Result<usize, Error> {
+impl CommandResponseProtocol for Driver {
+    ///
+    ///
+    ///
+    async fn send(&mut self, command: &String) -> Result<(), Error> {
         //
         // Append EOL to the command
-        let mut internal_cmd = command.to_vec();
-        internal_cmd.extend_from_slice(&self.eol);
+        let mut command_buffer = command.clone().into_bytes();
+        command_buffer.extend(&self.eol);
 
+        //
         // Write
-        let count = self.base.write_time_locked(internal_cmd.as_slice()).await?;
-
-        return Ok(count - self.eol.len());
+        self.base
+            .write_time_locked(command_buffer.as_slice())
+            .await?;
+        Ok(())
     }
 
-    /// Lock the connector to write a command then wait for the answers
     ///
-    async fn write_then_read(
-        &mut self,
-        command: &[u8],
-        response: &mut [u8],
-    ) -> Result<usize, Error> {
+    ///
+    ///
+    async fn ask(&mut self, command: &String) -> Result<String, Error> {
         //
         // Append EOL to the command
-        let mut internal_cmd = command.to_vec();
-        internal_cmd.extend_from_slice(&self.eol);
+        let mut command_buffer = command.clone().into_bytes();
+        command_buffer.extend(&self.eol);
 
+        //
         // Write
-        self.base.write_time_locked(internal_cmd.as_slice()).await?;
+        self.base
+            .write_time_locked(command_buffer.as_slice())
+            .await?;
 
+        //
         // Read
-        let count = self.base.read_until_timeout(response, &self.eol).await?;
+        let count = self
+            .base
+            .read_until_timeout(&mut self.read_buffer, &self.eol)
+            .await?;
 
-        return Ok(count - self.eol.len());
+        //
+        // Build response string
+        let string_slice =
+            String::from_utf8(self.read_buffer[..count - self.eol.len()].to_vec()).unwrap();
+        return Ok(string_slice.to_string());
     }
 }

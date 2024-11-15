@@ -18,9 +18,3 @@ pub trait SerialDriver: Sync + Send {
         response: &mut [u8],
     ) -> Result<usize, Error>;
 }
-
-// ScpiDriver
-
-// CommandResponseProtocol
-// ask
-//

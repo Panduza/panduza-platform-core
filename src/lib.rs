@@ -109,3 +109,7 @@ pub use settings::si::SiSettings;
 /// - serial => for serial drivers (also enable usb)
 ///
 pub mod drivers;
+
+/// Currently we put here a trait waiting to see if there is a better use later
+///
+pub mod protocol;
