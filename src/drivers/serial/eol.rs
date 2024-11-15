@@ -1,13 +1,6 @@
-use std::time::Duration;
-
 use super::generic::Driver as GenericDriver;
 use super::Settings as SerialSettings;
 use crate::Error;
-use tokio::time::timeout;
-
-use crate::format_driver_error;
-use crate::log_debug;
-use crate::log_info;
 
 use crate::protocol::CommandResponseProtocol;
 use async_trait::async_trait;
@@ -20,8 +13,14 @@ pub struct Driver {
     ///
     base: GenericDriver,
 
+    ///
+    ///
+    ///
     eol: Vec<u8>,
 
+    ///
+    ///
+    ///
     read_buffer: [u8; 1024],
 }
 

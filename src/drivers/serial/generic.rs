@@ -4,10 +4,8 @@ use super::Settings as SerialSettings;
 use crate::DriverLogger;
 use crate::Error;
 use serial2_tokio::SerialPort;
-use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::AsyncReadExt;
-use tokio::sync::Mutex;
 use tokio::time::sleep;
 use tokio::time::timeout;
 
@@ -182,6 +180,26 @@ impl Driver {
     /// Lock the connector to write a command then wait for the answers
     ///
     pub async fn write_then_read_during(
+        &mut self,
+        command: &[u8],
+        response: &mut [u8],
+        duration: Duration,
+    ) -> Result<usize, Error> {
+        // Write
+        self.write_time_locked(command).await?;
+
+        sleep(duration).await;
+
+        // Read the response
+        self.port
+            .read(response)
+            .await
+            .map_err(|e| format_driver_error!("Unable to read on serial port {:?}", e))
+    }
+
+    ///
+    ///
+    pub async fn write_then_read_after(
         &mut self,
         command: &[u8],
         response: &mut [u8],
