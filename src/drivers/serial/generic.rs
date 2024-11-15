@@ -133,7 +133,7 @@ impl Driver {
 
             //
             // Debug
-            log_debug!(self.logger, "Read one {:?}", response[..n].to_vec());
+            // log_debug!(self.logger, "Read one {:?}", response[..n].to_vec());
 
             if n >= eol.len() {
                 if response[n - eol.len()..n].to_vec() == *eol {
