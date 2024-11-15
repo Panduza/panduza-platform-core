@@ -64,7 +64,7 @@ impl AttributeBuilder {
     // with_mode_rw
     // with_mode_wo
 
-    // with_type_si
+    // with_type_si (settings inside here)
     // with_type_string
 
     pub fn message(self) -> MessageAttributeBuilder {
