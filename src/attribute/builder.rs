@@ -27,6 +27,7 @@ pub struct AttributeBuilder {
     /// Attribute Settings
     ///
     pub settings: Option<serde_json::Value>,
+    // mode: Option<AttributeMode>,
 }
 
 impl AttributeBuilder {
@@ -58,6 +59,13 @@ impl AttributeBuilder {
         self.settings = Some(settings);
         self
     }
+
+    // with_mode_ro
+    // with_mode_rw
+    // with_mode_wo
+
+    // with_type_si
+    // with_type_string
 
     pub fn message(self) -> MessageAttributeBuilder {
         MessageAttributeBuilder { base: self }
