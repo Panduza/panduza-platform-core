@@ -1,10 +1,13 @@
+use super::si_server::SiAttServer;
 use super::{att_only_msg_att::AttOnlyMsgAtt, cmd_only_msg_att::CmdOnlyMsgAtt};
 use crate::{notification::structural::attribute::AttributeMode, Notification};
-use crate::{BidirMsgAtt, MessageClient, MessageCodec, MessageDispatcher};
+use crate::{BidirMsgAtt, Error, MessageClient, MessageCodec, MessageDispatcher};
+use serde_json::json;
 use std::sync::Weak;
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
 
+#[derive(Clone)]
 ///
 /// Object that allow to build an generic attribute
 ///
@@ -27,7 +30,10 @@ pub struct AttributeBuilder {
     /// Attribute Settings
     ///
     pub settings: Option<serde_json::Value>,
-    // mode: Option<AttributeMode>,
+
+    pub mode: Option<AttributeMode>,
+
+    pub r#type: Option<String>,
 }
 
 impl AttributeBuilder {
@@ -44,6 +50,8 @@ impl AttributeBuilder {
             r_notifier,
             topic: None,
             settings: None,
+            mode: None,
+            r#type: None,
         }
     }
     /// Attach a topic
@@ -60,16 +68,69 @@ impl AttributeBuilder {
         self
     }
 
-    // with_mode_ro
-    // with_mode_rw
-    // with_mode_wo
+    pub fn with_ro(mut self) -> Self {
+        self.mode = Some(AttributeMode::AttOnly);
+        self
+    }
+    pub fn with_wo(mut self) -> Self {
+        self.mode = Some(AttributeMode::CmdOnly);
+        self
+    }
+    pub fn with_rw(mut self) -> Self {
+        self.mode = Some(AttributeMode::Bidir);
+        self
+    }
+
+    ///
+    ///
+    ///
+    pub async fn finish_as_si<N: Into<String>>(
+        mut self,
+        unit: N,
+        min: i32,
+        max: i32,
+        decimals: u32,
+    ) -> Result<SiAttServer, Error> {
+        self.r#type = Some(SiAttServer::r#type());
+        let unit_string = unit.into();
+        self.settings = Some(json!(
+            {
+                "unit": unit_string.clone(),
+                "min": min,
+                "max": max,
+                "decimals": decimals,
+            }
+        ));
+        let att = SiAttServer::new(self.clone(), unit_string, min, max, decimals);
+        att.inner.lock().await.init(att.inner.clone()).await?;
+        self.send_creation_notification();
+        Ok(att)
+    }
 
     // with_type_si (settings inside here)
     // with_type_string
 
+    fn send_creation_notification(&self) {
+        //
+        //
+        let bis = self.topic.clone().unwrap();
+        if let Some(r_notifier) = self.r_notifier.clone() {
+            r_notifier
+                .try_send(Notification::new_attribute_element_created_notification(
+                    bis,
+                    self.r#type.clone().unwrap(),
+                    self.mode.clone().unwrap(),
+                    self.settings.clone(),
+                ))
+                .unwrap();
+        }
+    }
+
     pub fn message(self) -> MessageAttributeBuilder {
         MessageAttributeBuilder { base: self }
     }
+
+    #[deprecated]
     pub fn stream(self) {
         todo!()
     }

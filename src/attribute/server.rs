@@ -1,3 +1,5 @@
+use crate::AttributeBuilder;
+use crate::AttributeMode;
 use crate::Error;
 use crate::MessageClient;
 use crate::MessageCodec;
@@ -55,6 +57,11 @@ pub struct AttServer<TYPE: MessageCodec> {
     /// Requested value of the attribute (set by the user)
     ///
     requested_value: Option<TYPE>,
+
+    ///
+    ///
+    ///
+    mode: AttributeMode,
 }
 
 impl<TYPE: MessageCodec> AttServer<TYPE> {
@@ -170,5 +177,25 @@ impl<TYPE: MessageCodec> MessageHandler for AttServer<TYPE> {
         self.in_queue.push(in_value);
         self.in_notifier.notify_waiters();
         Ok(())
+    }
+}
+
+///
+/// Allow creation from the builder
+///
+impl<TYPE: MessageCodec> From<AttributeBuilder> for AttServer<TYPE> {
+    fn from(builder: AttributeBuilder) -> Self {
+        let topic = builder.topic.as_ref().unwrap().clone();
+        Self {
+            message_dispatcher: builder.message_dispatcher,
+            message_client: builder.message_client,
+            topic: topic.clone(),
+            in_queue: Vec::new(),
+            last_popped_value: None,
+            in_notifier: Arc::new(Notify::new()),
+            topic_att: format!("{}/att", topic.clone()),
+            requested_value: None,
+            mode: builder.mode.clone().unwrap(),
+        }
     }
 }
