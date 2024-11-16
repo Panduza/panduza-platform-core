@@ -1,4 +1,4 @@
-use super::si_server::SiAttServer;
+use super::server_si::SiAttServer;
 use super::{att_only_msg_att::AttOnlyMsgAtt, cmd_only_msg_att::CmdOnlyMsgAtt};
 use crate::{notification::structural::attribute::AttributeMode, Notification};
 use crate::{BidirMsgAtt, Error, MessageClient, MessageCodec, MessageDispatcher};
@@ -20,8 +20,7 @@ pub struct AttributeBuilder {
     pub message_dispatcher: Weak<Mutex<MessageDispatcher>>,
 
     ///
-    // pub device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
-    r_notifier: Option<Sender<Notification>>,
+    pub r_notifier: Option<Sender<Notification>>,
 
     /// Topic of the attribute
     pub topic: Option<String>,

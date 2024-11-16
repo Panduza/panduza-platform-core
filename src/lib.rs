@@ -36,7 +36,8 @@ pub use attribute::bidir_msg_att::BidirMsgAtt;
 pub use attribute::builder::AttributeBuilder;
 pub use attribute::cmd_only_msg_att::CmdOnlyMsgAtt;
 
-pub use attribute::si_server::SiAttServer;
+pub use attribute::server_si::SiAttServer;
+pub use attribute::server_string::StringAttServer;
 
 // public traits
 mod traits;

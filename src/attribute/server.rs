@@ -5,11 +5,13 @@ use crate::MessageClient;
 use crate::MessageCodec;
 use crate::MessageDispatcher;
 use crate::MessageHandler;
+use crate::Notification;
 use async_trait::async_trait;
 use bytes::Bytes;
 use rumqttc::QoS;
 use std::sync::Arc;
 use std::sync::Weak;
+use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
 use tokio::sync::Notify;
 
@@ -62,6 +64,8 @@ pub struct AttServer<TYPE: MessageCodec> {
     ///
     ///
     mode: AttributeMode,
+
+    r_notifier: Option<Sender<Notification>>,
 }
 
 impl<TYPE: MessageCodec> AttServer<TYPE> {
@@ -72,6 +76,20 @@ impl<TYPE: MessageCodec> AttServer<TYPE> {
     pub async fn init(&self, attribute: Arc<Mutex<dyn MessageHandler>>) -> Result<(), Error> {
         self.register(attribute).await?;
         self.subscribe().await
+    }
+
+    ///
+    /// Send a notification to the underscore device to raise an alert
+    ///
+    pub fn send_alert(&self, message: String) {
+        if let Some(r_notifier) = self.r_notifier.clone() {
+            r_notifier
+                .try_send(Notification::new_alert_notification(
+                    self.topic.clone(),
+                    message,
+                ))
+                .unwrap();
+        }
     }
 
     ///
@@ -195,7 +213,8 @@ impl<TYPE: MessageCodec> From<AttributeBuilder> for AttServer<TYPE> {
             in_notifier: Arc::new(Notify::new()),
             topic_att: format!("{}/att", topic.clone()),
             requested_value: None,
-            mode: builder.mode.clone().unwrap(),
+            mode: builder.mode.unwrap(),
+            r_notifier: builder.r_notifier,
         }
     }
 }

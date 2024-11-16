@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
 
+pub mod alert;
 pub mod group;
 pub mod state;
 pub mod structural;
 
+pub use alert::AlertNotification;
 pub use state::StateNotification;
 pub use structural::StructuralNotification;
 use structural::{attribute::AttributeMode, AttributeNotification, InterfaceNotification};
@@ -12,6 +14,7 @@ use crate::device::State;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Notification {
+    Alert(AlertNotification),
     StateChanged(StateNotification),
     ElementCreated(StructuralNotification),
     ElementDeleted(StructuralNotification),
@@ -23,6 +26,13 @@ impl Notification {
     ///
     pub fn new_state_changed_notification(name: String, state: State) -> Notification {
         Notification::StateChanged(StateNotification::new(name, state))
+    }
+
+    ///
+    ///
+    ///
+    pub fn new_alert_notification(topic: String, message: String) -> Notification {
+        Notification::Alert(AlertNotification::new(topic, message))
     }
 
     ///
