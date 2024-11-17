@@ -1,7 +1,7 @@
 use super::server_si::SiAttServer;
 use super::{att_only_msg_att::AttOnlyMsgAtt, cmd_only_msg_att::CmdOnlyMsgAtt};
 use crate::{notification::structural::attribute::AttributeMode, Notification};
-use crate::{BidirMsgAtt, Error, MessageClient, MessageCodec, MessageDispatcher};
+use crate::{BidirMsgAtt, BooleanAttServer, Error, MessageClient, MessageCodec, MessageDispatcher};
 use serde_json::json;
 use std::sync::Weak;
 use tokio::sync::mpsc::Sender;
@@ -108,6 +108,17 @@ impl AttributeBuilder {
             }
         ));
         let att = SiAttServer::new(self.clone(), unit_string, min, max, decimals);
+        att.inner.lock().await.init(att.inner.clone()).await?;
+        self.send_creation_notification();
+        Ok(att)
+    }
+
+    ///
+    ///
+    ///
+    pub async fn finish_as_boolean(mut self) -> Result<BooleanAttServer, Error> {
+        self.r#type = Some(BooleanAttServer::r#type());
+        let att = BooleanAttServer::new(self.clone());
         att.inner.lock().await.init(att.inner.clone()).await?;
         self.send_creation_notification();
         Ok(att)

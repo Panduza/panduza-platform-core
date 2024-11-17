@@ -64,13 +64,18 @@ impl StringAttServer {
             .and_then(|v| Some(v.value))
     }
 
-    // ///
-    // /// Get the value of the attribute
-    // /// If None, the first value is not yet received
-    // ///
-    // pub async fn get_last_cmd(&self) -> Option<TYPE> {
-    //     return self.inner.lock().await.get_last_cmd();
-    // }
+    ///
+    /// Get the value of the attribute
+    /// If None, the first value is not yet received
+    ///
+    pub async fn get_last_cmd(&self) -> Option<String> {
+        return self
+            .inner
+            .lock()
+            .await
+            .get_last_cmd()
+            .and_then(|v| Some(v.value));
+    }
 
     /// Set the value of the attribute
     ///
