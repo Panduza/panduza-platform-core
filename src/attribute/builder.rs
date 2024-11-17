@@ -82,8 +82,8 @@ impl AttributeBuilder {
         self
     }
 
-    pub fn with_info(mut self, info: String) -> Self {
-        self.info = Some(info);
+    pub fn with_info<T: Into<String>>(mut self, info: T) -> Self {
+        self.info = Some(info.into());
         self
     }
 
