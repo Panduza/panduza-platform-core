@@ -94,6 +94,7 @@ pub use notification::group::NotificationGroup;
 pub use notification::structural::attribute::AttributeMode;
 pub use notification::structural::AttributeNotification;
 pub use notification::structural::InterfaceNotification;
+pub use notification::AlertNotification;
 pub use notification::Notification;
 pub use notification::StateNotification;
 pub use notification::StructuralNotification;
