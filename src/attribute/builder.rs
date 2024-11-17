@@ -1,7 +1,10 @@
 use super::server_si::SiAttServer;
 use super::{att_only_msg_att::AttOnlyMsgAtt, cmd_only_msg_att::CmdOnlyMsgAtt};
 use crate::{notification::structural::attribute::AttributeMode, Notification};
-use crate::{BidirMsgAtt, BooleanAttServer, Error, MessageClient, MessageCodec, MessageDispatcher};
+use crate::{
+    BidirMsgAtt, BooleanAttServer, EnumAttServer, Error, MessageClient, MessageCodec,
+    MessageDispatcher, StringAttServer,
+};
 use serde_json::json;
 use std::sync::Weak;
 use tokio::sync::mpsc::Sender;
@@ -124,9 +127,31 @@ impl AttributeBuilder {
         Ok(att)
     }
 
-    // with_type_si (settings inside here)
-    // with_type_string
+    ///
+    ///
+    ///
+    pub async fn finish_as_string(mut self) -> Result<StringAttServer, Error> {
+        self.r#type = Some(StringAttServer::r#type());
+        let att = StringAttServer::new(self.clone());
+        att.inner.lock().await.init(att.inner.clone()).await?;
+        self.send_creation_notification();
+        Ok(att)
+    }
 
+    ///
+    ///
+    ///
+    pub async fn finish_as_enum(mut self, choices: Vec<String>) -> Result<EnumAttServer, Error> {
+        self.r#type = Some(EnumAttServer::r#type());
+        let att = EnumAttServer::new(self.clone(), choices);
+        att.inner.lock().await.init(att.inner.clone()).await?;
+        self.send_creation_notification();
+        Ok(att)
+    }
+
+    ///
+    ///
+    ///
     fn send_creation_notification(&self) {
         //
         //
