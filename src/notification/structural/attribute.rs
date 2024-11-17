@@ -16,6 +16,7 @@ pub struct AttributeNotification {
     name: String,
     typee: String,
     mode: AttributeMode,
+    info: Option<String>,
     settings: Option<JsonValue>,
 }
 
@@ -27,12 +28,14 @@ impl AttributeNotification {
         name: N,
         typee: T,
         mode: AttributeMode,
+        info: Option<String>,
         settings: Option<JsonValue>,
     ) -> Self {
         Self {
             name: name.into(),
             typee: typee.into(),
             mode,
+            info: info,
             settings: settings,
         }
     }
@@ -55,6 +58,11 @@ impl AttributeNotification {
     pub fn mode(&self) -> &AttributeMode {
         &self.mode
     }
+
+    pub fn info(&self) -> &Option<String> {
+        &self.info
+    }
+
     pub fn settings(&self) -> &Option<JsonValue> {
         &self.settings
     }

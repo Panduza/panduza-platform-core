@@ -33,6 +33,8 @@ pub struct AttributeBuilder {
     pub mode: Option<AttributeMode>,
 
     pub r#type: Option<String>,
+
+    pub info: Option<String>,
 }
 
 impl AttributeBuilder {
@@ -40,7 +42,6 @@ impl AttributeBuilder {
     pub fn new(
         message_client: MessageClient,
         message_dispatcher: Weak<Mutex<MessageDispatcher>>,
-        // device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
         r_notifier: Option<Sender<Notification>>,
     ) -> AttributeBuilder {
         AttributeBuilder {
@@ -51,6 +52,7 @@ impl AttributeBuilder {
             settings: None,
             mode: None,
             r#type: None,
+            info: None,
         }
     }
     /// Attach a topic
@@ -77,6 +79,11 @@ impl AttributeBuilder {
     }
     pub fn with_rw(mut self) -> Self {
         self.mode = Some(AttributeMode::Bidir);
+        self
+    }
+
+    pub fn with_info(mut self, info: String) -> Self {
+        self.info = Some(info);
         self
     }
 
@@ -119,6 +126,7 @@ impl AttributeBuilder {
                     bis,
                     self.r#type.clone().unwrap(),
                     self.mode.clone().unwrap(),
+                    self.info.clone(),
                     self.settings.clone(),
                 ))
                 .unwrap();
@@ -179,6 +187,7 @@ impl CmdOnlyMsgAttBuilder {
                     bis,
                     TYPE::typee(),
                     AttributeMode::CmdOnly,
+                    None,
                     self.base.settings.clone(),
                 ))
                 .unwrap();
@@ -208,6 +217,7 @@ impl BidirMsgAttBuilder {
                     bis,
                     TYPE::typee(),
                     AttributeMode::Bidir,
+                    None,
                     self.base.settings.clone(),
                 ))
                 .unwrap();
@@ -243,6 +253,7 @@ impl AttOnlyMsgBuilder {
                     bis,
                     TYPE::typee(),
                     AttributeMode::AttOnly,
+                    None,
                     self.base.settings.clone(),
                 ))
                 .unwrap();

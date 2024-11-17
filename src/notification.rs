@@ -54,10 +54,11 @@ impl Notification {
         topic: N,
         typee: T,
         mode: AttributeMode,
+        info: Option<String>,
         settings: Option<serde_json::Value>,
     ) -> Notification {
         Notification::ElementCreated(StructuralNotification::Attribute(
-            AttributeNotification::new(topic, typee, mode, settings),
+            AttributeNotification::new(topic, typee, mode, info, settings),
         ))
     }
 }
