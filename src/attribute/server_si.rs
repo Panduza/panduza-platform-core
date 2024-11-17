@@ -99,7 +99,7 @@ impl SiAttServer {
         Ok(())
     }
 
-    pub async fn send_alert(&self, message: String) {
-        self.inner.lock().await.send_alert(message);
+    pub async fn send_alert<T: Into<String>>(&self, message: T) {
+        self.inner.lock().await.send_alert(message.into());
     }
 }
