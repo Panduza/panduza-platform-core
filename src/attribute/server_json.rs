@@ -4,23 +4,23 @@ use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
 use super::server::AttServer;
-use crate::{AttributeBuilder, Error, StringCodec};
+use crate::{AttributeBuilder, Error, JsonCodec};
 
 ///
 ///
 ///
 #[derive(Clone)]
-pub struct StringAttServer {
+pub struct JsonAttServer {
     ///
     /// Inner server implementation
-    pub inner: Arc<Mutex<AttServer<StringCodec>>>,
+    pub inner: Arc<Mutex<AttServer<JsonCodec>>>,
 }
 
-impl StringAttServer {
+impl JsonAttServer {
     ///
     ///
     pub fn r#type() -> String {
-        "string".to_string()
+        "json".to_string()
     }
 
     ///
@@ -28,7 +28,7 @@ impl StringAttServer {
     ///
     pub fn new(builder: AttributeBuilder) -> Self {
         Self {
-            inner: Arc::new(Mutex::new(AttServer::<StringCodec>::from(builder))),
+            inner: Arc::new(Mutex::new(AttServer::<JsonCodec>::from(builder))),
         }
     }
 
@@ -56,7 +56,7 @@ impl StringAttServer {
     /// Get the value of the attribute
     /// If None, the first value is not yet received
     ///
-    pub async fn pop_cmd(&mut self) -> Option<String> {
+    pub async fn pop_cmd(&mut self) -> Option<serde_json::Value> {
         self.inner
             .lock()
             .await
@@ -68,7 +68,7 @@ impl StringAttServer {
     /// Get the value of the attribute
     /// If None, the first value is not yet received
     ///
-    pub async fn get_last_cmd(&self) -> Option<String> {
+    pub async fn get_last_cmd(&self) -> Option<serde_json::Value> {
         return self
             .inner
             .lock()
@@ -79,11 +79,11 @@ impl StringAttServer {
 
     /// Set the value of the attribute
     ///
-    pub async fn set(&self, value: String) -> Result<(), Error> {
+    pub async fn set(&self, value: serde_json::Value) -> Result<(), Error> {
         self.inner
             .lock()
             .await
-            .set(StringCodec { value: value })
+            .set(JsonCodec { value: value })
             .await?;
         Ok(())
     }
