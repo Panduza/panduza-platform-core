@@ -169,6 +169,7 @@ impl AttributeBuilder {
         }
     }
 
+    #[deprecated]
     pub fn message(self) -> MessageAttributeBuilder {
         MessageAttributeBuilder { base: self }
     }
