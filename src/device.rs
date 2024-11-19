@@ -12,6 +12,9 @@ use tokio::sync::Mutex;
 use tokio::sync::{mpsc::Sender, Notify};
 pub mod monitor;
 
+
+use crate::log_error;
+
 /// States of the main Interface FSM
 ///
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -202,7 +205,7 @@ impl Device {
                             self.move_to_state(State::Running).await;
                         }
                         Err(e) => {
-                            self.logger.error(format!("FSM Mount Failure {}", e));
+                            log_error!(self.logger, "Instance Mount Failure '{:?}'", e);
                             self.move_to_state(State::Error).await;
                         }
                     }

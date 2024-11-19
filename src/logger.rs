@@ -242,6 +242,14 @@ impl DriverLogger {
     }
 }
 
+
+#[macro_export]
+macro_rules! log_error {
+    ($logger:expr , $($arg:tt)*) => {
+        $logger.error(format!($($arg)*))
+    };
+}
+
 #[macro_export]
 macro_rules! log_info {
     ($logger:expr , $($arg:tt)*) => {
