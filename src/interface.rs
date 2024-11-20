@@ -3,6 +3,9 @@ use crate::{AttributeBuilder, Device, InterfaceBuilder, Reactor};
 pub mod builder;
 
 #[derive(Clone)]
+///
+/// TODO => rename into Class
+///
 pub struct Interface {
     ///
     reactor: Reactor, // deprecated because acces through device

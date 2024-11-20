@@ -23,13 +23,19 @@ pub trait DeviceOperations: Send + Sync {
 /// Trait to define a device producer
 ///
 pub trait Producer: Send {
-    /// Device Manufacturer
+    /// Driver Manufacturer
     ///
     fn manufacturer(&self) -> String;
 
-    /// Device Model
+    /// Driver Model
     ///
     fn model(&self) -> String;
+
+    /// Driver Description
+    ///
+    /// What the driver do ?
+    ///
+    fn description(&self) -> String;
 
     /// Device settings properties
     ///

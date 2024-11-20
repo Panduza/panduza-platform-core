@@ -46,7 +46,6 @@ pub struct Plugin {
     ///
     /// Return the notifications
     ///
-    ///
     pub pull_notifications: unsafe extern "C" fn() -> *const i8,
 }
 
