@@ -2,8 +2,8 @@ use super::server_si::SiAttServer;
 use super::{att_only_msg_att::AttOnlyMsgAtt, cmd_only_msg_att::CmdOnlyMsgAtt};
 use crate::{notification::structural::attribute::AttributeMode, Notification};
 use crate::{
-    BidirMsgAtt, BooleanAttServer, EnumAttServer, Error, MessageClient, MessageCodec,
-    MessageDispatcher, StringAttServer,
+    BidirMsgAtt, BooleanAttServer, EnumAttServer, Error, JsonAttServer, MessageClient,
+    MessageCodec, MessageDispatcher, StringAttServer,
 };
 use serde_json::json;
 use std::sync::Weak;
@@ -117,7 +117,7 @@ impl AttributeBuilder {
     }
 
     ///
-    ///
+    /// Finish attribute building and configure it with 'boolean' type.
     ///
     pub async fn finish_as_boolean(mut self) -> Result<BooleanAttServer, Error> {
         self.r#type = Some(BooleanAttServer::r#type());
@@ -128,7 +128,7 @@ impl AttributeBuilder {
     }
 
     ///
-    ///
+    /// Finish attribute building and configure it with 'string' type.
     ///
     pub async fn finish_as_string(mut self) -> Result<StringAttServer, Error> {
         self.r#type = Some(StringAttServer::r#type());
@@ -139,11 +139,22 @@ impl AttributeBuilder {
     }
 
     ///
-    ///
+    /// Finish attribute building and configure it with 'enum' type.
     ///
     pub async fn finish_as_enum(mut self, choices: Vec<String>) -> Result<EnumAttServer, Error> {
         self.r#type = Some(EnumAttServer::r#type());
         let att = EnumAttServer::new(self.clone(), choices);
+        att.inner.lock().await.init(att.inner.clone()).await?;
+        self.send_creation_notification();
+        Ok(att)
+    }
+
+    ///
+    /// Finish attribute building and configure it with 'json' type.
+    ///
+    pub async fn finish_as_json(mut self) -> Result<JsonAttServer, Error> {
+        self.r#type = Some(JsonAttServer::r#type());
+        let att = JsonAttServer::new(self.clone());
         att.inner.lock().await.init(att.inner.clone()).await?;
         self.send_creation_notification();
         Ok(att)
