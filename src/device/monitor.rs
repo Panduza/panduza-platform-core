@@ -113,7 +113,12 @@ impl DeviceMonitor {
                         println!("Task completed");
                     }
                     Err(e) => {
-                        println!("Sub Task failed: {:?}", e);
+                        //
+                        // Debug log when the sub task crash
+                        self.device
+                            .logger
+                            .error(format!("Instance sub task crash: {:?}", e));
+
                         self.subtask_pool.abort_all();
 
                         self.device.go_error().await;

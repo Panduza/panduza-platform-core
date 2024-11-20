@@ -1,10 +1,13 @@
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+use serde_json::Value as JsonValue;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AttributeMode {
+    #[serde(rename = "RO")]
     AttOnly,
+    #[serde(rename = "WO")]
     CmdOnly,
+    #[serde(rename = "RW")]
     Bidir,
 }
 
@@ -13,17 +16,27 @@ pub struct AttributeNotification {
     name: String,
     typee: String,
     mode: AttributeMode,
+    info: Option<String>,
+    settings: Option<JsonValue>,
 }
 
 impl AttributeNotification {
     ///
     ///
     ///
-    pub fn new<N: Into<String>, T: Into<String>>(name: N, typee: T, mode: AttributeMode) -> Self {
+    pub fn new<N: Into<String>, T: Into<String>>(
+        name: N,
+        typee: T,
+        mode: AttributeMode,
+        info: Option<String>,
+        settings: Option<JsonValue>,
+    ) -> Self {
         Self {
             name: name.into(),
             typee: typee.into(),
             mode,
+            info: info,
+            settings: settings,
         }
     }
 
@@ -32,14 +45,6 @@ impl AttributeNotification {
     ///
     pub fn topic(&self) -> String {
         self.name.clone()
-    }
-
-    pub fn into_json_value(&self) -> serde_json::Value {
-        json!({
-            // "name": self.name,
-            "type": self.typee,
-            "mode": self.mode
-        })
     }
 
     ///
@@ -54,10 +59,11 @@ impl AttributeNotification {
         &self.mode
     }
 
-    // ///
-    // /// Attribute does not hold any elements
-    // ///
-    // pub fn is_element_exist(&self, layers: Vec<String>) -> Result<bool, Error> {
-    //     Ok(false)
-    // }
+    pub fn info(&self) -> &Option<String> {
+        &self.info
+    }
+
+    pub fn settings(&self) -> &Option<JsonValue> {
+        &self.settings
+    }
 }

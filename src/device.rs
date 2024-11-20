@@ -12,9 +12,12 @@ use tokio::sync::Mutex;
 use tokio::sync::{mpsc::Sender, Notify};
 pub mod monitor;
 
+
+use crate::log_error;
+
 /// States of the main Interface FSM
 ///
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub enum State {
     Booting,
     Connecting,
@@ -24,6 +27,8 @@ pub enum State {
     Error,
     Cleaning,
     Stopping,
+    #[default]
+    Undefined,
 }
 
 impl Display for State {
@@ -37,6 +42,7 @@ impl Display for State {
             State::Warning => write!(f, "Warning"),
             State::Cleaning => write!(f, "Cleaning"),
             State::Stopping => write!(f, "Stopping"),
+            State::Undefined => write!(f, "Undefined"),
         }
     }
 }
@@ -199,7 +205,7 @@ impl Device {
                             self.move_to_state(State::Running).await;
                         }
                         Err(e) => {
-                            self.logger.error(format!("FSM Mount Failure {}", e));
+                            log_error!(self.logger, "Instance Mount Failure '{:?}'", e);
                             self.move_to_state(State::Error).await;
                         }
                     }
@@ -219,6 +225,7 @@ impl Device {
                 State::Warning => {}
                 State::Cleaning => {}
                 State::Stopping => {}
+                State::Undefined => {}
             }
         }
 

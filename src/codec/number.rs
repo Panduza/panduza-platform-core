@@ -10,6 +10,17 @@ pub struct NumberCodec {
 ///
 /// Allow implicit convertion
 ///
+impl From<f32> for NumberCodec {
+    fn from(value: f32) -> Self {
+        Self {
+            value: serde_json::json!(value),
+        }
+    }
+}
+
+///
+/// Allow implicit convertion
+///
 impl From<u32> for NumberCodec {
     fn from(value: u32) -> NumberCodec {
         NumberCodec {
@@ -17,7 +28,6 @@ impl From<u32> for NumberCodec {
         }
     }
 }
-
 
 ///
 /// Allow implicit convertion

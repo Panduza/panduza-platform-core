@@ -72,11 +72,11 @@ impl Reactor {
         // let data = ;
 
         // Server hostname
-        let hostname = hostname::get().unwrap().to_string_lossy().to_string();
+        // let hostname = hostname::get().unwrap().to_string_lossy().to_string();
 
         Reactor {
             is_started: false,
-            root_topic: format!("pza/{}", hostname),
+            root_topic: format!("pza"),
             message_client: None,
             message_dispatcher: Arc::new(Mutex::new(MessageDispatcher::new())),
             scan_handler: None,

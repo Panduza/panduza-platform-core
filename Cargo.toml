@@ -81,7 +81,29 @@ colored = "2.0.0"
 
 rand = "0.8.5"
 
+
+# === feature => serial
+# 
+# To manage serial communication
+# Better than 'tokio-serial' in particular on Windows
+#
+serial2-tokio = { version = "0.1.14", optional = true }
+# 
+# But the available_serial_ports() of tokio-serial is better
+# because it provides more detailed informations on hardware
+# This is the only reason why we use tokio-serial for now
+# 
+tokio-serial = { version = "5.4.1", optional = true } #
+
+
 [features]
 
 # Enable tracing in stdout
 log = []
+
+
+usb = []
+
+# Build serial drivers for plugins
+# 
+serial = ["tokio-serial", "serial2-tokio", "usb"]

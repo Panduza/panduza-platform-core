@@ -9,3 +9,10 @@ pub mod cmd_only_msg_att_inner;
 pub use att_only_msg_inner::AttOnlyMsgAttInner;
 pub use bidir_msg_inner::BidirMsgAttInner;
 pub use cmd_only_msg_att_inner::CmdOnlyMsgAttInner;
+
+pub mod server;
+pub mod server_boolean;
+pub mod server_enum;
+pub mod server_json;
+pub mod server_si;
+pub mod server_string;

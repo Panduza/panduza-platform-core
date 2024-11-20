@@ -3,7 +3,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct JsonCodec {
-    value: serde_json::Value,
+    pub value: serde_json::Value,
 }
 
 ///
