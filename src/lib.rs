@@ -120,3 +120,8 @@ pub mod drivers;
 /// Currently we put here a trait waiting to see if there is a better use later
 ///
 pub mod protocol;
+
+///
+///
+///
+pub mod props;
