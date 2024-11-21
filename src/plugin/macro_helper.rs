@@ -4,7 +4,7 @@ macro_rules! plugin_interface {
         use panduza_platform_core::NotificationGroup;
         use panduza_platform_core::{
             Factory, PlatformLogger, Plugin, Producer, ProductionOrder, Reactor, ReactorSettings,
-            Runtime,
+            Runtime, Scanner,
         };
         use serde_json::Result;
         use serde_json::Value;
@@ -40,6 +40,8 @@ macro_rules! plugin_interface {
         static mut FACTORY: Option<Factory> = None;
 
         static mut FACTORY_STORE: Option<CString> = None;
+
+        static mut FACTORY_SCAN_RESULT: Option<CString> = None;
 
         static mut THREAD_HANDLE: Option<JoinHandle<()>> = None;
 
@@ -101,8 +103,13 @@ macro_rules! plugin_interface {
 
         pub unsafe extern "C" fn scan() -> *const i8 {
             LOGGER.as_ref().unwrap().trace(format!("scan !"));
-            // FACTORY_STORE.as_ref().unwrap().as_c_str().as_ptr()
-            0
+
+            //
+            // Start scan
+
+            //
+            // Put the result available to the platform
+            FACTORY_SCAN_RESULT.as_ref().unwrap().as_c_str().as_ptr()
         }
 
         pub unsafe extern "C" fn produce(str_production_order: *const i8) -> u32 {
