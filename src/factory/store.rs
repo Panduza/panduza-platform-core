@@ -40,3 +40,12 @@ pub struct Store {
     ///
     pub products: HashMap<String, Product>,
 }
+
+impl Store {
+    ///
+    /// Check if the store contains the given product ref
+    ///
+    pub fn contains(&self, r#ref: &String) -> bool {
+        self.products.contains_key(r#ref)
+    }
+}
