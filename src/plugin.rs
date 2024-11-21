@@ -45,6 +45,11 @@ pub struct Plugin {
     pub store: unsafe extern "C" fn() -> *const i8,
 
     ///
+    /// Return the list of all instances available on the server
+    ///
+    // pub scan: unsafe extern "C" fn() -> *const i8,
+
+    ///
     /// Produce a device matching the given json string configuration
     ///
     pub produce: unsafe extern "C" fn(*const i8) -> u32,
@@ -61,6 +66,7 @@ impl Plugin {
         version: &CStr,
         join: unsafe extern "C" fn(),
         store: unsafe extern "C" fn() -> *const i8,
+        // scan: unsafe extern "C" fn() -> *const i8,
         produce: unsafe extern "C" fn(*const i8) -> u32,
         pull_notifications: unsafe extern "C" fn() -> *const i8,
     ) -> Self {
@@ -70,6 +76,7 @@ impl Plugin {
             version: version.as_ptr() as *const i8,
             join: join,
             store: store,
+            scan: scan,
             produce: produce,
             pull_notifications: pull_notifications,
         }
