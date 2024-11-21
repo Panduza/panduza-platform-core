@@ -50,6 +50,7 @@ pub use traits::DriverOperations;
 pub use traits::MessageCodec;
 pub use traits::MessageHandler;
 pub use traits::Producer;
+pub use traits::Scanner;
 
 //
 mod reactor;

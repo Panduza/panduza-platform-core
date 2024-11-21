@@ -4,7 +4,7 @@ use store::{Product, Store};
 use tokio::sync::mpsc::Sender;
 
 use crate::{
-    Device, DeviceMonitor, FactoryLogger, Notification, Producer, ProductionOrder, Reactor,
+    Device, DeviceMonitor, FactoryLogger, Notification, Producer, ProductionOrder, Reactor, Scanner,
 };
 use std::{collections::HashMap, ffi::CString};
 
@@ -15,6 +15,8 @@ pub struct Factory {
     logger: FactoryLogger,
     /// List of known producers
     producers: HashMap<String, Box<dyn Producer>>,
+    ///
+    scanners: Vec<Box<dyn Scanner>>,
 }
 
 impl Factory {
@@ -25,6 +27,7 @@ impl Factory {
         let obj = Factory {
             logger: FactoryLogger::new(),
             producers: HashMap::new(),
+            scanners: Vec::new(),
         };
         // Info log
         obj.logger.info("# Device factory initialization");
@@ -44,7 +47,7 @@ impl Factory {
     pub fn add_producer(&mut self, producer: Box<dyn Producer>) {
         // Info log
         self.logger.info(format!(
-            "  - {}.{}",
+            "   - producer - {}.{}",
             producer.manufacturer(),
             producer.model()
         ));
@@ -53,6 +56,21 @@ impl Factory {
             format!("{}.{}", producer.manufacturer(), producer.model()),
             producer,
         );
+    }
+
+    pub fn add_scanners(&mut self, scanners: Vec<Box<dyn Scanner>>) {
+        for scanner in scanners {
+            self.add_scanner(scanner);
+        }
+    }
+
+    /// Add a single producer
+    pub fn add_scanner(&mut self, scanner: Box<dyn Scanner>) {
+        // Info log
+        self.logger
+            .info(format!("   - scanner - {}", scanner.name()));
+
+        self.scanners.push(scanner);
     }
 
     /// # Store

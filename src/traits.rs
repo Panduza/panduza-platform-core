@@ -1,4 +1,4 @@
-use crate::{Device, Error, Props};
+use crate::{Device, Error, ProductionOrder, Props};
 use async_trait::async_trait;
 use bytes::Bytes;
 use std::fmt::Debug;
@@ -45,6 +45,20 @@ pub trait Producer: Send {
     /// Produce a new instance of the device actions
     ///
     fn produce(&self) -> Result<Box<dyn DriverOperations>, Error>;
+}
+
+///
+///
+///
+pub trait Scanner: Send {
+    ///
+    ///
+    ///
+    fn name(&self) -> String;
+    ///
+    ///
+    ///
+    fn scan(&self) -> Vec<ProductionOrder>;
 }
 
 /// Trait to manage an message attribute (MQTT)

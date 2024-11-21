@@ -39,7 +39,7 @@ macro_rules! plugin_interface {
 
         static mut FACTORY: Option<Factory> = None;
 
-        static mut FACTORY_PRODUCER_REFS: Option<CString> = None;
+        static mut FACTORY_STORE: Option<CString> = None;
 
         static mut THREAD_HANDLE: Option<JoinHandle<()>> = None;
 
@@ -96,7 +96,13 @@ macro_rules! plugin_interface {
 
         pub unsafe extern "C" fn store() -> *const i8 {
             LOGGER.as_ref().unwrap().trace(format!("store !"));
-            FACTORY_PRODUCER_REFS.as_ref().unwrap().as_c_str().as_ptr()
+            FACTORY_STORE.as_ref().unwrap().as_c_str().as_ptr()
+        }
+
+        pub unsafe extern "C" fn scan() -> *const i8 {
+            LOGGER.as_ref().unwrap().trace(format!("scan !"));
+            // FACTORY_STORE.as_ref().unwrap().as_c_str().as_ptr()
+            0
         }
 
         pub unsafe extern "C" fn produce(str_production_order: *const i8) -> u32 {
@@ -157,7 +163,7 @@ macro_rules! plugin_interface {
             let mut factory = Factory::new();
             factory.add_producers(plugin_producers());
             unsafe {
-                FACTORY_PRODUCER_REFS = Some(factory.store_as_c_string().unwrap());
+                FACTORY_STORE = Some(factory.store_as_c_string().unwrap());
                 FACTORY = Some(factory);
             }
 
@@ -172,6 +178,7 @@ macro_rules! plugin_interface {
                 c"v0.1",
                 join,
                 store,
+                scan,
                 produce,
                 pull_notifications,
             );
