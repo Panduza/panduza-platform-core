@@ -1,6 +1,8 @@
-use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
+use serde::de::Error;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::{Map, Value as JsonValue};
 use std::collections::HashMap;
+use std::default;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 ///
@@ -49,7 +51,7 @@ impl Prop {
     }
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone)]
 ///
 /// Represent a group of Prop
 ///
@@ -58,6 +60,34 @@ pub struct Props {
     ///
     ///
     entries: HashMap<String, Prop>,
+}
+
+///
+///
+///
+impl Serialize for Props {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.entries.serialize(serializer)
+    }
+}
+
+///
+/// See Serialize
+///
+impl<'de> Deserialize<'de> for Props {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = serde_json::Value::deserialize(deserializer)?;
+        match value {
+            JsonValue::Object(map) => Ok(map.into()),
+            _ => Err(D::Error::custom("Expected an object for Props")),
+        }
+    }
 }
 
 impl Props {
@@ -73,5 +103,15 @@ impl Props {
     ) {
         self.entries
             .insert(name.into(), Prop::new(description, r#type, default));
+    }
+}
+
+impl From<Map<String, JsonValue>> for Props {
+    fn from(source: Map<String, JsonValue>) -> Self {
+        let mut res = HashMap::<String, Prop>::new();
+        for (key, entry) in source {
+            res.insert(key, serde_json::from_value(entry).unwrap());
+        }
+        Self { entries: res }
     }
 }
