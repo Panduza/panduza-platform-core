@@ -1,6 +1,8 @@
 pub mod macro_helper;
 use std::ffi::CStr;
 
+use crate::Store;
+
 ///
 /// !!!!!
 /// Increment this number after a Plugin structure modification
@@ -87,7 +89,7 @@ impl Plugin {
     ///
     /// Converts a C-style string pointer into a `ProductionOrder`
     ///
-    pub unsafe fn producer_refs_as_obj(&self) -> Result<Vec<String>, crate::Error> {
+    pub unsafe fn store_as_obj(&self) -> Result<Store, crate::Error> {
         let c_str = (self.store)();
 
         //
