@@ -2,7 +2,6 @@ use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{Map, Value as JsonValue};
 use std::collections::HashMap;
-use std::default;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 ///
@@ -84,7 +83,18 @@ impl<'de> Deserialize<'de> for Props {
     {
         let value = serde_json::Value::deserialize(deserializer)?;
         match value {
-            JsonValue::Object(map) => Ok(map.into()),
+            JsonValue::Object(map) => {
+                let mut res = HashMap::<String, Prop>::new();
+                for (key, entry) in map {
+                    res.insert(
+                        key,
+                        serde_json::from_value(entry).map_err(|e| {
+                            D::Error::custom(format!(" Error parsing Props map {:?}", e))
+                        })?,
+                    );
+                }
+                Ok(Self { entries: res })
+            }
             _ => Err(D::Error::custom("Expected an object for Props")),
         }
     }
