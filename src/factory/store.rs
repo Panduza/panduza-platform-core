@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::Props;
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 
 ///
 ///
@@ -20,7 +20,7 @@ pub struct Product {
     pub props: Props,
 }
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 /// # Store
 ///
 /// Contains information about drivers that can be produced by a factory
@@ -47,5 +47,12 @@ impl Store {
     ///
     pub fn contains(&self, r#ref: &String) -> bool {
         self.products.contains_key(r#ref)
+    }
+
+    ///
+    /// Extend the current store by copying an other
+    ///
+    pub fn extend_by_copy(&mut self, other: &Store) {
+        self.products.extend(other.products.clone());
     }
 }
