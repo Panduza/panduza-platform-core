@@ -73,6 +73,28 @@ impl Factory {
         self.scanners.push(scanner);
     }
 
+    ///
+    ///
+    ///
+    pub fn scan(&self) -> Vec<ProductionOrder> {
+        let mut result = Vec::new();
+        for scanner in &self.scanners {
+            result.extend(scanner.scan());
+        }
+        result
+    }
+
+    ///
+    ///
+    ///
+    pub fn scan_as_c_string(&self) -> Result<CString, crate::Error> {
+        let result = self.scan();
+        let json_str =
+            serde_json::to_string(&result).expect("Failed to serialize scan result to JSON");
+        CString::new(json_str)
+            .map_err(|e| crate::Error::InternalLogic(format!("Failed to build CString ({:?})", e)))
+    }
+
     /// # Store
     ///
     /// Return the information about driver that can be produced by this factory

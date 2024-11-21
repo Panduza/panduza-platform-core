@@ -106,6 +106,9 @@ macro_rules! plugin_interface {
 
             //
             // Start scan
+            unsafe {
+                FACTORY_SCAN_RESULT = Some(FACTORY.as_ref().unwrap().scan_as_c_string().unwrap());
+            }
 
             //
             // Put the result available to the platform
@@ -169,6 +172,7 @@ macro_rules! plugin_interface {
             // init factory
             let mut factory = Factory::new();
             factory.add_producers(plugin_producers());
+            factory.add_scanners(plugin_scanners());
             unsafe {
                 FACTORY_STORE = Some(factory.store_as_c_string().unwrap());
                 FACTORY = Some(factory);
