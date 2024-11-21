@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-
-use crate::Props;
+use crate::{Error, Props};
 use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
+use std::collections::HashMap;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 
@@ -54,5 +54,12 @@ impl Store {
     ///
     pub fn extend_by_copy(&mut self, other: &Store) {
         self.products.extend(other.products.clone());
+    }
+
+    ///
+    ///
+    ///
+    pub fn into_json_value(&self) -> Result<JsonValue, Error> {
+        serde_json::to_value(&self.products).map_err(|e| Error::InternalLogic(format!("{:?}", e)))
     }
 }
