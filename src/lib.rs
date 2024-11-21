@@ -17,6 +17,8 @@ pub use logger::RuntimeLogger;
 mod factory;
 pub use factory::production_order::DeviceSettings;
 pub use factory::production_order::ProductionOrder;
+pub use factory::store::Product;
+pub use factory::store::Store;
 pub use factory::Factory;
 
 //
@@ -44,7 +46,7 @@ pub use attribute::server_string::StringAttServer;
 
 // public traits
 mod traits;
-pub use traits::DeviceOperations;
+pub use traits::DriverOperations;
 pub use traits::MessageCodec;
 pub use traits::MessageHandler;
 pub use traits::Producer;
@@ -125,3 +127,6 @@ pub mod protocol;
 ///
 ///
 pub mod props;
+pub use props::Prop;
+pub use props::PropType;
+pub use props::Props;

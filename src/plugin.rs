@@ -24,6 +24,10 @@ pub struct Plugin {
     ///
     ///
     pub name: *const i8,
+
+    ///
+    ///
+    ///
     pub version: *const i8,
 
     ///
@@ -36,7 +40,7 @@ pub struct Plugin {
     ///
     /// The returned list must be a json array of string
     ///
-    pub producer_refs: unsafe extern "C" fn() -> *const i8,
+    pub store: unsafe extern "C" fn() -> *const i8,
 
     ///
     /// Produce a device matching the given json string configuration
@@ -54,7 +58,7 @@ impl Plugin {
         name: &'static CStr,
         version: &CStr,
         join: unsafe extern "C" fn(),
-        producer_refs: unsafe extern "C" fn() -> *const i8,
+        store: unsafe extern "C" fn() -> *const i8,
         produce: unsafe extern "C" fn(*const i8) -> u32,
         pull_notifications: unsafe extern "C" fn() -> *const i8,
     ) -> Self {
@@ -63,7 +67,7 @@ impl Plugin {
             name: name.as_ptr() as *const i8,
             version: version.as_ptr() as *const i8,
             join: join,
-            producer_refs: producer_refs,
+            store: store,
             produce: produce,
             pull_notifications: pull_notifications,
         }
@@ -84,7 +88,7 @@ impl Plugin {
     /// Converts a C-style string pointer into a `ProductionOrder`
     ///
     pub unsafe fn producer_refs_as_obj(&self) -> Result<Vec<String>, crate::Error> {
-        let c_str = (self.producer_refs)();
+        let c_str = (self.store)();
 
         //
         //

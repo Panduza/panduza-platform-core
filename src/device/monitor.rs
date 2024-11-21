@@ -7,7 +7,7 @@ use crate::{Error, Notification, ProductionOrder};
 use std::sync::Arc;
 
 use super::Device;
-use crate::{DeviceOperations, Reactor, TaskReceiver};
+use crate::{DriverOperations, Reactor, TaskReceiver};
 use std::time::Duration;
 
 use tokio::sync::mpsc::Sender;
@@ -39,7 +39,7 @@ impl DeviceMonitor {
     pub fn new(
         reactor: Reactor,
         r_notifier: Option<Sender<Notification>>,
-        operations: Box<dyn DeviceOperations>,
+        operations: Box<dyn DriverOperations>,
         production_order: ProductionOrder,
     ) -> (DeviceMonitor, Device) {
         //

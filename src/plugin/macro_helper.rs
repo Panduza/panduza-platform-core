@@ -94,8 +94,8 @@ macro_rules! plugin_interface {
             THREAD_HANDLE.take().unwrap().join().unwrap();
         }
 
-        pub unsafe extern "C" fn producer_refs() -> *const i8 {
-            LOGGER.as_ref().unwrap().trace(format!("producer_refs !"));
+        pub unsafe extern "C" fn store() -> *const i8 {
+            LOGGER.as_ref().unwrap().trace(format!("store !"));
             FACTORY_PRODUCER_REFS.as_ref().unwrap().as_c_str().as_ptr()
         }
 
@@ -157,7 +157,7 @@ macro_rules! plugin_interface {
             let mut factory = Factory::new();
             factory.add_producers(plugin_producers());
             unsafe {
-                FACTORY_PRODUCER_REFS = Some(factory.producer_refs_as_c_string().unwrap());
+                FACTORY_PRODUCER_REFS = Some(factory.store_as_c_string().unwrap());
                 FACTORY = Some(factory);
             }
 
@@ -171,7 +171,7 @@ macro_rules! plugin_interface {
                 PLG_NAME.as_ref().unwrap().as_c_str(),
                 c"v0.1",
                 join,
-                producer_refs,
+                store,
                 produce,
                 pull_notifications,
             );

@@ -1,7 +1,7 @@
 mod inner;
 use crate::InterfaceBuilder;
 use crate::{
-    reactor::Reactor, AttributeBuilder, DeviceLogger, DeviceOperations, DeviceSettings, Error,
+    reactor::Reactor, AttributeBuilder, DeviceLogger, DeviceSettings, DriverOperations, Error,
     Notification, TaskResult, TaskSender,
 };
 use futures::FutureExt;
@@ -11,7 +11,6 @@ use std::{fmt::Display, future::Future, sync::Arc};
 use tokio::sync::Mutex;
 use tokio::sync::{mpsc::Sender, Notify};
 pub mod monitor;
-
 
 use crate::log_error;
 
@@ -47,7 +46,9 @@ impl Display for State {
     }
 }
 
-/// A device manage a set of interfaces
+///
+///
+/// TODO : RENAME INTO INSTANCE
 ///
 #[derive(Clone)]
 pub struct Device {
@@ -74,7 +75,7 @@ pub struct Device {
 
     /// Operations of the devices
     ///
-    inner_operations: Arc<Mutex<Box<dyn DeviceOperations>>>,
+    inner_operations: Arc<Mutex<Box<dyn DriverOperations>>>,
 
     ///
     topic: String,
@@ -99,7 +100,7 @@ impl Device {
         r_notifier: Option<Sender<Notification>>,
         spawner: TaskSender<Result<(), Error>>,
         name: String,
-        operations: Box<dyn DeviceOperations>,
+        operations: Box<dyn DriverOperations>,
         settings: Option<DeviceSettings>,
     ) -> Device {
         // Create the object

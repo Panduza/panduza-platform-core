@@ -1,26 +1,27 @@
-use crate::{Device, Error};
+use crate::{Device, Error, Props};
 use async_trait::async_trait;
 use bytes::Bytes;
 use std::fmt::Debug;
 
-/// Actions that are specific for each device type
+/// Actions that are specific for each driver
 ///
 #[async_trait]
-pub trait DeviceOperations: Send + Sync {
+pub trait DriverOperations: Send + Sync {
     ///
-    /// Mount device and give him its structure
+    /// Mount driver instance and give him its structure
     ///
-    async fn mount(&mut self, mut device: Device) -> Result<(), Error>;
+    async fn mount(&mut self, mut instance: Device) -> Result<(), Error>;
 
     ///
-    /// This device crashed, got an error or is not available anymore
+    /// This instance crashed, got an error or is not available anymore
     /// This function must monitor reboot condition and await them
-    /// Once this function return, the device driver will reboot
+    /// Once this function return, the instance will reboot
     ///
-    async fn wait_reboot_event(&mut self, mut device: Device);
+    async fn wait_reboot_event(&mut self, mut instance: Device);
 }
 
-/// Trait to define a device producer
+/// Trait to define a driver producer
+/// Its job is to produce instanciation of drivers
 ///
 pub trait Producer: Send {
     /// Driver Manufacturer
@@ -39,11 +40,11 @@ pub trait Producer: Send {
 
     /// Device settings properties
     ///
-    // fn settings_props(&self) -> serde_json::Value; todo create a structure for properties
+    fn props(&self) -> Props;
 
     /// Produce a new instance of the device actions
     ///
-    fn produce(&self) -> Result<Box<dyn DeviceOperations>, Error>;
+    fn produce(&self) -> Result<Box<dyn DriverOperations>, Error>;
 }
 
 /// Trait to manage an message attribute (MQTT)
