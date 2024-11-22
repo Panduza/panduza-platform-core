@@ -26,13 +26,13 @@ impl ProductionOrder {
 
     /// From a json value
     ///
-    pub fn from_json(value: &serde_json::Value) -> ProductionOrder {
-        ProductionOrder {
-            name: "test".to_string(),
-            dref: "rtok".to_string(),
-            settings: None,
-        }
-    }
+    // pub fn from_json(value: &serde_json::Value) -> ProductionOrder {
+    //     ProductionOrder {
+    //         name: "test".to_string(),
+    //         dref: "rtok".to_string(),
+    //         settings: None,
+    //     }
+    // }
 
     pub fn dref(&self) -> &String {
         &self.dref

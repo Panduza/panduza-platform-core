@@ -1,8 +1,11 @@
 pub mod production_order;
+pub mod store;
+use store::{Product, Store};
 use tokio::sync::mpsc::Sender;
 
 use crate::{
-    Device, DeviceMonitor, FactoryLogger, Notification, Producer, ProductionOrder, Reactor,
+    FactoryLogger, Instance, InstanceMonitor, Notification, Producer, ProductionOrder, Reactor,
+    Scanner,
 };
 use std::{collections::HashMap, ffi::CString};
 
@@ -42,7 +45,7 @@ impl Factory {
     pub fn add_producer(&mut self, producer: Box<dyn Producer>) {
         // Info log
         self.logger.info(format!(
-            "  - {}.{}",
+            "   - producer - {}.{}",
             producer.manufacturer(),
             producer.model()
         ));
@@ -53,23 +56,47 @@ impl Factory {
         );
     }
 
+    /// # Store
     ///
+    /// Return the information about driver that can be produced by this factory
     ///
+    /// ## Json Structure
     ///
-    pub fn producer_refs(&self) -> Vec<String> {
-        let mut list = Vec::new();
-        for (dref, _) in &self.producers {
-            list.push(dref.clone());
+    /// {
+    ///     "dref" {
+    ///         "description": "....",
+    ///         "props": {}
+    ///     }
+    /// }
+    ///
+    pub fn store(&self) -> Store {
+        //
+        // Init the store with default empty value
+        let mut store = Store::default();
+
+        //
+        // Go through all producers to build product list
+        for (dref, producer) in &self.producers {
+            store.products.insert(
+                dref.clone(),
+                Product {
+                    description: producer.description(),
+                    props: producer.props(),
+                },
+            );
         }
-        list
+
+        //
+        // Return the collected store
+        store
     }
 
     ///
+    /// Convert the store object into a c_string to send it through C interface
     ///
-    ///
-    pub fn producer_refs_as_c_string(&self) -> Result<CString, crate::Error> {
-        let json_str = serde_json::to_string(&self.producer_refs())
-            .expect("Failed to serialize producer_refs to JSON");
+    pub fn store_as_c_string(&self) -> Result<CString, crate::Error> {
+        let json_str =
+            serde_json::to_string(&self.store()).expect("Failed to serialize store to JSON");
         CString::new(json_str)
             .map_err(|e| crate::Error::InternalLogic(format!("Failed to build CString ({:?})", e)))
     }
@@ -82,114 +109,77 @@ impl Factory {
         reactor: Reactor,
         r_notifier: Option<Sender<Notification>>,
         production_order: ProductionOrder,
-    ) -> (DeviceMonitor, Device) {
+    ) -> (InstanceMonitor, Instance) {
         let producer = self.producers.get(production_order.dref()).unwrap();
         let device_operations = producer.produce().unwrap();
 
-        // Box<dyn DeviceOperations>
+        // Box<dyn DriverOperations>
 
-        DeviceMonitor::new(
+        InstanceMonitor::new(
             reactor.clone(),
             r_notifier,
             device_operations,
             production_order,
         )
     }
+}
 
-    // /// Create a new device instance
-    // ///
-    // pub fn create_device(&self, device_def: &serde_json::Value) -> Result<Device, PlatformError> {
-    //     // Try to get the name
-    //     // Error if not found or badly formated
-    //     let dev_name_opt = device_def.get("name");
-    //     if dev_name_opt.is_none() {
-    //         return __platform_error_result!("Device definition does not have a 'name'");
-    //     }
-    //     let dev_name_str = dev_name_opt.unwrap().as_str();
-    //     if dev_name_str.is_none() {
-    //         return __platform_error_result!("Device definition 'name' is not a string");
-    //     }
-    //     let dev_name = String::from(dev_name_str.unwrap());
+///
+///
+pub struct ScanMachine {
+    /// Local logger
+    logger: FactoryLogger,
+    ///
+    scanners: Vec<Box<dyn Scanner>>,
+}
+impl ScanMachine {
+    /// Create a new factory
+    ///
+    pub fn new() -> Self {
+        // New object
+        let obj = Self {
+            logger: FactoryLogger::new(),
+            scanners: Vec::new(),
+        };
+        // Info log
+        obj.logger.info("# Scan Machine initialization");
+        // Load builtin device producers
+        return obj;
+    }
+    pub fn add_scanners(&mut self, scanners: Vec<Box<dyn Scanner>>) {
+        for scanner in scanners {
+            self.add_scanner(scanner);
+        }
+    }
 
-    //     // Try to get ref
-    //     // Error if not found or badly formated
-    //     let ref_opt = device_def.get("ref");
-    //     if ref_opt.is_none() {
-    //         return __platform_error_result!("Device definition does not have a 'ref'");
-    //     }
-    //     let ref_str = ref_opt.unwrap().as_str();
-    //     if ref_str.is_none() {
-    //         return __platform_error_result!("Device definition 'ref' is not a string");
-    //     }
-    //     let ref_string = String::from(ref_str.unwrap());
+    /// Add a single producer
+    pub fn add_scanner(&mut self, scanner: Box<dyn Scanner>) {
+        // Info log
+        self.logger
+            .info(format!("   - scanner - {}", scanner.name()));
 
-    //     // Default if bench name not found
-    //     let bench_name = String::from("default");
+        self.scanners.push(scanner);
+    }
 
-    //     let settings = device_def
-    //         .get("settings")
-    //         .unwrap_or(&serde_json::Value::Null)
-    //         .clone();
+    ///
+    ///
+    ///
+    pub fn scan(&self) -> Vec<ProductionOrder> {
+        let mut result = Vec::new();
+        for scanner in &self.scanners {
+            result.extend(scanner.scan());
+        }
+        result
+    }
 
-    //     // Try to get the producer
-    //     return self.find_producer_and_produce_device(
-    //         &dev_name,
-    //         &bench_name,
-    //         &ref_string,
-    //         settings,
-    //     );
-    // }
-
-    // /// Create a new device instance with all the required data
-    // ///
-    // fn produce_device(
-    //     dev_name: &String,
-    //     bench_name: &String,
-    //     producer: &Box<dyn Producer>,
-    //     connection_link_manager: &link::AmManager,
-    //     settings: serde_json::Value,
-    //     platform_services: crate::platform::services::AmServices,
-    // ) -> Result<Device, PlatformError> {
-    //     let actions = producer.produce();
-    //     match actions {
-    //         Err(_) => {
-    //             return __platform_error_result!("Fail to produce device actions");
-    //         }
-    //         Ok(actions) => {
-    //             return Ok(Device::new(
-    //                 dev_name,
-    //                 bench_name,
-    //                 settings,
-    //                 actions,
-    //                 connection_link_manager.clone(),
-    //                 platform_services,
-    //             ));
-    //         }
-    //     }
-    // }
-
-    // pub fn hunters(&self) -> &Vec<Box<dyn Hunter>> {
-    //     return &self.hunters;
-    // }
-
-    // pub fn create_an_empty_store(&self) -> serde_json::Value {
-    //     let mut store_map = serde_json::Map::new();
-
-    //     for producer in &self.producers {
-    //         let mut product_map = serde_json::Map::new();
-
-    //         let producer_ref = producer.0;
-    //         let producer_obj = producer.1;
-
-    //         product_map.insert("settings_props".to_string(), producer_obj.settings_props());
-    //         product_map.insert("instances".to_string(), serde_json::Value::Array(vec![]));
-
-    //         store_map.insert(
-    //             producer_ref.to_string(),
-    //             serde_json::Value::Object(product_map),
-    //         );
-    //     }
-
-    //     return serde_json::Value::Object(store_map);
-    // }
+    ///
+    ///
+    ///
+    pub fn scan_as_c_string(&self) -> Result<CString, crate::Error> {
+        let result = self.scan();
+        let json_str =
+            serde_json::to_string(&result).expect("Failed to serialize scan result to JSON");
+        CString::new(json_str)
+            .map_err(|e| crate::Error::InternalLogic(format!("Failed to build CString ({:?})", e)))
+    }
 }

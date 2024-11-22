@@ -10,7 +10,7 @@ pub use state::StateNotification;
 pub use structural::StructuralNotification;
 use structural::{attribute::AttributeMode, AttributeNotification, InterfaceNotification};
 
-use crate::device::State;
+use crate::instance::State;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Notification {

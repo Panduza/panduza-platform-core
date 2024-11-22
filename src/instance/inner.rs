@@ -3,7 +3,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 /// Inner implementation of the device
-pub struct DeviceInner {
+pub struct InstanceInner {
     ///
     ///
     pub reactor: Reactor,
@@ -13,9 +13,9 @@ pub struct DeviceInner {
     pub settings: Option<DeviceSettings>,
 }
 
-impl DeviceInner {
-    pub fn new(reactor: Reactor, settings: Option<DeviceSettings>) -> DeviceInner {
-        DeviceInner {
+impl InstanceInner {
+    pub fn new(reactor: Reactor, settings: Option<DeviceSettings>) -> InstanceInner {
+        InstanceInner {
             reactor: reactor,
             settings: settings,
         }
@@ -23,8 +23,8 @@ impl DeviceInner {
 }
 
 /// Allow mutation into Arc pointer
-impl Into<Arc<Mutex<DeviceInner>>> for DeviceInner {
-    fn into(self) -> Arc<Mutex<DeviceInner>> {
+impl Into<Arc<Mutex<InstanceInner>>> for InstanceInner {
+    fn into(self) -> Arc<Mutex<InstanceInner>> {
         Arc::new(Mutex::new(self))
     }
 }

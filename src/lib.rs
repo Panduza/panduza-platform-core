@@ -1,3 +1,20 @@
+#![deny(
+    while_true,
+    improper_ctypes,
+//     non_shorthand_field_patterns,
+//     no_mangle_generic_items,
+    overflowing_literals,
+//     path_statements,
+//     patterns_in_fns_without_body,
+//     unconditional_recursion,
+//     bad_style,
+//     dead_code,
+//     unused,
+//     unused_allocation,
+//     unused_comparisons,
+//     unused_parens,
+)]
+
 pub mod pmacro;
 
 // Main error crate for Panduza Platform
@@ -17,17 +34,20 @@ pub use logger::RuntimeLogger;
 mod factory;
 pub use factory::production_order::DeviceSettings;
 pub use factory::production_order::ProductionOrder;
+pub use factory::store::Product;
+pub use factory::store::Store;
 pub use factory::Factory;
+pub use factory::ScanMachine;
 
 //
-pub mod device;
-pub use device::monitor::DeviceMonitor;
-pub use device::Device;
-pub use device::DeviceInner;
+pub mod instance;
+pub use instance::monitor::InstanceMonitor;
+pub use instance::Instance;
+pub use instance::InstanceInner;
 //
 mod interface;
 pub use interface::builder::InterfaceBuilder;
-pub use interface::Interface;
+pub use interface::Class;
 
 //
 mod attribute;
@@ -44,10 +64,11 @@ pub use attribute::server_string::StringAttServer;
 
 // public traits
 mod traits;
-pub use traits::DeviceOperations;
+pub use traits::DriverOperations;
 pub use traits::MessageCodec;
 pub use traits::MessageHandler;
 pub use traits::Producer;
+pub use traits::Scanner;
 
 //
 mod reactor;
@@ -120,3 +141,11 @@ pub mod drivers;
 /// Currently we put here a trait waiting to see if there is a better use later
 ///
 pub mod protocol;
+
+///
+///
+///
+pub mod props;
+pub use props::Prop;
+pub use props::PropType;
+pub use props::Props;

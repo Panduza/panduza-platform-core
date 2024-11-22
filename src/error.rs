@@ -27,6 +27,11 @@ pub enum Error {
     #[error("Error")]
     Generic(String),
 
+    #[error("The value is not among the enum choices")]
+    EnumOutOfChoices(String),
+    #[error("The value is out of range")]
+    SiOutOfRange(String),
+
     #[error("Driver operation failure")]
     DriverError(String),
     #[error("We just don't know what happened")]

@@ -150,12 +150,4 @@ impl Reactor {
             r_notifier,
         )
     }
-
-    // pub async fn scan_platforms(&self) {
-    //     println!("publish");
-    //     self.message_client
-    //         .publish("pza", QoS::AtLeastOnce, true, "pok")
-    //         .await
-    //         .unwrap();
-    // }
 }

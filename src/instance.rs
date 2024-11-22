@@ -1,17 +1,16 @@
 mod inner;
 use crate::InterfaceBuilder;
 use crate::{
-    reactor::Reactor, AttributeBuilder, DeviceLogger, DeviceOperations, DeviceSettings, Error,
+    reactor::Reactor, AttributeBuilder, DeviceLogger, DeviceSettings, DriverOperations, Error,
     Notification, TaskResult, TaskSender,
 };
 use futures::FutureExt;
-pub use inner::DeviceInner;
+pub use inner::InstanceInner;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, future::Future, sync::Arc};
 use tokio::sync::Mutex;
 use tokio::sync::{mpsc::Sender, Notify};
 pub mod monitor;
-
 
 use crate::log_error;
 
@@ -47,21 +46,20 @@ impl Display for State {
     }
 }
 
-/// A device manage a set of interfaces
+///
+///
 ///
 #[derive(Clone)]
-pub struct Device {
-    // pub settings: serde_json::Value,
+pub struct Instance {
+    ///
+    /// Logger for driver instance
+    ///
     pub logger: DeviceLogger,
 
     ///
     /// Manage all MQTT communications
     ///
     reactor: Reactor,
-
-    // // Object to provide data to the info device
-    // /// Main pack
-    // info_pack: Option<InfoPack>,
 
     // ///
     // /// Device must share its status with the device "_" through this info object
@@ -70,11 +68,11 @@ pub struct Device {
 
     // started: bool,
     /// Inner object
-    inner: Arc<Mutex<DeviceInner>>,
+    inner: Arc<Mutex<InstanceInner>>,
 
     /// Operations of the devices
     ///
-    inner_operations: Arc<Mutex<Box<dyn DeviceOperations>>>,
+    inner_operations: Arc<Mutex<Box<dyn DriverOperations>>>,
 
     ///
     topic: String,
@@ -88,7 +86,7 @@ pub struct Device {
     spawner: TaskSender<Result<(), Error>>,
 }
 
-impl Device {
+impl Instance {
     //
     // reactor
 
@@ -99,17 +97,17 @@ impl Device {
         r_notifier: Option<Sender<Notification>>,
         spawner: TaskSender<Result<(), Error>>,
         name: String,
-        operations: Box<dyn DeviceOperations>,
+        operations: Box<dyn DriverOperations>,
         settings: Option<DeviceSettings>,
-    ) -> Device {
+    ) -> Instance {
         // Create the object
-        Device {
+        Instance {
             logger: DeviceLogger::new(name.clone()),
             reactor: reactor.clone(),
             // info_pack: info_pack,
             // info_dyn_dev_status: None,
             r_notifier: r_notifier,
-            inner: DeviceInner::new(reactor.clone(), settings).into(),
+            inner: InstanceInner::new(reactor.clone(), settings).into(),
             inner_operations: Arc::new(Mutex::new(operations)),
             topic: format!("{}/{}", reactor.root_topic(), name),
             state: Arc::new(Mutex::new(State::Booting)),
@@ -141,7 +139,7 @@ impl Device {
     ///
     /// Create a new interface from this device
     ///
-    pub fn create_interface<N: Into<String>>(&mut self, name: N) -> InterfaceBuilder {
+    pub fn create_class<N: Into<String>>(&mut self, name: N) -> InterfaceBuilder {
         InterfaceBuilder::new(
             self.reactor.clone(),
             self.clone(),
