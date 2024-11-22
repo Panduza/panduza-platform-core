@@ -20,6 +20,7 @@ pub use factory::production_order::ProductionOrder;
 pub use factory::store::Product;
 pub use factory::store::Store;
 pub use factory::Factory;
+pub use factory::ScanMachine;
 
 //
 pub mod device;
