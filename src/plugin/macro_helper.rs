@@ -39,6 +39,8 @@ macro_rules! plugin_interface {
 
         static mut FACTORY: Option<Factory> = None;
 
+        static mut SCAN_MACHINE: Option<ScanMachine> = None;
+
         static mut FACTORY_STORE: Option<CString> = None;
 
         static mut FACTORY_SCAN_RESULT: Option<CString> = None;
@@ -116,7 +118,8 @@ macro_rules! plugin_interface {
             //
             // Start scan
             unsafe {
-                FACTORY_SCAN_RESULT = Some(FACTORY.as_ref().unwrap().scan_as_c_string().unwrap());
+                FACTORY_SCAN_RESULT =
+                    Some(SCAN_MACHINE.as_ref().unwrap().scan_as_c_string().unwrap());
             }
 
             //
@@ -180,11 +183,17 @@ macro_rules! plugin_interface {
             logger.info("plugin_entry_point");
             LOGGER = Some(logger);
 
+            //
+            let mut scan_machine = ScanMachine::new();
+            scan_machine.add_scanners(plugin_scanners());
+            unsafe {
+                SCAN_MACHINE = Some(scan_machine);
+            }
+
             // if factory none
             // init factory
             let mut factory = Factory::new();
             factory.add_producers(plugin_producers());
-            factory.add_scanners(plugin_scanners());
             unsafe {
                 FACTORY_STORE = Some(factory.store_as_c_string().unwrap());
                 FACTORY = Some(factory);
