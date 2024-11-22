@@ -139,7 +139,7 @@ impl DriverInstance {
     ///
     /// Create a new interface from this device
     ///
-    pub fn create_interface<N: Into<String>>(&mut self, name: N) -> InterfaceBuilder {
+    pub fn create_class<N: Into<String>>(&mut self, name: N) -> InterfaceBuilder {
         InterfaceBuilder::new(
             self.reactor.clone(),
             self.clone(),
