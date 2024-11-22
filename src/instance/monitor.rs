@@ -16,7 +16,7 @@ pub type DeviceTaskResult = Result<(), Error>;
 /// Object to manage device subtasks
 /// It is important to check when a task has failed
 ///
-pub struct DriverInstanceMonitor {
+pub struct InstanceMonitor {
     /// To allow the communication with the state machine
     ///
     device: Instance,
@@ -27,7 +27,7 @@ pub struct DriverInstanceMonitor {
     subtask_pool_not_empty_notifier: Arc<Notify>,
 }
 
-impl DriverInstanceMonitor {
+impl InstanceMonitor {
     ///
     /// Constructor
     pub fn new(
@@ -35,7 +35,7 @@ impl DriverInstanceMonitor {
         r_notifier: Option<Sender<Notification>>,
         operations: Box<dyn DriverOperations>,
         production_order: ProductionOrder,
-    ) -> (DriverInstanceMonitor, Instance) {
+    ) -> (InstanceMonitor, Instance) {
         //
         // Move in data and consume production order
         let name = production_order.name;
@@ -55,7 +55,7 @@ impl DriverInstanceMonitor {
         );
         //
         // Create the monitoring object
-        let monitor = DriverInstanceMonitor {
+        let monitor = InstanceMonitor {
             device: device.clone(),
             subtask_pool: JoinSet::new(),
             subtask_receiver: Arc::new(Mutex::new(task_rx)),

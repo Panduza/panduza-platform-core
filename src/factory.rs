@@ -4,8 +4,8 @@ use store::{Product, Store};
 use tokio::sync::mpsc::Sender;
 
 use crate::{
-    DriverInstanceMonitor, FactoryLogger, Instance, Notification, Producer, ProductionOrder,
-    Reactor, Scanner,
+    FactoryLogger, Instance, InstanceMonitor, Notification, Producer, ProductionOrder, Reactor,
+    Scanner,
 };
 use std::{collections::HashMap, ffi::CString};
 
@@ -109,13 +109,13 @@ impl Factory {
         reactor: Reactor,
         r_notifier: Option<Sender<Notification>>,
         production_order: ProductionOrder,
-    ) -> (DriverInstanceMonitor, Instance) {
+    ) -> (InstanceMonitor, Instance) {
         let producer = self.producers.get(production_order.dref()).unwrap();
         let device_operations = producer.produce().unwrap();
 
         // Box<dyn DriverOperations>
 
-        DriverInstanceMonitor::new(
+        InstanceMonitor::new(
             reactor.clone(),
             r_notifier,
             device_operations,

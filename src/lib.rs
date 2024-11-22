@@ -41,7 +41,7 @@ pub use factory::ScanMachine;
 
 //
 pub mod instance;
-pub use instance::monitor::DriverInstanceMonitor;
+pub use instance::monitor::InstanceMonitor;
 pub use instance::Instance;
 pub use instance::InstanceInner;
 //
