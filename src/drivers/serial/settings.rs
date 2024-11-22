@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use crate::format_driver_error;
 use crate::Error;
 
 use tokio_serial::available_ports as available_serial_ports;
@@ -169,6 +170,34 @@ impl Settings {
                     }
                 }
                 data
+            }
+        }
+    }
+
+    ///
+    ///
+    pub fn available_usb_serial_ports(vid: u16, pid: u16) -> Result<Vec<(String, String)>, Error> {
+        match available_serial_ports() {
+            Err(e) => Err(format_driver_error!("no serial ports available {:?}", e)),
+            Ok(ports) => {
+                let mut res = Vec::new();
+                for port in ports {
+                    if let tokio_serial::SerialPortType::UsbPort(info) = &port.port_type {
+                        //
+                        // Vender and Porduct ID must match
+                        if vid == info.vid && pid == info.pid {
+                            res.push((
+                                port.port_name,
+                                info.serial_number
+                                    .as_ref()
+                                    .or(Some(&"".to_string()))
+                                    .unwrap()
+                                    .clone(),
+                            ));
+                        }
+                    }
+                }
+                Ok(res)
             }
         }
     }
