@@ -92,15 +92,24 @@ macro_rules! plugin_interface {
             RUNTIME_STARTED = true;
         }
 
+        ///
+        /// Plugin management only, join the worker thread in platform
+        ///
         pub unsafe extern "C" fn join() {
             THREAD_HANDLE.take().unwrap().join().unwrap();
         }
 
+        ///
+        /// Return the list of driver that can be produced
+        ///
         pub unsafe extern "C" fn store() -> *const i8 {
             LOGGER.as_ref().unwrap().trace(format!("store !"));
             FACTORY_STORE.as_ref().unwrap().as_c_str().as_ptr()
         }
 
+        ///
+        /// Scan the server and try to find connected devices instances
+        ///
         pub unsafe extern "C" fn scan() -> *const i8 {
             LOGGER.as_ref().unwrap().trace(format!("scan !"));
 
@@ -115,6 +124,9 @@ macro_rules! plugin_interface {
             FACTORY_SCAN_RESULT.as_ref().unwrap().as_c_str().as_ptr()
         }
 
+        ///
+        /// Produce a new driver instance
+        ///
         pub unsafe extern "C" fn produce(str_production_order: *const i8) -> u32 {
             LOGGER.as_ref().unwrap().trace("produce");
 
