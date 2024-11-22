@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::driver_instance::State;
+use crate::instance::State;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StateNotification {

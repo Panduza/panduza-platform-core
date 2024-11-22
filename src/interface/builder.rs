@@ -1,5 +1,5 @@
 use super::Class;
-use crate::DriverInstance;
+use crate::Instance;
 use crate::Notification;
 use crate::Reactor;
 
@@ -7,7 +7,7 @@ pub struct InterfaceBuilder {
     //
     pub reactor: Reactor,
     ///
-    pub device: DriverInstance,
+    pub device: Instance,
     ///
     /// Option because '_' device will not provide one
     ///
@@ -22,7 +22,7 @@ pub struct InterfaceBuilder {
 impl InterfaceBuilder {
     pub fn new<N: Into<String>>(
         reactor: Reactor, // deprecated because acces through device
-        device: DriverInstance,
+        device: Instance,
         // device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
         topic: N,
     ) -> Self {

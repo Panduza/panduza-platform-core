@@ -1,4 +1,4 @@
-use super::DriverInstance;
+use super::Instance;
 use crate::task_channel::create_task_channel;
 use crate::{DriverOperations, Reactor, TaskReceiver};
 use crate::{Error, Notification, ProductionOrder};
@@ -19,7 +19,7 @@ pub type DeviceTaskResult = Result<(), Error>;
 pub struct DriverInstanceMonitor {
     /// To allow the communication with the state machine
     ///
-    device: DriverInstance,
+    device: Instance,
 
     subtask_pool: JoinSet<DeviceTaskResult>,
     subtask_receiver: Arc<Mutex<TaskReceiver<DeviceTaskResult>>>,
@@ -35,7 +35,7 @@ impl DriverInstanceMonitor {
         r_notifier: Option<Sender<Notification>>,
         operations: Box<dyn DriverOperations>,
         production_order: ProductionOrder,
-    ) -> (DriverInstanceMonitor, DriverInstance) {
+    ) -> (DriverInstanceMonitor, Instance) {
         //
         // Move in data and consume production order
         let name = production_order.name;
@@ -45,7 +45,7 @@ impl DriverInstanceMonitor {
         let (task_tx, task_rx) = create_task_channel::<DeviceTaskResult>(50);
         //
         // Create the device object
-        let device = DriverInstance::new(
+        let device = Instance::new(
             reactor.clone(),
             r_notifier,
             task_tx,

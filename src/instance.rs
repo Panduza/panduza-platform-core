@@ -5,7 +5,7 @@ use crate::{
     Notification, TaskResult, TaskSender,
 };
 use futures::FutureExt;
-pub use inner::DriverInstanceInner;
+pub use inner::InstanceInner;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, future::Future, sync::Arc};
 use tokio::sync::Mutex;
@@ -50,7 +50,7 @@ impl Display for State {
 ///
 ///
 #[derive(Clone)]
-pub struct DriverInstance {
+pub struct Instance {
     ///
     /// Logger for driver instance
     ///
@@ -68,7 +68,7 @@ pub struct DriverInstance {
 
     // started: bool,
     /// Inner object
-    inner: Arc<Mutex<DriverInstanceInner>>,
+    inner: Arc<Mutex<InstanceInner>>,
 
     /// Operations of the devices
     ///
@@ -86,7 +86,7 @@ pub struct DriverInstance {
     spawner: TaskSender<Result<(), Error>>,
 }
 
-impl DriverInstance {
+impl Instance {
     //
     // reactor
 
@@ -99,15 +99,15 @@ impl DriverInstance {
         name: String,
         operations: Box<dyn DriverOperations>,
         settings: Option<DeviceSettings>,
-    ) -> DriverInstance {
+    ) -> Instance {
         // Create the object
-        DriverInstance {
+        Instance {
             logger: DeviceLogger::new(name.clone()),
             reactor: reactor.clone(),
             // info_pack: info_pack,
             // info_dyn_dev_status: None,
             r_notifier: r_notifier,
-            inner: DriverInstanceInner::new(reactor.clone(), settings).into(),
+            inner: InstanceInner::new(reactor.clone(), settings).into(),
             inner_operations: Arc::new(Mutex::new(operations)),
             topic: format!("{}/{}", reactor.root_topic(), name),
             state: Arc::new(Mutex::new(State::Booting)),

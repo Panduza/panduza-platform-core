@@ -40,10 +40,10 @@ pub use factory::Factory;
 pub use factory::ScanMachine;
 
 //
-pub mod driver_instance;
-pub use driver_instance::monitor::DriverInstanceMonitor;
-pub use driver_instance::DriverInstance;
-pub use driver_instance::DriverInstanceInner;
+pub mod instance;
+pub use instance::monitor::DriverInstanceMonitor;
+pub use instance::Instance;
+pub use instance::InstanceInner;
 //
 mod interface;
 pub use interface::builder::InterfaceBuilder;

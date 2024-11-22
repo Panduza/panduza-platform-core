@@ -1,4 +1,4 @@
-use crate::{AttributeBuilder, DriverInstance, InterfaceBuilder, Reactor};
+use crate::{AttributeBuilder, Instance, InterfaceBuilder, Reactor};
 
 pub mod builder;
 
@@ -10,7 +10,7 @@ pub struct Class {
     ///
     reactor: Reactor, // deprecated because acces through device
     ///
-    device: DriverInstance,
+    device: Instance,
     //
     // pub device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
     ///
