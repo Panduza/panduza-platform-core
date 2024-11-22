@@ -8,12 +8,13 @@ use tokio::sync::Mutex;
 
 /// Read Only Inner implementation of the message attribute
 /// This inner implementation allow the public part to be cloneable easly
+
 pub struct AttOnlyMsgAttInner<TYPE: MessageCodec> {
     /// The message client (MQTT)
     pub message_client: MessageClient,
 
     /// The topic of the attribute
-    topic: String,
+    // topic: String,
 
     /// The topic
     topic_att: String,
@@ -68,7 +69,7 @@ impl<TYPE: MessageCodec> From<AttributeBuilder> for AttOnlyMsgAttInner<TYPE> {
         let topic_att = format!("{}/att", builder.topic.as_ref().unwrap());
         AttOnlyMsgAttInner {
             message_client: builder.message_client,
-            topic: builder.topic.as_ref().unwrap().clone(),
+            // topic: builder.topic.as_ref().unwrap().clone(),
             topic_att: topic_att,
             requested_value: None,
         }

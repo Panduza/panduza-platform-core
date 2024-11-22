@@ -64,19 +64,6 @@ impl JsonAttServer {
             .and_then(|v| Some(v.value))
     }
 
-    ///
-    /// Get the value of the attribute
-    /// If None, the first value is not yet received
-    ///
-    pub async fn get_last_cmd(&self) -> Option<serde_json::Value> {
-        return self
-            .inner
-            .lock()
-            .await
-            .get_last_cmd()
-            .and_then(|v| Some(v.value));
-    }
-
     /// Set the value of the attribute
     ///
     pub async fn set(&self, value: serde_json::Value) -> Result<(), Error> {
@@ -86,5 +73,11 @@ impl JsonAttServer {
             .set(JsonCodec { value: value })
             .await?;
         Ok(())
+    }
+
+    ///
+    ///
+    pub async fn send_alert<T: Into<String>>(&self, message: T) {
+        self.inner.lock().await.send_alert(message.into());
     }
 }

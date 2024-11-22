@@ -1,10 +1,7 @@
-// use super::AttOnlyMsgAttInner;
-// use crate::{AttributeBuilder, Error, MessageCodec};
-use std::{future::Future, sync::Arc};
-use tokio::sync::Mutex;
-
 use super::server::AttServer;
 use crate::{AttributeBuilder, Error, StringCodec};
+use std::{future::Future, sync::Arc};
+use tokio::sync::Mutex;
 
 ///
 ///
@@ -22,6 +19,7 @@ pub struct EnumAttServer {
 }
 
 impl EnumAttServer {
+    ///
     ///
     ///
     pub fn r#type() -> String {
@@ -62,35 +60,46 @@ impl EnumAttServer {
     /// Get the value of the attribute
     /// If None, the first value is not yet received
     ///
-    pub async fn pop_cmd(&mut self) -> Option<String> {
-        self.inner
-            .lock()
-            .await
-            .pop_cmd()
-            .and_then(|v| Some(v.value))
-    }
-
-    ///
-    /// Get the value of the attribute
-    /// If None, the first value is not yet received
-    ///
-    pub async fn get_last_cmd(&self) -> Option<String> {
-        return self
-            .inner
-            .lock()
-            .await
-            .get_last_cmd()
-            .and_then(|v| Some(v.value));
+    pub async fn pop_cmd(&mut self) -> Option<Result<String, Error>> {
+        let v_brute = self.inner.lock().await.pop_cmd();
+        match v_brute {
+            Some(v) => {
+                if self.choices.contains(&v.value) {
+                    Some(Ok(v.value))
+                } else {
+                    Some(Err(Error::EnumOutOfChoices(format!(
+                        "{:?} is not in {:?}",
+                        v.value, self.choices
+                    ))))
+                }
+            }
+            None => None,
+        }
     }
 
     /// Set the value of the attribute
     ///
     pub async fn set(&self, value: String) -> Result<(), Error> {
-        self.inner
-            .lock()
-            .await
-            .set(StringCodec { value: value })
-            .await?;
-        Ok(())
+        //
+        //
+        if self.choices.contains(&value) {
+            self.inner
+                .lock()
+                .await
+                .set(StringCodec { value: value })
+                .await?;
+            Ok(())
+        } else {
+            Err(Error::EnumOutOfChoices(format!(
+                "{:?} is not in {:?}",
+                value, self.choices
+            )))
+        }
+    }
+
+    ///
+    ///
+    pub async fn send_alert<T: Into<String>>(&self, message: T) {
+        self.inner.lock().await.send_alert(message.into());
     }
 }

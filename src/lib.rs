@@ -1,3 +1,20 @@
+#![deny(
+    while_true,
+    improper_ctypes,
+//     non_shorthand_field_patterns,
+//     no_mangle_generic_items,
+    overflowing_literals,
+//     path_statements,
+//     patterns_in_fns_without_body,
+//     unconditional_recursion,
+//     bad_style,
+//     dead_code,
+//     unused,
+//     unused_allocation,
+//     unused_comparisons,
+//     unused_parens,
+)]
+
 pub mod pmacro;
 
 // Main error crate for Panduza Platform
@@ -23,14 +40,14 @@ pub use factory::Factory;
 pub use factory::ScanMachine;
 
 //
-pub mod device;
-pub use device::monitor::DeviceMonitor;
-pub use device::Device;
-pub use device::DeviceInner;
+pub mod driver_instance;
+pub use driver_instance::monitor::DriverInstanceMonitor;
+pub use driver_instance::DriverInstance;
+pub use driver_instance::DriverInstanceInner;
 //
 mod interface;
 pub use interface::builder::InterfaceBuilder;
-pub use interface::Interface;
+pub use interface::Class;
 
 //
 mod attribute;

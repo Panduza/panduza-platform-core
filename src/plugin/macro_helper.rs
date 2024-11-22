@@ -49,6 +49,9 @@ macro_rules! plugin_interface {
 
         static mut POS: Option<tokio::sync::mpsc::Sender<ProductionOrder>> = None;
 
+        ///
+        /// Main Entry Point for the plugin runtime
+        ///
         #[tokio::main]
         async fn start_async_runtime(runtime: Runtime) {
             runtime.task().await.unwrap();
@@ -65,7 +68,7 @@ macro_rules! plugin_interface {
             }
 
             //
-            //
+            // Build factory
             let factory = FACTORY.take();
 
             //

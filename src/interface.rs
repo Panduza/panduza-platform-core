@@ -1,27 +1,27 @@
-use crate::{AttributeBuilder, Device, InterfaceBuilder, Reactor};
+use crate::{AttributeBuilder, DriverInstance, InterfaceBuilder, Reactor};
 
 pub mod builder;
 
 #[derive(Clone)]
 ///
-/// TODO => rename into Class
 ///
-pub struct Interface {
+///
+pub struct Class {
     ///
     reactor: Reactor, // deprecated because acces through device
     ///
-    device: Device,
+    device: DriverInstance,
     //
     // pub device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
     ///
     topic: String,
 }
 
-impl Interface {
+impl Class {
     ///
     /// Create a new interface from this device
     ///
-    pub fn create_interface<N: Into<String>>(&mut self, name: N) -> InterfaceBuilder {
+    pub fn create_class<N: Into<String>>(&mut self, name: N) -> InterfaceBuilder {
         InterfaceBuilder::new(
             self.reactor.clone(),
             self.device.clone(),
@@ -37,9 +37,9 @@ impl Interface {
     }
 }
 
-impl From<builder::InterfaceBuilder> for Interface {
+impl From<builder::InterfaceBuilder> for Class {
     fn from(builder: builder::InterfaceBuilder) -> Self {
-        Interface {
+        Class {
             reactor: builder.reactor,
             device: builder.device,
             // device_dyn_info: builder.device_dyn_info,

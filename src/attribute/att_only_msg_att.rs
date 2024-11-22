@@ -5,6 +5,7 @@ use tokio::sync::Mutex;
 
 /// Attribute to manage a boolean
 #[derive(Clone)]
+#[deprecated]
 pub struct AttOnlyMsgAtt<TYPE: MessageCodec> {
     ///
     inner: Arc<Mutex<AttOnlyMsgAttInner<TYPE>>>,

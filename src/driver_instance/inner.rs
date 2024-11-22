@@ -3,7 +3,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 /// Inner implementation of the device
-pub struct DeviceInner {
+pub struct DriverInstanceInner {
     ///
     ///
     pub reactor: Reactor,
@@ -13,9 +13,9 @@ pub struct DeviceInner {
     pub settings: Option<DeviceSettings>,
 }
 
-impl DeviceInner {
-    pub fn new(reactor: Reactor, settings: Option<DeviceSettings>) -> DeviceInner {
-        DeviceInner {
+impl DriverInstanceInner {
+    pub fn new(reactor: Reactor, settings: Option<DeviceSettings>) -> DriverInstanceInner {
+        DriverInstanceInner {
             reactor: reactor,
             settings: settings,
         }
@@ -23,8 +23,8 @@ impl DeviceInner {
 }
 
 /// Allow mutation into Arc pointer
-impl Into<Arc<Mutex<DeviceInner>>> for DeviceInner {
-    fn into(self) -> Arc<Mutex<DeviceInner>> {
+impl Into<Arc<Mutex<DriverInstanceInner>>> for DriverInstanceInner {
+    fn into(self) -> Arc<Mutex<DriverInstanceInner>> {
         Arc::new(Mutex::new(self))
     }
 }

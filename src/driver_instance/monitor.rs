@@ -1,15 +1,9 @@
-// pas clone, move only
-// to run the fsm
-// and to run the task monitoring
-
+use super::DriverInstance;
 use crate::task_channel::create_task_channel;
+use crate::{DriverOperations, Reactor, TaskReceiver};
 use crate::{Error, Notification, ProductionOrder};
 use std::sync::Arc;
-
-use super::Device;
-use crate::{DriverOperations, Reactor, TaskReceiver};
 use std::time::Duration;
-
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Notify;
 use tokio::time::sleep;
@@ -22,10 +16,10 @@ pub type DeviceTaskResult = Result<(), Error>;
 /// Object to manage device subtasks
 /// It is important to check when a task has failed
 ///
-pub struct DeviceMonitor {
+pub struct DriverInstanceMonitor {
     /// To allow the communication with the state machine
     ///
-    device: Device,
+    device: DriverInstance,
 
     subtask_pool: JoinSet<DeviceTaskResult>,
     subtask_receiver: Arc<Mutex<TaskReceiver<DeviceTaskResult>>>,
@@ -33,7 +27,7 @@ pub struct DeviceMonitor {
     subtask_pool_not_empty_notifier: Arc<Notify>,
 }
 
-impl DeviceMonitor {
+impl DriverInstanceMonitor {
     ///
     /// Constructor
     pub fn new(
@@ -41,7 +35,7 @@ impl DeviceMonitor {
         r_notifier: Option<Sender<Notification>>,
         operations: Box<dyn DriverOperations>,
         production_order: ProductionOrder,
-    ) -> (DeviceMonitor, Device) {
+    ) -> (DriverInstanceMonitor, DriverInstance) {
         //
         // Move in data and consume production order
         let name = production_order.name;
@@ -51,7 +45,7 @@ impl DeviceMonitor {
         let (task_tx, task_rx) = create_task_channel::<DeviceTaskResult>(50);
         //
         // Create the device object
-        let device = Device::new(
+        let device = DriverInstance::new(
             reactor.clone(),
             r_notifier,
             task_tx,
@@ -61,7 +55,7 @@ impl DeviceMonitor {
         );
         //
         // Create the monitoring object
-        let monitor = DeviceMonitor {
+        let monitor = DriverInstanceMonitor {
             device: device.clone(),
             subtask_pool: JoinSet::new(),
             subtask_receiver: Arc::new(Mutex::new(task_rx)),

@@ -80,18 +80,6 @@ impl SiAttServer {
             .and_then(|v| Some(v.into_f32()))
     }
 
-    ///
-    /// Get the value of the attribute
-    /// If None, the first value is not yet received
-    ///
-    pub async fn get_last_cmd_as_f32(&self) -> Option<Result<f32, Error>> {
-        self.inner
-            .lock()
-            .await
-            .get_last_cmd()
-            .and_then(|v| Some(v.into_f32()))
-    }
-
     /// Set the value of the attribute
     ///
     pub async fn set_from_f32(&self, value: f32) -> Result<(), Error> {
