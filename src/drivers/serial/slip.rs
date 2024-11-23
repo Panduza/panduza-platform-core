@@ -1,4 +1,6 @@
 use super::Settings as SerialSettings;
+use crate::format_driver_error;
+use crate::log_info;
 use crate::DriverLogger;
 use crate::Error;
 use serial2_tokio::SerialPort;
@@ -31,7 +33,7 @@ use tokio_serial::SerialStream;
 /// SLIP works like EOL but provides a mecanism to avoid this problem
 /// by encoding the payload with a simple et fast method.
 ///
-pub struct SerialSlipDriver {
+pub struct Driver {
     ///
     ///
     ///
@@ -55,7 +57,7 @@ pub type Connector = Arc<Mutex<Driver>>;
 impl Driver {
     /// Create a new instance of the driver
     ///
-    pub fn new(settings: &SerialSettings) -> Self {
+    pub fn open(settings: &SerialSettings) -> Result<Self, Error> {
         // Get the port name safely
         let port_name = settings
             .port_name
@@ -64,73 +66,33 @@ impl Driver {
             .unwrap_or("undefined".to_string())
             .clone();
 
+        //
+        // Prepare logger
+        let logger = DriverLogger::new("serial", "slip", &port_name);
+        log_info!(logger, "Opening serial driver {:?}...", &port_name);
+
+        //
+        // Open port
+        let port = SerialPort::open(&port_name, settings.baudrate)
+            .map_err(|e| format_driver_error!("Port {:?} {:?}", &port_name, e))?;
+
+        //
+        // Info logs
+        log_info!(logger, "Open success !");
+
         // Create instance
-        Driver {
-            logger: DriverLogger::new("serial", "slip", port_name),
+        Ok(Driver {
+            logger: logger,
             settings: settings.clone(),
-            serial_stream: None,
-            time_lock: None,
+            port: port,
             in_buf: [0u8; 512],
             in_buf_size: 0,
-        }
-    }
-
-    /// Convert the driver into a connector
-    ///
-    pub fn into_connector(self) -> Connector {
-        Arc::new(Mutex::new(self))
-    }
-
-    /// Initialize the driver
-    ///
-    pub async fn init(&mut self) -> Result<(), Error> {
-        //
-        //
-        self.logger.info("init");
-
-        // Internal driver already initialized by an other entity => OK
-        if self.serial_stream.is_some() {
-            self.logger.warn("already init");
-            return Ok(());
-        }
-
-        // Get the port name
-        let port_name =
-            self.settings.port_name.as_ref().ok_or_else(|| {
-                Error::BadSettings("Port name is not set in settings".to_string())
-            })?;
-
-        // Setup builder
-        let serial_builder = tokio_serial::new(port_name, self.settings.baudrate)
-            .data_bits(self.settings.data_bits)
-            .stop_bits(self.settings.stop_bits)
-            .parity(self.settings.parity)
-            .flow_control(self.settings.flow_control);
-
-        // Build the stream
-        self.serial_stream = Some(
-            SerialStream::open(&serial_builder)
-                .map_err(|e| Error::BadSettings(format!("Unable to open serial stream: {}", e)))?,
-        );
-
-        self.logger.info("stream ready");
-
-        Ok(())
+        })
     }
 
     /// Write a command on the serial stream
     ///
     async fn write_time_locked(&mut self, command: &[u8]) -> Result<usize, Error> {
-        // Check if a time lock is set
-        if let Some(lock) = self.time_lock.as_mut() {
-            let elapsed = tokio::time::Instant::now() - lock.t0;
-            if elapsed < lock.duration {
-                let wait_time = lock.duration - elapsed;
-                tokio::time::sleep(wait_time).await;
-            }
-            self.time_lock = None;
-        }
-
         // Send the command
         let write_result = self
             .serial_stream
@@ -139,14 +101,6 @@ impl Driver {
             .write(command)
             .await
             .map_err(|e| Error::BadSettings(format!("Unable to write on serial stream: {}", e)));
-
-        // Set the time lock
-        if let Some(duration) = self.settings.time_lock_duration {
-            self.time_lock = Some(TimeLock {
-                duration: duration,
-                t0: tokio::time::Instant::now(),
-            });
-        }
 
         return write_result;
     }
@@ -234,14 +188,6 @@ impl Driver {
                 return Ok(out_slice.len());
             }
         }
-    }
-}
-
-impl Drop for Driver {
-    fn drop(&mut self) {
-        // Close the serial stream
-        self.logger.warn("Closing serial stream");
-        self.serial_stream = None;
     }
 }
 
