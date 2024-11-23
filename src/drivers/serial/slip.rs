@@ -5,13 +5,8 @@ use crate::DriverLogger;
 use crate::Error;
 use serial2_tokio::SerialPort;
 use std::sync::Arc;
-use std::time::Duration;
-use tokio::io::AsyncReadExt;
-use tokio::io::AsyncWriteExt;
 use tokio::sync::Mutex;
-use tokio::time::sleep;
 use tokio::time::timeout;
-use tokio_serial::SerialStream;
 
 /// # Serial SLIP Driver
 ///
@@ -39,14 +34,24 @@ pub struct Driver {
     ///
     pub logger: DriverLogger,
 
-    // Serial settings
+    ///
+    /// Serial settings
+    ///
     settings: SerialSettings,
 
+    ///
+    ///
+    ///
     pub port: SerialPort,
 
-    // Accumulated incoming data buffer
-    in_buf: [u8; 512],
-    // Keep track of number of data in the buffer
+    ///
+    /// Accumulated incoming data buffer
+    ///
+    in_buf: [u8; 2048],
+
+    ///
+    /// Keep track of number of data in the buffer
+    ///
     in_buf_size: usize,
 }
 
@@ -85,24 +90,9 @@ impl Driver {
             logger: logger,
             settings: settings.clone(),
             port: port,
-            in_buf: [0u8; 512],
+            in_buf: [0u8; 2048],
             in_buf_size: 0,
         })
-    }
-
-    /// Write a command on the serial stream
-    ///
-    async fn write_time_locked(&mut self, command: &[u8]) -> Result<usize, Error> {
-        // Send the command
-        let write_result = self
-            .serial_stream
-            .as_mut()
-            .ok_or_else(|| Error::BadSettings("No serial stream".to_string()))?
-            .write(command)
-            .await
-            .map_err(|e| Error::BadSettings(format!("Unable to write on serial stream: {}", e)));
-
-        return write_result;
     }
 
     /// Lock the connector to write a command then wait for the answers
@@ -112,20 +102,12 @@ impl Driver {
         command: &[u8],
         response: &mut [u8],
     ) -> Result<usize, Error> {
-        match self.settings.read_timeout {
-            // If the timeout is set, use it
-            Some(timeout_value) => {
-                return Ok(
-                    timeout(timeout_value, self.__write_then_read(command, response))
-                        .await
-                        .map_err(|e| Error::BadSettings(format!("Timeout reading {:?}", e)))??,
-                );
-            }
-            // Else good luck !
-            None => {
-                return Ok(self.__write_then_read(command, response).await?);
-            }
-        }
+        Ok(timeout(
+            self.settings.read_timeout,
+            self.__write_then_read(command, response),
+        )
+        .await
+        .map_err(|e| format_driver_error!("Timeout reading {:?}", e))??)
     }
 
     /// This operation is not provided to the public interface
@@ -145,37 +127,34 @@ impl Driver {
         // Encode the command
         let mut totals = slip_encoder
             .encode(command, &mut encoded_command)
-            .map_err(|e| Error::BadSettings(format!("Unable to encode command: {:?}", e)))?;
+            .map_err(|e| format_driver_error!("Unable to encode command: {:?}", e))?;
 
         // Finalise the encoding
         totals += slip_encoder
             .finish(&mut encoded_command[totals.written..])
-            .map_err(|e| {
-                Error::BadSettings(format!("Unable to finsh command encoding: {:?}", e))
-            })?;
+            .map_err(|e| format_driver_error!("Unable to finsh command encoding: {:?}", e))?;
 
-        // Write command slip encoded
-        self.write_time_locked(&encoded_command[..totals.written])
-            .await?;
+        // Send the command
+        let _write_result = self
+            .port
+            .write(command)
+            .await
+            .map_err(|e| format_driver_error!("Unable to write on serial stream: {}", e))?;
 
         // Read the response until "end"
         loop {
             // Read a chunck
             self.in_buf_size += self
-                .serial_stream
-                .as_mut()
-                .ok_or_else(|| Error::BadSettings("No serial stream".to_string()))?
+                .port
                 .read(&mut self.in_buf[self.in_buf_size..])
                 .await
-                .map_err(|e| {
-                    Error::BadSettings(format!("Unable to read on serial stream {:?}", e))
-                })?;
+                .map_err(|e| format_driver_error!("Unable to read on serial stream {:?}", e))?;
 
             // Try decoding
             let mut slip_decoder = serial_line_ip::Decoder::new();
             let (total_decoded, out_slice, end) = slip_decoder
                 .decode(&self.in_buf[..self.in_buf_size], response)
-                .map_err(|e| Error::BadSettings(format!("Unable to decode response: {:?}", e)))?;
+                .map_err(|e| format_driver_error!("Unable to decode response: {:?}", e))?;
 
             // Reste counter
             self.in_buf_size -= total_decoded;
