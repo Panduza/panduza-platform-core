@@ -186,6 +186,12 @@ impl Settings {
                         //
                         // Vender and Porduct ID must match
                         if vid == info.vid && pid == info.pid {
+                            println!(
+                                "{:?} {:?}",
+                                info.manufacturer.as_ref().unwrap(),
+                                info.product.as_ref().unwrap()
+                            );
+
                             res.push((
                                 port.port_name,
                                 info.serial_number

@@ -176,8 +176,6 @@ impl Driver {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_slip_decode() {
         const SLIP_ENCODED: [u8; 8] = [0xc0, 0x01, 0x02, 0x03, 0x04, 0x05, 0xc0, 0x04];
