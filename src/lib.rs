@@ -55,6 +55,8 @@ pub use attribute::builder::AttributeBuilder;
 pub use attribute::server_boolean::BooleanAttServer;
 pub use attribute::server_enum::EnumAttServer;
 pub use attribute::server_json::JsonAttServer;
+pub use attribute::server_mem_cmd::MemoryCommandAttServer;
+pub use attribute::server_number::NumberAttServer;
 pub use attribute::server_si::SiAttServer;
 pub use attribute::server_string::StringAttServer;
 

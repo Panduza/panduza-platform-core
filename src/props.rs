@@ -114,6 +114,52 @@ impl Props {
         self.entries
             .insert(name.into(), Prop::new(description, r#type, default));
     }
+
+    ///
+    ///
+    ///
+    pub fn add_string_prop<A: Into<String>, B: Into<String>, C: Into<String>>(
+        &mut self,
+        name: A,
+        description: B,
+        default: C,
+    ) {
+        self.add_entry(
+            name,
+            description,
+            PropType::String,
+            JsonValue::String(default.into()),
+        );
+    }
+
+    ///
+    ///
+    ///
+    pub fn add_number_prop<A: Into<String>, B: Into<String>, C: Into<f64>>(
+        &mut self,
+        name: A,
+        description: B,
+        default: C,
+    ) {
+        self.add_entry(
+            name,
+            description,
+            PropType::Number,
+            serde_json::json!(default.into()),
+        );
+    }
+
+    ///
+    ///
+    ///
+    pub fn add_bool_prop<A: Into<String>, B: Into<String>>(
+        &mut self,
+        name: A,
+        description: B,
+        default: bool,
+    ) {
+        self.add_entry(name, description, PropType::Bool, JsonValue::Bool(default));
+    }
 }
 
 impl From<Map<String, JsonValue>> for Props {

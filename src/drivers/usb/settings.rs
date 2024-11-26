@@ -4,6 +4,9 @@ use serde_json::json;
 /// Key for the usb serial in the json settings
 static USB_SERIAL_KEY: &str = "usb_serial";
 
+static USB_VID_KEY: &str = "usb_vid";
+static USB_PID_KEY: &str = "usb_pid";
+
 /// Usb settings for devices
 #[derive(Debug)]
 pub struct Settings {
@@ -42,8 +45,7 @@ impl Settings {
         self
     }
 
-    /// Extracts the serial port name from the json settings
-    /// This function fails if the settings is not present or ill-formed
+    ///
     ///
     pub fn set_serial_from_json_settings(
         mut self,
@@ -86,10 +88,19 @@ impl Settings {
         self
     }
 
-    /// Like `set_serial_from_json_settings` but with a default value in case
-    /// of error on settings extraction
+    /// Look at json settings
     ///
     pub fn optional_set_serial_from_json_settings(mut self, settings: &serde_json::Value) -> Self {
+        if let Some(vendor) = settings.get(USB_VID_KEY) {
+            if let Some(s) = vendor.as_u64() {
+                self.vendor = Some(s as u16);
+            }
+        }
+        if let Some(model) = settings.get(USB_PID_KEY) {
+            if let Some(s) = model.as_u64() {
+                self.model = Some(s as u16);
+            }
+        }
         self.serial = match settings.get(USB_SERIAL_KEY) {
             Some(serial) => match serial.as_str() {
                 Some(s) => Some(s.to_string()),

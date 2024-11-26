@@ -1,4 +1,6 @@
 use std::ffi::{CStr, CString};
+
+use serde_json::json;
 pub type DeviceSettings = serde_json::Value;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -22,6 +24,38 @@ impl ProductionOrder {
             dref: d_ref.into(),
             settings: None,
         }
+    }
+
+    ///
+    ///
+    pub fn add_u16_setting<A: Into<String>>(mut self, name: A, setting: u16) -> Self {
+        if self.settings.is_none() {
+            self.settings = Some(json!({}));
+        }
+
+        let se = self.settings.as_mut().unwrap();
+        let obj = se.as_object_mut().unwrap();
+        obj.insert(name.into(), serde_json::Value::Number(setting.into()));
+
+        self
+    }
+
+    ///
+    ///
+    pub fn add_string_setting<A: Into<String>, B: Into<String>>(
+        mut self,
+        name: A,
+        setting: B,
+    ) -> Self {
+        if self.settings.is_none() {
+            self.settings = Some(json!({}));
+        }
+
+        let se = self.settings.as_mut().unwrap();
+        let obj = se.as_object_mut().unwrap();
+        obj.insert(name.into(), serde_json::Value::String(setting.into()));
+
+        self
     }
 
     /// From a json value

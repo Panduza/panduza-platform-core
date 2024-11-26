@@ -4,23 +4,23 @@ use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
 use super::server::AttServer;
-use crate::{AttributeBuilder, BooleanCodec, Error};
+use crate::{AttributeBuilder, Error, MemoryCommandCodec};
 
 ///
 ///
 ///
 #[derive(Clone)]
-pub struct BooleanAttServer {
+pub struct MemoryCommandAttServer {
     ///
     /// Inner server implementation
-    pub inner: Arc<Mutex<AttServer<BooleanCodec>>>,
+    pub inner: Arc<Mutex<AttServer<MemoryCommandCodec>>>,
 }
 
-impl BooleanAttServer {
+impl MemoryCommandAttServer {
     ///
     ///
     pub fn r#type() -> String {
-        "boolean".to_string()
+        "memory_command".to_string()
     }
 
     ///
@@ -28,7 +28,7 @@ impl BooleanAttServer {
     ///
     pub fn new(builder: AttributeBuilder) -> Self {
         Self {
-            inner: Arc::new(Mutex::new(AttServer::<BooleanCodec>::from(builder))),
+            inner: Arc::new(Mutex::new(AttServer::<MemoryCommandCodec>::from(builder))),
         }
     }
 
@@ -56,35 +56,20 @@ impl BooleanAttServer {
     /// Get the value of the attribute
     /// If None, the first value is not yet received
     ///
-    pub async fn pop_cmd(&mut self) -> Option<bool> {
-        self.inner
-            .lock()
-            .await
-            .pop_cmd()
-            .and_then(|v| Some(v.value))
-    }
-
-    ///
-    /// Get the value of the attribute
-    /// If None, the first value is not yet received
-    ///
-    pub async fn get_last_cmd(&self) -> Option<bool> {
-        return self
-            .inner
-            .lock()
-            .await
-            .get_last_cmd()
-            .and_then(|v| Some(v.value));
+    pub async fn pop_cmd(&mut self) -> Option<MemoryCommandCodec> {
+        self.inner.lock().await.pop_cmd()
     }
 
     /// Set the value of the attribute
     ///
-    pub async fn set(&self, value: bool) -> Result<(), Error> {
-        self.inner
-            .lock()
-            .await
-            .set(BooleanCodec { value: value })
-            .await?;
+    pub async fn set(&self, value: MemoryCommandCodec) -> Result<(), Error> {
+        self.inner.lock().await.set(value).await?;
         Ok(())
+    }
+
+    ///
+    ///
+    pub async fn send_alert<T: Into<String>>(&self, message: T) {
+        self.inner.lock().await.send_alert(message.into());
     }
 }

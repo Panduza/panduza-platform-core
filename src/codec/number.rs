@@ -4,7 +4,18 @@ use crate::{Error, MessageCodec};
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct NumberCodec {
-    value: serde_json::Value,
+    pub value: serde_json::Value,
+}
+
+///
+/// Allow implicit convertion
+///
+impl From<i64> for NumberCodec {
+    fn from(value: i64) -> Self {
+        Self {
+            value: serde_json::json!(value),
+        }
+    }
 }
 
 ///
