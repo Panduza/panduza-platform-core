@@ -174,7 +174,9 @@ impl Settings {
         }
     }
 
+    /// Return a list of serial ports matching usb vid/pid
     ///
+    /// Each entry is composed of the port name and serial_number
     ///
     pub fn available_usb_serial_ports(vid: u16, pid: u16) -> Result<Vec<(String, String)>, Error> {
         match available_serial_ports() {
