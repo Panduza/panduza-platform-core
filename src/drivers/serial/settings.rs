@@ -174,11 +174,40 @@ impl Settings {
         }
     }
 
+    /// Return all the available usb serial ports pluged into the server
+    ///
+    pub fn available_usb_serial_ports() -> Result<Vec<(String, u16, u16, String)>, Error> {
+        match available_serial_ports() {
+            Err(e) => Err(format_driver_error!("no serial ports available {:?}", e)),
+            Ok(ports) => {
+                let mut res = Vec::new();
+                for port in ports {
+                    if let tokio_serial::SerialPortType::UsbPort(info) = &port.port_type {
+                        res.push((
+                            port.port_name,
+                            info.vid,
+                            info.pid,
+                            info.serial_number
+                                .as_ref()
+                                .or(Some(&"".to_string()))
+                                .unwrap()
+                                .clone(),
+                        ));
+                    }
+                }
+                Ok(res)
+            }
+        }
+    }
+
     /// Return a list of serial ports matching usb vid/pid
     ///
     /// Each entry is composed of the port name and serial_number
     ///
-    pub fn available_usb_serial_ports(vid: u16, pid: u16) -> Result<Vec<(String, String)>, Error> {
+    pub fn available_usb_serial_ports_with_ids(
+        vid: u16,
+        pid: u16,
+    ) -> Result<Vec<(String, String)>, Error> {
         match available_serial_ports() {
             Err(e) => Err(format_driver_error!("no serial ports available {:?}", e)),
             Ok(ports) => {
