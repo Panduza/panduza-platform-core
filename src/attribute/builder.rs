@@ -1,9 +1,8 @@
 use super::server_si::SiAttServer;
-use super::{att_only_msg_att::AttOnlyMsgAtt, cmd_only_msg_att::CmdOnlyMsgAtt};
 use crate::{notification::structural::attribute::AttributeMode, Notification};
 use crate::{
-    BidirMsgAtt, BooleanAttServer, EnumAttServer, Error, JsonAttServer, MessageClient,
-    MessageCodec, MessageDispatcher, StringAttServer,
+    BooleanAttServer, EnumAttServer, Error, JsonAttServer, MessageClient, MessageDispatcher,
+    StringAttServer,
 };
 use serde_json::json;
 use std::sync::Weak;
@@ -178,135 +177,5 @@ impl AttributeBuilder {
                 ))
                 .unwrap();
         }
-    }
-
-    #[deprecated]
-    pub fn message(self) -> MessageAttributeBuilder {
-        MessageAttributeBuilder { base: self }
-    }
-
-    #[deprecated]
-    pub fn stream(self) {
-        todo!()
-    }
-}
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-pub struct MessageAttributeBuilder {
-    base: AttributeBuilder,
-}
-
-impl MessageAttributeBuilder {
-    pub fn with_cmd_only_access(self) -> CmdOnlyMsgAttBuilder {
-        CmdOnlyMsgAttBuilder { base: self.base }
-    }
-
-    pub fn with_bidir_access(self) -> BidirMsgAttBuilder {
-        BidirMsgAttBuilder { base: self.base }
-    }
-
-    pub fn with_att_only_access(self) -> AttOnlyMsgBuilder {
-        AttOnlyMsgBuilder { base: self.base }
-    }
-}
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Builder specialisation for Ro Attribute
-pub struct CmdOnlyMsgAttBuilder {
-    base: AttributeBuilder,
-}
-
-impl CmdOnlyMsgAttBuilder {
-    pub async fn finish_with_codec<TYPE: MessageCodec>(self) -> CmdOnlyMsgAtt<TYPE> {
-        //
-        //
-
-        let bis = self.base.topic.clone().unwrap();
-
-        if let Some(r_notifier) = self.base.r_notifier.clone() {
-            r_notifier
-                .try_send(Notification::new_attribute_element_created_notification(
-                    bis,
-                    TYPE::typee(),
-                    AttributeMode::CmdOnly,
-                    None,
-                    self.base.settings.clone(),
-                ))
-                .unwrap();
-        }
-
-        CmdOnlyMsgAtt::from(self.base).init().await.unwrap()
-    }
-}
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Builder specialisation for Rw Attribute
-pub struct BidirMsgAttBuilder {
-    base: AttributeBuilder,
-}
-
-impl BidirMsgAttBuilder {
-    pub async fn finish_with_codec<TYPE: MessageCodec>(self) -> BidirMsgAtt<TYPE> {
-        //
-        //
-        let bis = self.base.topic.clone().unwrap();
-        if let Some(r_notifier) = self.base.r_notifier.clone() {
-            r_notifier
-                .try_send(Notification::new_attribute_element_created_notification(
-                    bis,
-                    TYPE::typee(),
-                    AttributeMode::Bidir,
-                    None,
-                    self.base.settings.clone(),
-                ))
-                .unwrap();
-        }
-
-        BidirMsgAtt::from(self.base)
-            .init()
-            .await
-            .unwrap()
-            .init()
-            .await
-            .unwrap()
-    }
-}
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Builder specialisation for att only Attribute
-pub struct AttOnlyMsgBuilder {
-    base: AttributeBuilder,
-}
-
-impl AttOnlyMsgBuilder {
-    pub async fn finish_with_codec<TYPE: MessageCodec>(self) -> AttOnlyMsgAtt<TYPE> {
-        //
-        //
-        let bis = self.base.topic.clone().unwrap();
-        if let Some(r_notifier) = self.base.r_notifier.clone() {
-            r_notifier
-                .try_send(Notification::new_attribute_element_created_notification(
-                    bis,
-                    TYPE::typee(),
-                    AttributeMode::AttOnly,
-                    None,
-                    self.base.settings.clone(),
-                ))
-                .unwrap();
-        }
-
-        AttOnlyMsgAtt::from(self.base)
     }
 }
