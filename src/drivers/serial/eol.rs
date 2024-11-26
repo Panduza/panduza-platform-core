@@ -2,7 +2,7 @@ use super::generic::Driver as GenericDriver;
 use super::Settings as SerialSettings;
 use crate::Error;
 
-use crate::protocol::CommandResponseProtocol;
+use crate::protocol::AsciiCmdRespProtocol;
 use async_trait::async_trait;
 
 ///
@@ -39,7 +39,7 @@ impl Driver {
 }
 
 #[async_trait]
-impl CommandResponseProtocol for Driver {
+impl AsciiCmdRespProtocol for Driver {
     ///
     ///
     ///
