@@ -14,7 +14,7 @@ use tokio_serial::UsbPortInfo;
 use crate::drivers::usb::Settings as UsbSettings;
 
 /// Key for the usb serial in the json settings
-static SERIAL_PORT_NAME_KEY: &str = "usb_serial";
+static SERIAL_PORT_NAME_KEY: &str = "serial_port_name";
 
 /// Settings for the serial connector
 ///

@@ -4,23 +4,23 @@ use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
 use super::server::AttServer;
-use crate::{AttributeBuilder, BooleanCodec, Error};
+use crate::{AttributeBuilder, Error, NumberCodec};
 
 ///
 ///
 ///
 #[derive(Clone)]
-pub struct BooleanAttServer {
+pub struct NumberAttServer {
     ///
     /// Inner server implementation
-    pub inner: Arc<Mutex<AttServer<BooleanCodec>>>,
+    pub inner: Arc<Mutex<AttServer<NumberCodec>>>,
 }
 
-impl BooleanAttServer {
+impl NumberAttServer {
     ///
     ///
     pub fn r#type() -> String {
-        "boolean".to_string()
+        "number".to_string()
     }
 
     ///
@@ -28,7 +28,7 @@ impl BooleanAttServer {
     ///
     pub fn new(builder: AttributeBuilder) -> Self {
         Self {
-            inner: Arc::new(Mutex::new(AttServer::<BooleanCodec>::from(builder))),
+            inner: Arc::new(Mutex::new(AttServer::<NumberCodec>::from(builder))),
         }
     }
 
@@ -56,35 +56,22 @@ impl BooleanAttServer {
     /// Get the value of the attribute
     /// If None, the first value is not yet received
     ///
-    pub async fn pop_cmd(&mut self) -> Option<bool> {
+    pub async fn pop_cmd_as_i64(&mut self) -> Option<i64> {
         self.inner
             .lock()
             .await
             .pop_cmd()
-            .and_then(|v| Some(v.value))
-    }
-
-    ///
-    /// Get the value of the attribute
-    /// If None, the first value is not yet received
-    ///
-    pub async fn get_last_cmd(&self) -> Option<bool> {
-        return self
-            .inner
-            .lock()
-            .await
-            .get_last_cmd()
-            .and_then(|v| Some(v.value));
+            .and_then(|v| v.value.as_i64())
     }
 
     /// Set the value of the attribute
     ///
-    pub async fn set(&self, value: bool) -> Result<(), Error> {
-        self.inner
-            .lock()
-            .await
-            .set(BooleanCodec { value: value })
-            .await?;
+    pub async fn set_from_i64(&self, value: i64) -> Result<(), Error> {
+        self.inner.lock().await.set(value.into()).await?;
         Ok(())
+    }
+
+    pub async fn send_alert<T: Into<String>>(&self, message: T) {
+        self.inner.lock().await.send_alert(message.into());
     }
 }

@@ -1,8 +1,8 @@
 use super::server_si::SiAttServer;
 use crate::{notification::structural::attribute::AttributeMode, Notification};
 use crate::{
-    BooleanAttServer, EnumAttServer, Error, JsonAttServer, MessageClient, MessageDispatcher,
-    StringAttServer,
+    BooleanAttServer, EnumAttServer, Error, JsonAttServer, MemoryCommandAttServer, MessageClient,
+    MessageDispatcher, NumberAttServer, StringAttServer,
 };
 use serde_json::json;
 use std::sync::Weak;
@@ -154,6 +154,26 @@ impl AttributeBuilder {
     pub async fn finish_as_json(mut self) -> Result<JsonAttServer, Error> {
         self.r#type = Some(JsonAttServer::r#type());
         let att = JsonAttServer::new(self.clone());
+        att.inner.lock().await.init(att.inner.clone()).await?;
+        self.send_creation_notification();
+        Ok(att)
+    }
+
+    ///
+    ///
+    pub async fn finish_as_number(mut self) -> Result<NumberAttServer, Error> {
+        self.r#type = Some(NumberAttServer::r#type());
+        let att = NumberAttServer::new(self.clone());
+        att.inner.lock().await.init(att.inner.clone()).await?;
+        self.send_creation_notification();
+        Ok(att)
+    }
+
+    ///
+    ///
+    pub async fn finish_as_memory_command(mut self) -> Result<MemoryCommandAttServer, Error> {
+        self.r#type = Some(MemoryCommandAttServer::r#type());
+        let att = MemoryCommandAttServer::new(self.clone());
         att.inner.lock().await.init(att.inner.clone()).await?;
         self.send_creation_notification();
         Ok(att)

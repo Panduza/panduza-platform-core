@@ -56,8 +56,13 @@ impl Driver {
         //
         // Info logs
         log_info!(logger, "Open success !");
+        if let Ok(port_settings) = port.get_configuration() {
+            if let Ok(baudrate) = port_settings.get_baud_rate() {
+                log_info!(logger, "- Baudrate {:?}...", baudrate);
+            }
+        }
         if let Some(duration) = &settings.time_lock_duration {
-            log_info!(logger, "Time lock enabled = {:?}", duration);
+            log_info!(logger, "- Time lock enabled = {:?}", duration);
         }
 
         // Create instance
@@ -107,8 +112,9 @@ impl Driver {
         let operation_result = timeout(self.settings.read_timeout, self.port.read(response)).await;
         match operation_result {
             Ok(read_result) => {
-                return read_result
-                    .map_err(|e| format_driver_error!("Unable to read on serial port {:?}", e))
+                return read_result.map_err(|e| {
+                    format_driver_error!("#0003 Unable to read on serial port {:?}", e)
+                })
             }
             Err(e) => return Err(format_driver_error!("Read timeout: {:?}", e)),
         }
@@ -125,7 +131,7 @@ impl Driver {
             self.port
                 .read_exact(&mut single_buf)
                 .await
-                .map_err(|e| format_driver_error!("Unable to read on serial port {:?}", e))?;
+                .map_err(|e| format_driver_error!("#0001 Unable to read on serial port {:?}", e))?;
             response[n] = single_buf[0];
             n += 1;
 
@@ -144,17 +150,50 @@ impl Driver {
     ///
     /// Perform a read operation and protect the operation against timeouts
     ///
+    pub async fn read_until_2(
+        &mut self,
+        response: &mut [u8],
+        eol: &Vec<u8>,
+    ) -> Result<usize, Error> {
+        // Read the response until "end"
+        let mut n = 0;
+        loop {
+            // let mut single_buf = [0u8; 1];
+            let rx_count =
+                self.port.read(&mut response[n..]).await.map_err(|e| {
+                    format_driver_error!("#0012 Unable to read on serial port {:?}", e)
+                })?;
+            // response[n] = single_buf[0];
+            // n += rx_count;
+
+            //
+            // Debug
+            // log_debug!(self.logger, "Read one {:?}", response[..n].to_vec());
+
+            for _i in 0..rx_count {
+                n += 1;
+                if n >= eol.len() {
+                    if response[n - eol.len()..n].to_vec() == *eol {
+                        return Ok(n);
+                    }
+                }
+            }
+        }
+    }
+
+    ///
+    /// Perform a read operation and protect the operation against timeouts
+    ///
     pub async fn read_until_timeout(
         &mut self,
         response: &mut [u8],
         eol: &Vec<u8>,
     ) -> Result<usize, Error> {
         let operation_result =
-            timeout(self.settings.read_timeout, self.read_until(response, eol)).await;
+            timeout(self.settings.read_timeout, self.read_until_2(response, eol)).await;
         match operation_result {
             Ok(read_result) => {
-                return read_result
-                    .map_err(|e| format_driver_error!("Unable to read on serial port {:?}", e))
+                return read_result;
             }
             Err(e) => return Err(format_driver_error!("Read timeout: {:?}", e)),
         }
@@ -174,7 +213,7 @@ impl Driver {
         self.port
             .read(response)
             .await
-            .map_err(|e| format_driver_error!("Unable to read on serial port {:?}", e))
+            .map_err(|e| format_driver_error!("#0004 Unable to read on serial port {:?}", e))
     }
 
     /// Lock the connector to write a command then wait for the answers
@@ -194,7 +233,7 @@ impl Driver {
         self.port
             .read(response)
             .await
-            .map_err(|e| format_driver_error!("Unable to read on serial port {:?}", e))
+            .map_err(|e| format_driver_error!("#0005 Unable to read on serial port {:?}", e))
     }
 
     ///
@@ -214,7 +253,7 @@ impl Driver {
         self.port
             .read(response)
             .await
-            .map_err(|e| format_driver_error!("Unable to read on serial port {:?}", e))
+            .map_err(|e| format_driver_error!("#0006 Unable to read on serial port {:?}", e))
     }
 
     ///
@@ -239,7 +278,7 @@ impl Driver {
             self.port
                 .read_exact(&mut single_buf)
                 .await
-                .map_err(|e| format_driver_error!("Unable to read on serial port {:?}", e))?;
+                .map_err(|e| format_driver_error!("#0007 Unable to read on serial port {:?}", e))?;
             response[n] = single_buf[0];
             n += 1;
 
