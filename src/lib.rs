@@ -1,7 +1,7 @@
 #![deny(
     while_true,
     improper_ctypes,
-//     non_shorthand_field_patterns,
+    non_shorthand_field_patterns,
 //     no_mangle_generic_items,
     overflowing_literals,
 //     path_statements,
@@ -51,11 +51,7 @@ pub use interface::Class;
 
 //
 mod attribute;
-pub use attribute::att_only_msg_att::AttOnlyMsgAtt;
-pub use attribute::bidir_msg_att::BidirMsgAtt;
 pub use attribute::builder::AttributeBuilder;
-pub use attribute::cmd_only_msg_att::CmdOnlyMsgAtt;
-
 pub use attribute::server_boolean::BooleanAttServer;
 pub use attribute::server_enum::EnumAttServer;
 pub use attribute::server_json::JsonAttServer;
