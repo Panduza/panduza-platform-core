@@ -3,8 +3,8 @@ macro_rules! plugin_interface {
     ($plg_name:literal) => {
         use panduza_platform_core::NotificationGroup;
         use panduza_platform_core::{
-            Factory, PlatformLogger, Plugin, Producer, ProductionOrder, Reactor, ReactorSettings,
-            Runtime, ScanMachine, Scanner,
+            Factory, PlatformLogger, Plugin, ProductionOrder, Reactor, ReactorSettings,
+            Runtime, ScanMachine
         };
         use serde_json::Result;
         use serde_json::Value;
