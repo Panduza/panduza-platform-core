@@ -35,6 +35,15 @@ impl NotificationGroup {
     ///
     ///
     ///
+    pub fn pull(&mut self) -> Vec<Notification> {
+        self.pulled_elements = self.elements.clone();
+        self.elements.clear();
+        self.pulled_elements.clone()
+    }
+
+    ///
+    ///
+    ///
     pub fn pull_and_serialize(&mut self) -> *const i8 {
         //
         // despair logs
