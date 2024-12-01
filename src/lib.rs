@@ -125,6 +125,10 @@ pub mod settings;
 pub use settings::eenum::EnumSettings;
 pub use settings::si::SiSettings;
 
+/// Module that manage platform traces and logs
+///
+pub mod tracing;
+
 /// Built-in drivers to help coding plugins
 ///
 /// # Enabling
