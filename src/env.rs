@@ -71,6 +71,13 @@ pub fn system_default_plugins_dir() -> Result<PathBuf, std::io::Error> {
     Ok(tree_path)
 }
 
+/// Location of the directory where logs should be stored
+///
+pub fn system_default_log_dir() -> Result<PathBuf, std::io::Error> {
+    let tree_path = system_default_config_dir().unwrap().join("logs");
+    Ok(tree_path)
+}
+
 ///
 /// Provide a list of all the possible location for plugins
 ///

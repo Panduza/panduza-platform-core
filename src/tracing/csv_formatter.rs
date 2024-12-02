@@ -50,15 +50,15 @@ where
             let plugin_opt = visitor.entries().get("plugin");
             let plugin_name_string = match plugin_opt {
                 Some(plugin_name) => plugin_name.trim_matches('"'),
-                None => &"".to_string(),
+                None => &"builtin".to_string(),
             };
 
             // Get class name
             let class_name = visitor
                 .entries()
                 .get("class")
-                .or(Some(&"".to_string()))
-                .and_then(|s| Some(String::from(s)))
+                .or(Some(&"Broker".to_string()))
+                .and_then(|s| Some(String::from(s.trim_matches('"'))))
                 .unwrap();
 
             let i1 = visitor
