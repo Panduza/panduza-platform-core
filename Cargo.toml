@@ -101,9 +101,6 @@ serial-line-ip = { version = "0.5.0", optional = true }
 
 [features]
 
-# Enable tracing in stdout
-log = []
-
 # Build usb drivers
 # 
 usb = []
