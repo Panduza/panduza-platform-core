@@ -95,7 +95,11 @@ where
             write!(
                 &mut writer,
                 "{};{};{};{};{};{};{};{};{}",
-                plugin_name_string,
+                if plugin_name_string.is_empty() {
+                    "builtin"
+                } else {
+                    plugin_name_string
+                },
                 Utc::now().to_rfc3339().to_string(),
                 metadata.level().as_str(),
                 class_name,

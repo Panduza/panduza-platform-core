@@ -13,9 +13,20 @@ use multi_writer::MultiWriter;
 
 /// Function to initiliaze tracing for the application
 ///
-pub fn init(enable_stdout: bool, enable_broker_log: bool) {
+pub fn init(enable_stdout: bool, enable_broker_log: bool, debug: bool, trace: bool) {
+    //
+    //
+    let mut level = tracing::Level::INFO;
+    if debug {
+        level = tracing::Level::DEBUG;
+    }
+    if trace {
+        level = tracing::Level::TRACE;
+    }
+
     let subscriber = tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::TRACE)
+        // .with_max_level(tracing::Level::TRACE)
+        .with_max_level(level)
         // Display source code file paths
         .with_file(true)
         // Display source code line numbers
