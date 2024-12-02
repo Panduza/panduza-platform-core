@@ -185,13 +185,13 @@ impl FactoryLogger {
 // ----------------------------------------------------------------------------
 
 #[derive(Clone)]
-pub struct DeviceLogger {
+pub struct InstanceLogger {
     base: GenericLogger,
 }
-impl DeviceLogger {
-    pub fn new<A: Into<String>>(name: A) -> DeviceLogger {
-        DeviceLogger {
-            base: GenericLogger::new("Device", name.into(), "", ""),
+impl InstanceLogger {
+    pub fn new<A: Into<String>>(name: A) -> InstanceLogger {
+        InstanceLogger {
+            base: GenericLogger::new("Instance", name.into(), "", ""),
         }
     }
     pub fn error<A: Into<String>>(&self, text: A) {
@@ -241,7 +241,6 @@ impl DriverLogger {
         self.base.plugin = text.into();
     }
 }
-
 
 #[macro_export]
 macro_rules! log_error {

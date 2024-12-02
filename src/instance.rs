@@ -1,7 +1,7 @@
 mod inner;
 use crate::InterfaceBuilder;
 use crate::{
-    reactor::Reactor, AttributeBuilder, DeviceLogger, DeviceSettings, DriverOperations, Error,
+    reactor::Reactor, AttributeBuilder, InstanceLogger, DeviceSettings, DriverOperations, Error,
     Notification, TaskResult, TaskSender,
 };
 use futures::FutureExt;
@@ -54,7 +54,7 @@ pub struct Instance {
     ///
     /// Logger for driver instance
     ///
-    pub logger: DeviceLogger,
+    pub logger: InstanceLogger,
 
     ///
     /// Manage all MQTT communications
@@ -102,7 +102,7 @@ impl Instance {
     ) -> Instance {
         // Create the object
         Instance {
-            logger: DeviceLogger::new(name.clone()),
+            logger: InstanceLogger::new(name.clone()),
             reactor: reactor.clone(),
             // info_pack: info_pack,
             // info_dyn_dev_status: None,

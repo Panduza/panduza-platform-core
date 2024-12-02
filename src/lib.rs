@@ -21,15 +21,6 @@ pub mod pmacro;
 mod error;
 pub use error::Error;
 
-/// Loggers
-mod logger;
-pub use logger::DeviceLogger;
-pub use logger::DriverLogger;
-pub use logger::FactoryLogger;
-pub use logger::GenericLogger;
-pub use logger::PlatformLogger;
-pub use logger::RuntimeLogger;
-
 ///
 mod factory;
 pub use factory::production_order::DeviceSettings;
@@ -107,8 +98,6 @@ pub use plugin::Plugin;
 pub mod runtime;
 pub use runtime::Runtime;
 
-pub mod log;
-
 pub mod env;
 
 mod notification;
@@ -128,6 +117,11 @@ pub use settings::si::SiSettings;
 /// Module that manage platform traces and logs
 ///
 pub mod tracing;
+pub use tracing::DriverLogger;
+pub use tracing::FactoryLogger;
+pub use tracing::InstanceLogger;
+pub use tracing::PlatformLogger;
+pub use tracing::RuntimeLogger;
 
 /// Built-in drivers to help coding plugins
 ///

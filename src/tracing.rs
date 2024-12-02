@@ -1,5 +1,12 @@
 mod csv_formatter;
+mod logger;
 mod multi_writer;
+
+pub use logger::DriverLogger;
+pub use logger::FactoryLogger;
+pub use logger::InstanceLogger;
+pub use logger::PlatformLogger;
+pub use logger::RuntimeLogger;
 
 use csv_formatter::CSVFormatter;
 use multi_writer::MultiWriter;

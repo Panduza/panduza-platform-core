@@ -90,7 +90,7 @@ pub fn print_log_line(buf: &[u8], enable_broker_log: bool) {
             let f = format!("[{}/{}/{}] ", data[4], data[5], data[6],);
             write!(&mut log_message, "{}", f.purple()).unwrap();
         }
-        "Device" => {
+        "Instance" => {
             let f = format!("[{}] ", data[4]);
             write!(&mut log_message, "{}", f.green()).unwrap();
         }
@@ -124,13 +124,3 @@ pub fn print_log_line(buf: &[u8], enable_broker_log: bool) {
     //
     println!("{}", log_message);
 }
-
-// 0
-// 1 2024-12-02T06:20:15.297804600+00:00
-// 2 ERROR
-// 3 "Platform"
-// 4 ""
-// 5 ""
-// 6 ""
-// 7 Platform EXIT
-// 8 1
