@@ -15,9 +15,9 @@ pub struct SiAttServer {
     /// Inner server implementation
     pub inner: Arc<Mutex<AttServer<SiCodec>>>,
 
-    unit: String,
-    min: i32,
-    max: i32,
+    _unit: String,
+    _min: i32,
+    _max: i32,
 
     decimals: u32,
 }
@@ -41,9 +41,9 @@ impl SiAttServer {
     ) -> Self {
         Self {
             inner: Arc::new(Mutex::new(AttServer::<SiCodec>::from(builder))),
-            unit: unit.into(),
-            min: min,
-            max: max,
+            _unit: unit.into(),
+            _min: min,
+            _max: max,
             decimals: decimals,
         }
     }

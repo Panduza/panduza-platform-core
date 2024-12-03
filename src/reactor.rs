@@ -25,12 +25,12 @@ struct PzaScanMessageHandler {
 #[async_trait]
 impl MessageHandler for PzaScanMessageHandler {
     async fn on_message(&mut self, _incomming_data: &Bytes) -> Result<(), Error> {
-        let hostname = hostname::get().unwrap().to_string_lossy().to_string();
+        // let hostname = hostname::get().unwrap().to_string_lossy().to_string();
         let now = Utc::now();
 
         self.message_client
             .publish(
-                format!("pza/{}", hostname),
+                format!("pza"),
                 QoS::AtLeastOnce,
                 false,
                 format!("{}", now.timestamp_millis()),

@@ -1,8 +1,8 @@
+use crate::{log_debug, Notification, NotificationGroup};
 use crate::{
     task_channel::create_task_channel, Factory, ProductionOrder, Reactor, RuntimeLogger,
     TaskReceiver, TaskResult, TaskSender,
 };
-use crate::{Notification, NotificationGroup};
 // use futures::lock::Mutex;
 use futures::FutureExt;
 use std::sync::{
@@ -252,7 +252,7 @@ impl Runtime {
             match join_result {
                 Ok(jr) => match jr {
                     Ok(_) => {
-                        self.logger.warn("Task completed successly");
+                        log_debug!(self.logger, "Task completed successly");
                     }
                     Err(e) => {
                         self.logger.error(format!("Task end badly: {:?}", e));
@@ -266,7 +266,7 @@ impl Runtime {
         }
         //
         // Reaching here means that there is no task anymore
-        self.logger.warn("All tasks completed");
+        log_debug!(self.logger, "All tasks completed");
         match self.must_stop.load(Ordering::Relaxed) {
             true => {
                 // No task and stop request => quit this loop
@@ -274,7 +274,7 @@ impl Runtime {
             }
             false => {
                 // Wait for an other task to be loaded
-                self.logger.warn("Wait for new tasks");
+                log_debug!(self.logger, "Wait for new tasks");
                 self.new_task_notifier.notified().await;
                 true
             }

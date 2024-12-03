@@ -1,20 +1,21 @@
-use std::{fmt, thread};
 use regex::Regex;
+use std::{fmt, thread};
 use tracing_core::{Event, Subscriber};
 use tracing_subscriber::fmt::{
     format::{self, FormatEvent, FormatFields},
-    FmtContext
+    FmtContext,
 };
 use tracing_subscriber::registry::LookupSpan;
 
-use crate::log::hash_visitor::HashVisitor;
 use chrono::Utc;
+mod hash_visitor;
+use hash_visitor::HashVisitor;
 
 /// A custom event formatter that formats events in a platform-specific way.
-/// 
-pub struct FormatterCSV;
+///
+pub struct CSVFormatter;
 
-impl<S, N> FormatEvent<S, N> for FormatterCSV
+impl<S, N> FormatEvent<S, N> for CSVFormatter
 where
     S: Subscriber + for<'a> LookupSpan<'a>,
     N: for<'a> FormatFields<'a> + 'static,
@@ -25,7 +26,6 @@ where
         mut writer: format::Writer<'_>,
         event: &Event<'_>,
     ) -> fmt::Result {
-
         //
         let mut visitor = HashVisitor::new();
         event.record(&mut visitor);
@@ -35,7 +35,6 @@ where
         // Format the event, if it has at least one message
         let res = visitor.entries().get("message");
         if res.is_some() {
-
             // Format values from the event's metadata:
             let metadata = event.metadata();
 
@@ -45,33 +44,45 @@ where
             // println!("{}", thread_id_string);
             let re = Regex::new(r"ThreadId\((\d+)\)").unwrap();
             let caps = re.captures(&thread_id_string).unwrap();
-            let id_number = &caps[1];
+            let thread_id_number = &caps[1];
+
+            // Display class
+            let plugin_opt = visitor.entries().get("plugin");
+            let plugin_name_string = match plugin_opt {
+                Some(plugin_name) => plugin_name.trim_matches('"'),
+                None => &"builtin".to_string(),
+            };
 
             // Get class name
-            let class_name = visitor.entries()
+            let class_name = visitor
+                .entries()
                 .get("class")
-                .or(Some(&"".to_string()))
-                .and_then(|s| Some(String::from(s)))
+                .or(Some(&"Broker".to_string()))
+                .and_then(|s| Some(String::from(s.trim_matches('"'))))
                 .unwrap();
 
-            let i1 = visitor.entries()
+            let i1 = visitor
+                .entries()
                 .get("i1")
                 .or(Some(&"".to_string()))
-                .and_then(|s| Some(String::from(s)))
+                .and_then(|s| Some(String::from(s.trim_matches('"'))))
                 .unwrap();
 
-            let i2 = visitor.entries()
+            let i2 = visitor
+                .entries()
                 .get("i2")
                 .or(Some(&"".to_string()))
-                .and_then(|s| Some(String::from(s)))
+                .and_then(|s| Some(String::from(s.trim_matches('"'))))
                 .unwrap();
 
-            let i3 = visitor.entries()
+            let i3 = visitor
+                .entries()
                 .get("i3")
                 .or(Some(&"".to_string()))
-                .and_then(|s| Some(String::from(s)))
+                .and_then(|s| Some(String::from(s.trim_matches('"'))))
                 .unwrap();
 
+            // plugin
             // timestamp
             // Level (debug/info/warning…)
             // class
@@ -81,12 +92,23 @@ where
             // message
             // thread/task
             let message = res.unwrap();
-            write!(&mut writer, "{},{},{},{},{},{},{},{}",
+            write!(
+                &mut writer,
+                "{};{};{};{};{};{};{};{};{}",
+                if plugin_name_string.is_empty() {
+                    "builtin"
+                } else {
+                    plugin_name_string
+                },
                 Utc::now().to_rfc3339().to_string(),
-                metadata.level().as_str(), 
+                metadata.level().as_str(),
                 class_name,
-                i1, i2, i3,
-                message, id_number)?;
+                i1,
+                i2,
+                i3,
+                message,
+                thread_id_number
+            )?;
         }
 
         // Return the formatted event

@@ -63,7 +63,7 @@ pub struct AttServer<TYPE: MessageCodec> {
     ///
     ///
     ///
-    mode: AttributeMode,
+    _mode: AttributeMode,
 
     r_notifier: Option<Sender<Notification>>,
 }
@@ -213,7 +213,7 @@ impl<TYPE: MessageCodec> From<AttributeBuilder> for AttServer<TYPE> {
             in_notifier: Arc::new(Notify::new()),
             topic_att: format!("{}/att", topic.clone()),
             requested_value: None,
-            mode: builder.mode.unwrap(),
+            _mode: builder.mode.unwrap(),
             r_notifier: builder.r_notifier,
         }
     }

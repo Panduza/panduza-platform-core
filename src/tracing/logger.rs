@@ -185,13 +185,13 @@ impl FactoryLogger {
 // ----------------------------------------------------------------------------
 
 #[derive(Clone)]
-pub struct DeviceLogger {
+pub struct InstanceLogger {
     base: GenericLogger,
 }
-impl DeviceLogger {
-    pub fn new<A: Into<String>>(name: A) -> DeviceLogger {
-        DeviceLogger {
-            base: GenericLogger::new("Device", name.into(), "", ""),
+impl InstanceLogger {
+    pub fn new<A: Into<String>>(name: A) -> InstanceLogger {
+        InstanceLogger {
+            base: GenericLogger::new("Instance", name.into(), "", ""),
         }
     }
     pub fn error<A: Into<String>>(&self, text: A) {
@@ -205,6 +205,9 @@ impl DeviceLogger {
     }
     pub fn debug<A: Into<String>>(&self, text: A) {
         self.base.debug(text);
+    }
+    pub fn trace<A: Into<String>>(&self, text: A) {
+        self.base.trace(text);
     }
     pub fn set_plugin<A: Into<String>>(&mut self, text: A) {
         self.base.plugin = text.into();
@@ -242,11 +245,17 @@ impl DriverLogger {
     }
 }
 
-
 #[macro_export]
 macro_rules! log_error {
     ($logger:expr , $($arg:tt)*) => {
         $logger.error(format!($($arg)*))
+    };
+}
+
+#[macro_export]
+macro_rules! log_warn {
+    ($logger:expr , $($arg:tt)*) => {
+        $logger.warn(format!($($arg)*))
     };
 }
 
@@ -261,5 +270,12 @@ macro_rules! log_info {
 macro_rules! log_debug {
     ($logger:expr , $($arg:tt)*) => {
         $logger.debug(format!($($arg)*))
+    };
+}
+
+#[macro_export]
+macro_rules! log_trace {
+    ($logger:expr , $($arg:tt)*) => {
+        $logger.trace(format!($($arg)*))
     };
 }

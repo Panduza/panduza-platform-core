@@ -30,5 +30,5 @@ pub trait BinaryCmdRespProtocol: Sync + Send {
     ///
     /// Send a command and return the response
     ///
-    async fn ask(&mut self, command: &[u8], response: &mut [u8]) -> Result<(usize), Error>;
+    async fn ask(&mut self, command: &[u8], response: &mut [u8]) -> Result<usize, Error>;
 }
