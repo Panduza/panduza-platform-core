@@ -70,6 +70,6 @@ impl NotificationGroup {
                 self.pulled_elements_serialized = CString::default();
             }
         }
-        self.pulled_elements_serialized.as_c_str().as_ptr()
+        self.pulled_elements_serialized.as_c_str().as_ptr() as *const i8
     }
 }

@@ -1,4 +1,4 @@
-use std::ffi::{CStr, CString};
+use std::ffi::{c_char, CStr, CString};
 
 use serde_json::json;
 pub type DeviceSettings = serde_json::Value;
@@ -96,7 +96,7 @@ impl ProductionOrder {
 
         //
         //
-        let c_str = unsafe { CStr::from_ptr(c_str) };
+        let c_str = unsafe { CStr::from_ptr(c_str as *const c_char) };
         let str = c_str
             .to_str()
             .map_err(|e| crate::Error::InvalidArgument(format!("Invalid C string: {:?}", e)))?;

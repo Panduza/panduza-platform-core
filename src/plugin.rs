@@ -1,5 +1,5 @@
 pub mod macro_helper;
-use std::ffi::CStr;
+use std::ffi::{c_char, CStr};
 
 use crate::Store;
 
@@ -109,12 +109,12 @@ impl Plugin {
 
         //
         //
-        let c_str = unsafe { CStr::from_ptr(c_str) };
+        let c_str = unsafe { CStr::from_ptr(c_str as *const c_char) };
         let str = c_str
             .to_str()
             .map_err(|e| crate::Error::InvalidArgument(format!("Invalid C string: {:?}", e)))?;
 
-        println!("{:?}", str);
+        // println!("{:?}", str);
 
         let json: serde_json::Value = serde_json::from_str(str)
             .map_err(|e| crate::Error::InvalidArgument(format!("Invalid JSON: {:?}", e)))?;
