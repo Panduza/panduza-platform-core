@@ -172,7 +172,7 @@ macro_rules! plugin_interface {
         }
 
         #[no_mangle]
-        pub unsafe extern "C" fn plugin_entry_point() -> Plugin {
+        pub unsafe extern "C" fn plugin_entry_point(enable_stdout: bool, debug: bool, trace: bool) -> Plugin {
             //
             // Create a static reference for the plugin name
             // in order to provide a static pointer to the main program
@@ -180,7 +180,7 @@ macro_rules! plugin_interface {
 
             //
             // Init logging system on the plugin
-            panduza_platform_core::log::init();
+            panduza_platform_core::tracing::init(enable_stdout, false, debug, trace);
             let mut logger = PlatformLogger::new();
             logger.set_plugin($plg_name);
             logger.info("plugin_entry_point");
