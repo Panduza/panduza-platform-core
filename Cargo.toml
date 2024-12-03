@@ -1,52 +1,39 @@
 [package]
 name = "panduza-platform-core"
 edition = "2021"
-version = "0.1.4"
+version = "0.1.5"
 
-
+# =========================================================
 [dependencies]
-
 
 # Main async framework for the platform
 tokio = { version = "1.40.0", features = ["full", "tracing"] }
-
-
-# 
-dirs = "3.0.2"
-
 # MQTT async client
 rumqttc = "0.24.0"
-
 # Async trait support
 async-trait = "0.1.77"
-
 # Futures support
 futures = "0.3.17"
-
+# Base for serde
+serde = { version = "1.0", features = ["derive"] }
 # Json serialization & deserialization
 serde_json = "1.0.114"
-
 # Regex management
 regex = "1.10.3"
-
 # Bytes array management
 bytes = "1.5.0"
-
-# Bitflags
-bitflags = "2.5.0"
-
+# Error management
+thiserror = "2.0.3"
 # 
-hostname = "0.3.1"
-
+dirs = "5.0.1"
+# Bitflags
+bitflags = "2.6.0"
+# 
 chrono = "0.4"
+# 
+rand = "0.8.5"
 
-
-thiserror = "1.0.0"
-
-
-serde = { version = "1.0", features = ["derive"] }
-
-
+# === 
 # Trace instrumentation at disabled levels will be skipped and will not even be present
 # in the resulting binary unless the verbosity level is specified dynamically.
 # This level is configured separately for release and debug builds.
@@ -64,23 +51,14 @@ tracing = { version = "0.1", features = [
     # "release_max_level_debug",
     "release_max_level_trace",
 ] }
-
-
 # 
 tracing-core = { version = "0.1.32" }
-
 # Fmt subscriber
 tracing-subscriber = "0.3"
-
+# 
 tracing-appender = "0.2.3"
-
-
 # To managed logs in colored format
-# colored = { version="2.0.0", optional = true }
 colored = "2.0.0"
-
-rand = "0.8.5"
-
 
 # === feature => serial
 # 
@@ -99,6 +77,7 @@ tokio-serial = { version = "5.4.1", optional = true }
 # 
 serial-line-ip = { version = "0.5.0", optional = true }
 
+# =========================================================
 [features]
 
 # Build usb drivers
