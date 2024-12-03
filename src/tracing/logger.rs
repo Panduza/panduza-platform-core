@@ -250,6 +250,13 @@ macro_rules! log_error {
 }
 
 #[macro_export]
+macro_rules! log_warn {
+    ($logger:expr , $($arg:tt)*) => {
+        $logger.warn(format!($($arg)*))
+    };
+}
+
+#[macro_export]
 macro_rules! log_info {
     ($logger:expr , $($arg:tt)*) => {
         $logger.info(format!($($arg)*))
@@ -260,5 +267,12 @@ macro_rules! log_info {
 macro_rules! log_debug {
     ($logger:expr , $($arg:tt)*) => {
         $logger.debug(format!($($arg)*))
+    };
+}
+
+#[macro_export]
+macro_rules! log_trace {
+    ($logger:expr , $($arg:tt)*) => {
+        $logger.trace(format!($($arg)*))
     };
 }
