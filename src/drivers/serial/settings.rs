@@ -35,8 +35,6 @@ pub struct Settings {
 
     /// Read timeout
     pub read_timeout: Duration,
-    /// Time to wait between 2 operations
-    pub time_lock_duration: Option<Duration>,
 }
 
 impl Settings {
@@ -51,7 +49,6 @@ impl Settings {
             parity: Parity::None,
             stop_bits: StopBits::One,
             read_timeout: Duration::from_secs(2),
-            time_lock_duration: None,
         }
     }
 
@@ -292,13 +289,6 @@ impl Settings {
     ///
     pub fn set_read_timeout(mut self, read_timeout: Duration) -> Self {
         self.read_timeout = read_timeout;
-        self
-    }
-
-    /// Set time lock duration
-    ///
-    pub fn set_time_lock_duration(mut self, time_lock_duration: Duration) -> Self {
-        self.time_lock_duration = Some(time_lock_duration);
         self
     }
 }

@@ -34,9 +34,6 @@ pub fn open(settings: &SerialSettings) -> Result<(DriverLogger, SerialPort), Err
             log_debug!(logger, "- Baudrate {:?}...", baudrate);
         }
     }
-    if let Some(duration) = &settings.time_lock_duration {
-        log_debug!(logger, "- Time lock enabled = {:?}", duration);
-    }
 
     // return objects
     Ok((logger, port))

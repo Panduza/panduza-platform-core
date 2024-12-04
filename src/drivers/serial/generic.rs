@@ -15,6 +15,7 @@ use crate::log_info;
 
 /// Serial GENERIC driver
 ///
+#[deprecated]
 pub struct Driver {
     ///
     ///
@@ -61,9 +62,9 @@ impl Driver {
                 log_info!(logger, "- Baudrate {:?}...", baudrate);
             }
         }
-        if let Some(duration) = &settings.time_lock_duration {
-            log_info!(logger, "- Time lock enabled = {:?}", duration);
-        }
+        // if let Some(duration) = &settings.time_lock_duration {
+        //     log_info!(logger, "- Time lock enabled = {:?}", duration);
+        // }
 
         // Create instance
         Ok(Driver {
@@ -76,16 +77,17 @@ impl Driver {
 
     /// Write a command on the serial stream
     ///
+    #[deprecated]
     pub async fn write_time_locked(&mut self, command: &[u8]) -> Result<usize, Error> {
-        // Check if a time lock is set
-        if let Some(lock) = self.time_lock.as_mut() {
-            let elapsed = tokio::time::Instant::now() - lock.t0;
-            if elapsed < lock.duration {
-                let wait_time = lock.duration - elapsed;
-                tokio::time::sleep(wait_time).await;
-            }
-            self.time_lock = None;
-        }
+        // // Check if a time lock is set
+        // if let Some(lock) = self.time_lock.as_mut() {
+        //     let elapsed = tokio::time::Instant::now() - lock.t0;
+        //     if elapsed < lock.duration {
+        //         let wait_time = lock.duration - elapsed;
+        //         tokio::time::sleep(wait_time).await;
+        //     }
+        //     self.time_lock = None;
+        // }
 
         // Send the command
         let write_result = self
@@ -94,13 +96,13 @@ impl Driver {
             .await
             .map_err(|e| format_driver_error!("Unable to write on serial port: {}", e));
 
-        // Set the time lock
-        if let Some(duration) = self.settings.time_lock_duration {
-            self.time_lock = Some(TimeLock {
-                duration: duration,
-                t0: tokio::time::Instant::now(),
-            });
-        }
+        // // Set the time lock
+        // if let Some(duration) = self.settings.time_lock_duration {
+        //     self.time_lock = Some(TimeLock {
+        //         duration: duration,
+        //         t0: tokio::time::Instant::now(),
+        //     });
+        // }
 
         return write_result;
     }
@@ -108,6 +110,7 @@ impl Driver {
     ///
     /// Perform a read operation and protect the operation against timeouts
     ///
+    #[deprecated]
     pub async fn read_timeout(&self, response: &mut [u8]) -> Result<usize, Error> {
         let operation_result = timeout(self.settings.read_timeout, self.port.read(response)).await;
         match operation_result {
