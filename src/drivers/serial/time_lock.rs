@@ -102,7 +102,7 @@ impl Driver {
 
             // timeout here with small time
             let operation_result = tokio::time::timeout(
-                self.time_lock_duration,
+                Duration::from_millis(20),
                 self.port.read_exact(&mut single_buf),
             )
             .await;
@@ -174,7 +174,9 @@ impl AsciiCmdRespProtocol for Driver {
 
         //
         // Build response string
-        let string_slice = String::from_utf8(self.read_buffer[..count].to_vec()).unwrap();
-        return Ok(string_slice.to_string());
+        unsafe {
+            let string_slice = String::from_utf8_unchecked(self.read_buffer[..count].to_vec());
+            return Ok(string_slice.to_string());
+        }
     }
 }
