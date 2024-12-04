@@ -25,12 +25,12 @@ pub struct Plugin {
 
     ///
     ///
-    pub name: *const i8,
+    pub name: *const c_char,
 
     ///
     ///
     ///
-    pub version: *const i8,
+    pub version: *const c_char,
 
     ///
     /// Must be called to join the plugin thread
@@ -42,22 +42,22 @@ pub struct Plugin {
     ///
     /// The returned list must be a json array of string
     ///
-    pub store: unsafe extern "C" fn() -> *const i8,
+    pub store: unsafe extern "C" fn() -> *const c_char,
 
     ///
     /// Return the list of all instances available on the server
     ///
-    pub scan: unsafe extern "C" fn() -> *const i8,
+    pub scan: unsafe extern "C" fn() -> *const c_char,
 
     ///
     /// Produce a device matching the given json string configuration
     ///
-    pub produce: unsafe extern "C" fn(*const i8) -> u32,
+    pub produce: unsafe extern "C" fn(*const c_char) -> u32,
 
     ///
     /// Return the notifications
     ///
-    pub pull_notifications: unsafe extern "C" fn() -> *const i8,
+    pub pull_notifications: unsafe extern "C" fn() -> *const c_char,
 }
 
 impl Plugin {
@@ -65,15 +65,15 @@ impl Plugin {
         name: &'static CStr,
         version: &CStr,
         join: unsafe extern "C" fn(),
-        store: unsafe extern "C" fn() -> *const i8,
-        scan: unsafe extern "C" fn() -> *const i8,
-        produce: unsafe extern "C" fn(*const i8) -> u32,
-        pull_notifications: unsafe extern "C" fn() -> *const i8,
+        store: unsafe extern "C" fn() -> *const c_char,
+        scan: unsafe extern "C" fn() -> *const c_char,
+        produce: unsafe extern "C" fn(*const c_char) -> u32,
+        pull_notifications: unsafe extern "C" fn() -> *const c_char,
     ) -> Self {
         Plugin {
             c_interface_version: C_INTERFACE_VERSION,
-            name: name.as_ptr() as *const i8,
-            version: version.as_ptr() as *const i8,
+            name: name.as_ptr(),
+            version: version.as_ptr(),
             join: join,
             store: store,
             scan: scan,
@@ -109,7 +109,7 @@ impl Plugin {
 
         //
         //
-        let c_str = unsafe { CStr::from_ptr(c_str as *const c_char) };
+        let c_str = unsafe { CStr::from_ptr(c_str) };
         let str = c_str
             .to_str()
             .map_err(|e| crate::Error::InvalidArgument(format!("Invalid C string: {:?}", e)))?;

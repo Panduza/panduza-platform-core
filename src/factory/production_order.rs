@@ -83,9 +83,8 @@ impl ProductionOrder {
             .map_err(|e| crate::Error::InternalLogic(format!("Failed to build CString ({:?})", e)))
     }
 
-    // pub fn from_c_str_ptr(&mut self, c_str: *const i8) {}
     // /// Converts a C-style string pointer into a `ProductionOrder`
-    pub fn from_c_str_ptr(c_str: *const i8) -> Result<Self, crate::Error> {
+    pub fn from_c_str_ptr(c_str: *const c_char) -> Result<Self, crate::Error> {
         //
         //
         if c_str.is_null() {
@@ -96,7 +95,7 @@ impl ProductionOrder {
 
         //
         //
-        let c_str = unsafe { CStr::from_ptr(c_str as *const c_char) };
+        let c_str = unsafe { CStr::from_ptr(c_str) };
         let str = c_str
             .to_str()
             .map_err(|e| crate::Error::InvalidArgument(format!("Invalid C string: {:?}", e)))?;

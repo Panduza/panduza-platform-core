@@ -1,4 +1,4 @@
-use std::ffi::CString;
+use std::ffi::{c_char, CString};
 
 use super::Notification;
 
@@ -44,7 +44,7 @@ impl NotificationGroup {
     ///
     ///
     ///
-    pub fn pull_and_serialize(&mut self) -> *const i8 {
+    pub fn pull_and_serialize(&mut self) -> *const c_char {
         //
         // despair logs
         // println!("DEBUG: pull_and_serialize()");
@@ -70,6 +70,6 @@ impl NotificationGroup {
                 self.pulled_elements_serialized = CString::default();
             }
         }
-        self.pulled_elements_serialized.as_c_str().as_ptr() as *const i8
+        self.pulled_elements_serialized.as_c_str().as_ptr()
     }
 }
