@@ -8,6 +8,7 @@ macro_rules! plugin_interface {
         };
         use serde_json::Result;
         use serde_json::Value;
+        use std::ffi::c_char;
         use std::ffi::CString;
         use std::{
             sync::{Arc, Mutex},
