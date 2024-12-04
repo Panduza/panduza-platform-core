@@ -1,4 +1,4 @@
-use std::ffi::{CStr, CString};
+use std::ffi::{c_char, CStr, CString};
 
 use serde_json::json;
 pub type DeviceSettings = serde_json::Value;
@@ -83,9 +83,8 @@ impl ProductionOrder {
             .map_err(|e| crate::Error::InternalLogic(format!("Failed to build CString ({:?})", e)))
     }
 
-    // pub fn from_c_str_ptr(&mut self, c_str: *const i8) {}
     // /// Converts a C-style string pointer into a `ProductionOrder`
-    pub fn from_c_str_ptr(c_str: *const i8) -> Result<Self, crate::Error> {
+    pub fn from_c_str_ptr(c_str: *const c_char) -> Result<Self, crate::Error> {
         //
         //
         if c_str.is_null() {

@@ -3,8 +3,8 @@ macro_rules! plugin_interface {
     ($plg_name:literal) => {
         use panduza_platform_core::NotificationGroup;
         use panduza_platform_core::{
-            Factory, PlatformLogger, Plugin, ProductionOrder, Reactor, ReactorSettings,
-            Runtime, ScanMachine
+            Factory, PlatformLogger, Plugin, ProductionOrder, Reactor, ReactorSettings, Runtime,
+            ScanMachine,
         };
         use serde_json::Result;
         use serde_json::Value;
@@ -107,7 +107,7 @@ macro_rules! plugin_interface {
         ///
         /// Return the list of driver that can be produced
         ///
-        pub unsafe extern "C" fn store() -> *const i8 {
+        pub unsafe extern "C" fn store() -> *const c_char {
             LOGGER.as_ref().unwrap().trace(format!("store !"));
             FACTORY_STORE.as_ref().unwrap().as_c_str().as_ptr()
         }
@@ -115,7 +115,7 @@ macro_rules! plugin_interface {
         ///
         /// Scan the server and try to find connected devices instances
         ///
-        pub unsafe extern "C" fn scan() -> *const i8 {
+        pub unsafe extern "C" fn scan() -> *const c_char {
             LOGGER.as_ref().unwrap().trace(format!("scan !"));
 
             //
@@ -133,7 +133,7 @@ macro_rules! plugin_interface {
         ///
         /// Produce a new driver instance
         ///
-        pub unsafe extern "C" fn produce(str_production_order: *const i8) -> u32 {
+        pub unsafe extern "C" fn produce(str_production_order: *const c_char) -> u32 {
             LOGGER.as_ref().unwrap().trace("produce");
 
             //
@@ -150,7 +150,7 @@ macro_rules! plugin_interface {
         ///
         /// Pull notifications from the runtime
         ///
-        pub unsafe extern "C" fn pull_notifications() -> *const i8 {
+        pub unsafe extern "C" fn pull_notifications() -> *const c_char {
             //
             // Debug log
             // LOGGER.as_ref().unwrap().debug("pull_notifications");
@@ -172,7 +172,11 @@ macro_rules! plugin_interface {
         }
 
         #[no_mangle]
-        pub unsafe extern "C" fn plugin_entry_point(enable_stdout: bool, debug: bool, trace: bool) -> Plugin {
+        pub unsafe extern "C" fn plugin_entry_point(
+            enable_stdout: bool,
+            debug: bool,
+            trace: bool,
+        ) -> Plugin {
             //
             // Create a static reference for the plugin name
             // in order to provide a static pointer to the main program
