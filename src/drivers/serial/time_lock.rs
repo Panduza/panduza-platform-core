@@ -102,7 +102,7 @@ impl Driver {
 
             // timeout here with small time
             let operation_result = tokio::time::timeout(
-                Duration::from_millis(20),
+                self.time_lock_duration,
                 self.port.read_exact(&mut single_buf),
             )
             .await;
