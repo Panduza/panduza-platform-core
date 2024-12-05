@@ -37,7 +37,7 @@ fn color_words_in_quotes(input: &str) -> String {
 ///
 ///
 ///
-pub fn print_log_line(buf: &[u8], enable_broker_log: bool) {
+pub fn print_log_line(buf: &[u8], enable_broker_log: bool, debug: bool, trace: bool) {
     //
     // Convert into string to help usage
     let source_string = String::from_utf8_lossy(buf);
@@ -64,6 +64,20 @@ pub fn print_log_line(buf: &[u8], enable_broker_log: bool) {
     // Skip broker logs if not requested
     if class == "Broker" && !enable_broker_log {
         return;
+    }
+
+    //
+    // Filter terminal level
+    let level = data[2];
+    if !trace {
+        if level == "TRACE" {
+            return;
+        }
+    }
+    if !debug && !trace {
+        if level == "DEBUG" {
+            return;
+        }
     }
 
     //
@@ -94,6 +108,10 @@ pub fn print_log_line(buf: &[u8], enable_broker_log: bool) {
             let f = format!("[{}] ", data[4]);
             write!(&mut log_message, "{}", f.green()).unwrap();
         }
+        "Attribute" => {
+            let f = format!("[{}/{}/{}] ", data[4], data[5], data[6],);
+            write!(&mut log_message, "{}", f.blue()).unwrap();
+        }
         "Interface" => {
             let f = format!("[{}/{}/{}] ", data[4], data[5], data[6],);
             write!(&mut log_message, "{}", f.bright_cyan()).unwrap();
@@ -103,7 +121,6 @@ pub fn print_log_line(buf: &[u8], enable_broker_log: bool) {
 
     //
     // Level
-    let level = data[2];
     match level {
         "WARN" => {
             write!(&mut log_message, "{}", "[WARN]".to_string().on_yellow()).unwrap();

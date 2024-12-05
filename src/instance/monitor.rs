@@ -1,6 +1,6 @@
 use super::Instance;
 use crate::task_channel::create_task_channel;
-use crate::{DriverOperations, Reactor, TaskReceiver};
+use crate::{log_debug, log_warn, DriverOperations, Reactor, TaskReceiver};
 use crate::{Error, Notification, ProductionOrder};
 use std::sync::Arc;
 use std::time::Duration;
@@ -72,13 +72,26 @@ impl InstanceMonitor {
         let subtask_pool_not_empty_notifier_clone = self.subtask_pool_not_empty_notifier.clone();
         loop {
             tokio::select! {
+                //
+                // Manage new task creation requests
+                //
+                request = subtask_receiver_clone_lock.rx.recv() => {
+                    match request {
+                        Some(task) => {
+                            // Function to effectily spawn tasks requested by the system
+                            let ah = self.subtask_pool.spawn(task.future);
+                            log_debug!(self.device.logger, "New task created [{:?} => {:?}]", ah.id(), task.name );
+                            subtask_pool_not_empty_notifier_clone.notify_waiters();
+                        },
+                        None => {
+                            log_warn!(self.device.logger, "Empty Task Request Received !");
+                        }
+                    }
 
-                task = subtask_receiver_clone_lock.rx.recv() => {
-                    // Function to effectily spawn tasks requested by the system
-                    let _ah = self.subtask_pool.spawn(task.unwrap());
-                    // println!("New task created ! [{:?}]", ah );
-                    subtask_pool_not_empty_notifier_clone.notify_one();
                 },
+                //
+                //
+                //
                 _ = self.end_of_all_tasks() => {
                     // Juste alert the user, but it can be not important
                     self.device.logger.warn("No sub task anymore");

@@ -117,6 +117,7 @@ pub use settings::si::SiSettings;
 /// Module that manage platform traces and logs
 ///
 pub mod tracing;
+pub use tracing::AttributeLogger;
 pub use tracing::DriverLogger;
 pub use tracing::FactoryLogger;
 pub use tracing::InstanceLogger;

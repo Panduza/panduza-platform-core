@@ -1,7 +1,7 @@
 mod inner;
 use crate::InterfaceBuilder;
 use crate::{
-    reactor::Reactor, AttributeBuilder, InstanceLogger, DeviceSettings, DriverOperations, Error,
+    reactor::Reactor, AttributeBuilder, DeviceSettings, DriverOperations, Error, InstanceLogger,
     Notification, TaskResult, TaskSender,
 };
 use futures::FutureExt;
@@ -134,6 +134,16 @@ impl Instance {
         F: Future<Output = TaskResult> + Send + 'static,
     {
         self.spawner.spawn(future.boxed()).unwrap();
+    }
+
+    ///
+    /// Spawn a new task and attach a name to it into logs
+    ///
+    pub async fn spawn_with_name<N: Into<String>, F>(&mut self, name: N, future: F)
+    where
+        F: Future<Output = TaskResult> + Send + 'static,
+    {
+        self.spawner.spawn_with_name(name, future.boxed()).unwrap();
     }
 
     ///

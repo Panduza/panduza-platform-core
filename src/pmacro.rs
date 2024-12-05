@@ -1,8 +1,8 @@
 #[macro_export]
 macro_rules! spawn_loop {
-    ($device:ident, $body:expr) => {
+    ($task_name:literal, $device:ident, $body:expr) => {
         $device
-            .spawn(async move {
+            .spawn_with_name($task_name, async move {
                 loop {
                     $body
                 }
@@ -20,9 +20,9 @@ macro_rules! on_command {
 
 #[macro_export]
 macro_rules! spawn_on_command {
-    ($device:ident, $attribute:ident, $callback:expr) => {
+    ($task_name:literal, $device:ident, $attribute:ident, $callback:expr) => {
         $device
-            .spawn(async move {
+            .spawn_with_name($task_name, async move {
                 loop {
                     $attribute.wait_commands_then($callback).await?
                 }

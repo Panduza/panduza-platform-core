@@ -212,6 +212,51 @@ impl InstanceLogger {
     pub fn set_plugin<A: Into<String>>(&mut self, text: A) {
         self.base.plugin = text.into();
     }
+    pub fn new_attribute_logger<A: Into<String>, B: Into<String>>(
+        &self,
+        classes: A,
+        name: B,
+    ) -> AttributeLogger {
+        AttributeLogger::new(self.base.i1.clone(), classes, name)
+    }
+}
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct AttributeLogger {
+    base: GenericLogger,
+}
+impl AttributeLogger {
+    pub fn new<A: Into<String>, B: Into<String>, C: Into<String>>(
+        instance: A,
+        classes: B,
+        name: C,
+    ) -> Self {
+        Self {
+            base: GenericLogger::new("Attribute", instance.into(), classes.into(), name.into()),
+        }
+    }
+    pub fn error<A: Into<String>>(&self, text: A) {
+        self.base.error(text);
+    }
+    pub fn warn<A: Into<String>>(&self, text: A) {
+        self.base.warn(text);
+    }
+    pub fn info<A: Into<String>>(&self, text: A) {
+        self.base.info(text);
+    }
+    pub fn debug<A: Into<String>>(&self, text: A) {
+        self.base.debug(text);
+    }
+    pub fn trace<A: Into<String>>(&self, text: A) {
+        self.base.trace(text);
+    }
+    pub fn set_plugin<A: Into<String>>(&mut self, text: A) {
+        self.base.plugin = text.into();
+    }
 }
 
 // ----------------------------------------------------------------------------
