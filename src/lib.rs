@@ -23,7 +23,7 @@ pub use error::Error;
 
 ///
 mod factory;
-pub use factory::production_order::DeviceSettings;
+pub use factory::production_order::InstanceSettings;
 pub use factory::production_order::ProductionOrder;
 pub use factory::store::Product;
 pub use factory::store::Store;

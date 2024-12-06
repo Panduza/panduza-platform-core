@@ -1,7 +1,7 @@
 use std::ffi::{c_char, CStr, CString};
 
 use serde_json::json;
-pub type DeviceSettings = serde_json::Value;
+pub type InstanceSettings = serde_json::Value;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct ProductionOrder {
@@ -12,7 +12,7 @@ pub struct ProductionOrder {
     pub dref: String,
 
     ///
-    pub settings: Option<DeviceSettings>,
+    pub settings: Option<InstanceSettings>,
 }
 
 impl ProductionOrder {
