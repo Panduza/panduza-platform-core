@@ -5,6 +5,7 @@ mod multi_writer;
 pub use logger::AttributeLogger;
 pub use logger::DriverLogger;
 pub use logger::FactoryLogger;
+pub use logger::GenericLogger;
 pub use logger::InstanceLogger;
 pub use logger::PlatformLogger;
 pub use logger::RuntimeLogger;

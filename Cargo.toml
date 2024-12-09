@@ -60,6 +60,13 @@ tracing-appender = "0.2.3"
 # To managed logs in colored format
 colored = "2.0.0"
 
+
+# === feature => usb
+#
+# Usb driver library
+# 
+nusb = "0.1.9"
+
 # === feature => serial
 # 
 # To manage serial communication
