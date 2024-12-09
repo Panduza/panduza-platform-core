@@ -1,4 +1,4 @@
-use crate::{log_debug, Notification, NotificationGroup};
+use crate::{log_debug, log_warn, Notification, NotificationGroup};
 use crate::{
     task_channel::create_task_channel, Factory, ProductionOrder, Reactor, RuntimeLogger,
     TaskReceiver, TaskResult, TaskSender,
@@ -175,15 +175,30 @@ impl Runtime {
         //
         while self.keep_alive.load(Ordering::Relaxed) {
             tokio::select! {
-                task = task_receiver.rx.recv() => {
-                    // Function to effectily spawn tasks requested by the system
-                    let ah = self.task_pool.spawn(task.unwrap());
-                    self.logger.info(format!( "New device task created ! [{:?}]", ah ));
-                    self.new_task_notifier.notify_waiters();
+                //
+                // Manage new task creation requests
+                //
+                request = task_receiver.rx.recv() => {
+                    match request {
+                        Some(task) => {
+                            // Function to effectily spawn tasks requested by the system
+                            let ah = self.task_pool.spawn(task.future);
+                            log_debug!(self.logger, "New task created [{:?} => {:?}]", ah.id(), task.name );
+                            self.new_task_notifier.notify_waiters();
+                        },
+                        None => {
+                            log_warn!(self.logger, "Empty Task Request Received !");
+                        }
+                    }
                 },
+                //
+                //
+                //
                 production_order = p_order_receiver.recv() => {
 
                     self.logger.debug(format!( "PROD REQUEST ! [{:?}]", production_order ));
+
+                    let name = production_order.as_ref().unwrap().name.clone();
 
                     // let mut production_order = ProductionOrder::new("panduza.picoha-dio", "testdevice");
                     // production_order.device_settings = json!({});
@@ -195,7 +210,8 @@ impl Runtime {
 
                     // let mut dddddd2 = dev.clone();
                     self.task_sender
-                        .spawn(
+                        .spawn_with_name(
+                            format!("{}/fsm", name),
                             async move {
                                 dev.run_fsm().await;
                                 Ok(())
@@ -205,7 +221,8 @@ impl Runtime {
                         .unwrap();
 
                     self.task_sender
-                        .spawn(
+                        .spawn_with_name(
+                            format!("{}/monitor", name),
                             async move {
                                 monitor.run().await;
                                 Ok(())

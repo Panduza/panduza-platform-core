@@ -174,7 +174,9 @@ impl AsciiCmdRespProtocol for Driver {
 
         //
         // Build response string
-        let string_slice = String::from_utf8(self.read_buffer[..count].to_vec()).unwrap();
-        return Ok(string_slice.to_string());
+        unsafe {
+            let string_slice = String::from_utf8_unchecked(self.read_buffer[..count].to_vec());
+            return Ok(string_slice.to_string());
+        }
     }
 }

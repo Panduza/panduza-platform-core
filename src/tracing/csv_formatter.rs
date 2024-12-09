@@ -109,6 +109,8 @@ where
                 message,
                 thread_id_number
             )?;
+            // metadata.file()
+            // metadata.line()
         }
 
         // Return the formatted event

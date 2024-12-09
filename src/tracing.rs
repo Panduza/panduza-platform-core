@@ -2,6 +2,7 @@ mod csv_formatter;
 mod logger;
 mod multi_writer;
 
+pub use logger::AttributeLogger;
 pub use logger::DriverLogger;
 pub use logger::FactoryLogger;
 pub use logger::InstanceLogger;
@@ -16,13 +17,7 @@ use multi_writer::MultiWriter;
 pub fn init(enable_stdout: bool, enable_broker_log: bool, debug: bool, trace: bool) {
     //
     //
-    let mut level = tracing::Level::INFO;
-    if debug {
-        level = tracing::Level::DEBUG;
-    }
-    if trace {
-        level = tracing::Level::TRACE;
-    }
+    let level = tracing::Level::TRACE;
 
     let subscriber = tracing_subscriber::fmt()
         // .with_max_level(tracing::Level::TRACE)
@@ -36,7 +31,7 @@ pub fn init(enable_stdout: bool, enable_broker_log: bool, debug: bool, trace: bo
         // Build the subscriber
         .event_format(CSVFormatter {})
         // Custom writer
-        .with_writer(move || MultiWriter::new(enable_stdout, enable_broker_log))
+        .with_writer(move || MultiWriter::new(enable_stdout, enable_broker_log, debug, trace))
         // Ok
         .finish();
     // use that subscriber to process traces emitted after this point

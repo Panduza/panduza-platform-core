@@ -121,7 +121,8 @@ impl Reactor {
         let h = self.scan_handler.as_ref().unwrap().clone();
         let dispatcher = self.message_dispatcher.clone();
         let mut message_engine = MessageEngine::new(self.message_dispatcher.clone(), event_loop);
-        main_task_sender.spawn(
+        main_task_sender.spawn_with_name(
+            "REACTOR CORE",
             async move {
                 dispatcher
                     .lock()

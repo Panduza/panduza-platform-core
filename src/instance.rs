@@ -1,7 +1,7 @@
 mod inner;
 use crate::InterfaceBuilder;
 use crate::{
-    reactor::Reactor, AttributeBuilder, InstanceLogger, DeviceSettings, DriverOperations, Error,
+    reactor::Reactor, AttributeBuilder, DriverOperations, Error, InstanceLogger, InstanceSettings,
     Notification, TaskResult, TaskSender,
 };
 use futures::FutureExt;
@@ -98,7 +98,7 @@ impl Instance {
         spawner: TaskSender<Result<(), Error>>,
         name: String,
         operations: Box<dyn DriverOperations>,
-        settings: Option<DeviceSettings>,
+        settings: Option<InstanceSettings>,
     ) -> Instance {
         // Create the object
         Instance {
@@ -134,6 +134,16 @@ impl Instance {
         F: Future<Output = TaskResult> + Send + 'static,
     {
         self.spawner.spawn(future.boxed()).unwrap();
+    }
+
+    ///
+    /// Spawn a new task and attach a name to it into logs
+    ///
+    pub async fn spawn_with_name<N: Into<String>, F>(&mut self, name: N, future: F)
+    where
+        F: Future<Output = TaskResult> + Send + 'static,
+    {
+        self.spawner.spawn_with_name(name, future.boxed()).unwrap();
     }
 
     ///
@@ -233,7 +243,7 @@ impl Instance {
     ///
     /// Clone settings of the device
     ///
-    pub async fn settings(&self) -> Option<DeviceSettings> {
+    pub async fn settings(&self) -> Option<InstanceSettings> {
         self.inner.lock().await.settings.clone()
     }
 

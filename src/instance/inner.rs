@@ -1,4 +1,4 @@
-use crate::{DeviceSettings, Reactor};
+use crate::{InstanceSettings, Reactor};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -10,11 +10,11 @@ pub struct InstanceInner {
 
     /// Settings of the device, provided by the user
     ///
-    pub settings: Option<DeviceSettings>,
+    pub settings: Option<InstanceSettings>,
 }
 
 impl InstanceInner {
-    pub fn new(reactor: Reactor, settings: Option<DeviceSettings>) -> InstanceInner {
+    pub fn new(reactor: Reactor, settings: Option<InstanceSettings>) -> InstanceInner {
         InstanceInner {
             reactor: reactor,
             settings: settings,

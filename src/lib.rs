@@ -23,7 +23,7 @@ pub use error::Error;
 
 ///
 mod factory;
-pub use factory::production_order::DeviceSettings;
+pub use factory::production_order::InstanceSettings;
 pub use factory::production_order::ProductionOrder;
 pub use factory::store::Product;
 pub use factory::store::Store;
@@ -117,6 +117,7 @@ pub use settings::si::SiSettings;
 /// Module that manage platform traces and logs
 ///
 pub mod tracing;
+pub use tracing::AttributeLogger;
 pub use tracing::DriverLogger;
 pub use tracing::FactoryLogger;
 pub use tracing::InstanceLogger;
