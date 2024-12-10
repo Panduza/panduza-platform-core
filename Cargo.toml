@@ -66,6 +66,9 @@ colored = "2.0.0"
 # Usb driver library
 # 
 nusb = "0.1.9"
+#
+# 
+usbtmc-message = { git = "https://github.com/Panduza/pza-rust-usbtmc-message", tag = "0.0.0" }
 
 # === feature => serial
 # 
