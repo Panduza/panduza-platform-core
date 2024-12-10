@@ -28,7 +28,12 @@ pub struct Driver {
 impl Driver {
     /// Create a new instance of the driver
     ///
-    pub fn open(settings: &UsbSettings) -> Result<Self, Error> {
+    pub fn open(
+        settings: &UsbSettings,
+        endpoint_in: u8,
+        endpoint_out: u8,
+        max_packet_size: usize,
+    ) -> Result<Self, Error> {
         //
         // Prepare logger
         let logger = DriverLogger::new("usb", "tmc", "");
@@ -53,9 +58,9 @@ impl Driver {
         Ok(Self {
             logger: logger,
             usb_interface: interface.unwrap(),
-            endpoint_in: 0x81,
-            endpoint_out: 0x01,
-            max_packet_size: 512,
+            endpoint_in: endpoint_in,
+            endpoint_out: endpoint_out,
+            max_packet_size: max_packet_size,
         })
     }
 }
@@ -85,14 +90,6 @@ impl AsciiCmdRespProtocol for Driver {
     ///
     ///
     async fn ask(&mut self, command: &String) -> Result<String, Error> {
-        //
-        // Append EOL to the command
-        // let mut command_buffer = command.clone().into_bytes();
-        // command_buffer.extend(&self.eol);
-
-        // trace
-        // log_trace!(self.logger, "write {:?}", command_buffer);
-
         // Create a sequencer with a max_sequence_length of 64 (depend on your device)
         let mut sequencer = Sequencer::new(self.max_packet_size as u32);
 
@@ -127,26 +124,5 @@ impl AsciiCmdRespProtocol for Driver {
         let msg = usbtmc_message::BulkInMessage::from_u8_array(&data);
 
         Ok(msg.payload_as_string())
-
-        // //
-        // // Write
-        // self.port
-        //     .write(command_buffer.as_slice())
-        //     .await
-        //     .map_err(|e| format_driver_error!("Unable to write on serial port: {}", e))?;
-
-        // //
-        // // Read
-        // let count = self.read_until_timeout().await?;
-
-        // //
-        // // Build response string
-        // unsafe {
-        //     let string_slice =
-        //         String::from_utf8_unchecked(self.read_buffer[..count - self.eol.len()].to_vec());
-        //     return Ok(string_slice.to_string());
-        // }
-
-        // Ok("".to_string())
     }
 }
