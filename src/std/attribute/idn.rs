@@ -1,13 +1,11 @@
 use crate::{log_debug, Error, Instance};
+use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-// use crate::Error;
-use async_trait::async_trait;
-
 #[async_trait]
 ///
-///
+/// Trait for driver that can read *IDN?
 ///
 pub trait IDNProvider: Sync + Send {
     ///
@@ -17,7 +15,7 @@ pub trait IDNProvider: Sync + Send {
 }
 
 ///
-///
+/// Mount the identity attribute
 ///
 pub async fn mount(
     mut instance: Instance,
@@ -33,7 +31,7 @@ pub async fn mount(
     let att_identity = instance
         .create_attribute("identity")
         .with_ro()
-        .with_info("Identity string of the power supply")
+        .with_info("Identity string of the device")
         .finish_as_string()
         .await?;
 
