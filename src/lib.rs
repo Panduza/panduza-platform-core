@@ -116,6 +116,17 @@ pub use settings::si::SiSettings;
 
 /// Module that manage platform traces and logs
 ///
+/// ## Debug level policy
+///
+/// Those logs will always be in logs for release build mode.
+/// They have to provides as much information as possible to debug
+/// without impacting system performances.
+///
+/// ## Trace level policy
+///
+/// Those logs are available only on debug build mode.
+/// They must be used only in developpement steps and deep investigations.
+///
 pub mod tracing;
 pub use tracing::AttributeLogger;
 pub use tracing::DriverLogger;
@@ -146,3 +157,8 @@ pub mod props;
 pub use props::Prop;
 pub use props::PropType;
 pub use props::Props;
+
+///
+///
+///
+pub mod std;

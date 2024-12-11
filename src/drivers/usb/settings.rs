@@ -1,4 +1,5 @@
 use crate::Error;
+use nusb::DeviceInfo;
 use serde_json::json;
 
 /// Key for the usb serial in the json settings
@@ -109,6 +110,36 @@ impl Settings {
             None => None,
         };
         self
+    }
+
+    ///
+    ///
+    ///
+    pub fn find_usb_device(&self) -> Option<DeviceInfo> {
+        //
+        //
+        let mut found_device = None;
+        //
+        //
+        for dev in nusb::list_devices().unwrap() {
+            //
+            //
+            if let Some(v_vid) = self.vendor {
+                if dev.vendor_id() != v_vid {
+                    continue;
+                }
+            }
+            //
+            //
+            if let Some(v_pid) = self.model {
+                if dev.product_id() != v_pid {
+                    continue;
+                }
+            }
+
+            found_device = Some(dev);
+        }
+        found_device
     }
 }
 
