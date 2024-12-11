@@ -1,6 +1,4 @@
-use crate::{
-    log_debug, log_trace, spawn_on_command, Class, Error, Instance, InstanceLogger, StringAttServer,
-};
+use crate::{log_debug, spawn_on_command, AttributeLogger, Error, Instance, StringAttServer};
 use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -11,9 +9,9 @@ use tokio::sync::Mutex;
 ///
 pub trait ReplProtocol: Sync + Send {
     ///
-    /// Send a command and return the response
+    /// Evaluate the command and return the response
     ///
-    async fn ask(&mut self, command: String) -> Result<String, Error>;
+    async fn eval(&mut self, command: String) -> Result<String, Error>;
 }
 
 ///
@@ -35,7 +33,10 @@ pub async fn mount<A: Into<String>>(
 
     //
     //
-    let mut class_repl = instance.create_class(&class_name).with_tag("repl").finish();
+    let mut class_repl = instance
+        .create_class(&class_name_string)
+        .with_tag("REPL")
+        .finish();
 
     let att_command = class_repl
         .create_attribute("command")
@@ -51,7 +52,9 @@ pub async fn mount<A: Into<String>>(
 
     //
     // Execute action on each command received
-    let logger_2 = instance.logger.clone();
+    let logger_2 = instance
+        .logger
+        .new_attribute_logger(&class_name_string, "command");
     let att_command_2 = att_command.clone();
     let att_response_2 = att_response.clone();
     spawn_on_command!(
@@ -76,7 +79,7 @@ pub async fn mount<A: Into<String>>(
 /// On command callback
 ///
 async fn on_command(
-    logger: InstanceLogger,
+    logger: AttributeLogger,
     mut att_command: StringAttServer,
     att_response: StringAttServer,
     repl_driver: Arc<Mutex<dyn ReplProtocol>>,
@@ -84,8 +87,8 @@ async fn on_command(
     while let Some(command) = att_command.pop_cmd().await {
         //
         // Log
-        // log_trace!("Command received '{:?}'", command);
-        let response = repl_driver.lock().await.ask(command).await?;
+        log_debug!(logger, "Command received '{:?}'", command);
+        let response = repl_driver.lock().await.eval(command).await?;
         att_response.set(response).await?;
     }
     Ok(())
