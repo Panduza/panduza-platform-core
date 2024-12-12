@@ -89,7 +89,8 @@ impl Settings {
         self
     }
 
-    /// Look at json settings
+    /// Look into a json settings object and try to extract usb configuration
+    ///
     ///
     pub fn optional_set_serial_from_json_settings(mut self, settings: &serde_json::Value) -> Self {
         if let Some(vendor) = settings.get(USB_VID_KEY) {
@@ -103,6 +104,35 @@ impl Settings {
             }
         }
         self.serial = match settings.get(USB_SERIAL_KEY) {
+            Some(serial) => match serial.as_str() {
+                Some(s) => Some(s.to_string()),
+                None => None,
+            },
+            None => None,
+        };
+        self
+    }
+
+    /// Look into a json settings object and try to extract usb configuration
+    ///
+    pub fn try_extract_from_json_settings(mut self, json_settings: &serde_json::Value) -> Self {
+        //
+        // Try to extract vid
+        if let Some(vendor) = json_settings.get(USB_VID_KEY) {
+            if let Some(s) = vendor.as_u64() {
+                self.vendor = Some(s as u16);
+            }
+        }
+        //
+        // Try to extract pid
+        if let Some(model) = json_settings.get(USB_PID_KEY) {
+            if let Some(s) = model.as_u64() {
+                self.model = Some(s as u16);
+            }
+        }
+        //
+        // Try to extract serial number
+        self.serial = match json_settings.get(USB_SERIAL_KEY) {
             Some(serial) => match serial.as_str() {
                 Some(s) => Some(s.to_string()),
                 None => None,
