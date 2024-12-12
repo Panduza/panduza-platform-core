@@ -238,14 +238,14 @@ impl Settings {
     ) -> bool {
         // Match VID
         let match_vid = usb_settings
-            .vendor
+            .vid
             .and_then(|vid| Some(vid == usb_info_port.vid))
             // If here, it means that the user did not provided the VID so pass the check
             .unwrap_or(true);
 
         // Match PID
         let match_pid = usb_settings
-            .model
+            .pid
             .and_then(|pid| Some(pid == usb_info_port.pid))
             // If here, it means that the user did not provided the PID so pass the check
             .unwrap_or(true);
