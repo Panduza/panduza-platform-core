@@ -2,22 +2,49 @@ use crate::Error;
 use nusb::DeviceInfo;
 use serde_json::json;
 
-/// Key for the usb serial in the json settings
-static USB_SERIAL_KEY: &str = "usb_serial";
+/// Key for usb vid inside json settings
+///
+#[macro_export]
+macro_rules! SETTINGS_USB_VID_KEY {
+    () => {
+        "usb_vid"
+    };
+}
 
-static USB_VID_KEY: &str = "usb_vid";
-static USB_PID_KEY: &str = "usb_pid";
+/// Key for usb pid inside json settings
+///
+#[macro_export]
+macro_rules! SETTINGS_USB_PID_KEY {
+    () => {
+        "usb_pid"
+    };
+}
+
+/// Key for usb serial string inside json settings
+///
+#[macro_export]
+macro_rules! SETTINGS_USB_SERIAL_KEY {
+    () => {
+        "usb_serial"
+    };
+}
 
 /// Usb settings for devices
 #[derive(Debug)]
 pub struct Settings {
+    ///
     /// VID
-    pub vendor: Option<u16>,
+    ///
+    pub vid: Option<u16>,
 
+    ///
     /// PID
-    pub model: Option<u16>,
+    ///
+    pub pid: Option<u16>,
 
+    ///
     /// Serial String
+    ///
     pub serial: Option<String>,
 }
 
@@ -26,8 +53,8 @@ impl Settings {
     ///
     pub fn new() -> Settings {
         Settings {
-            vendor: None,
-            model: None,
+            vid: None,
+            pid: None,
             serial: None,
         }
     }
@@ -35,14 +62,14 @@ impl Settings {
     /// Set the vendor
     ///
     pub fn set_vendor(mut self, vendor: u16) -> Self {
-        self.vendor = Some(vendor);
+        self.vid = Some(vendor);
         self
     }
 
     /// Set the model
     ///
     pub fn set_model(mut self, model: u16) -> Self {
-        self.model = Some(model);
+        self.pid = Some(model);
         self
     }
 
@@ -54,15 +81,15 @@ impl Settings {
     ) -> Result<Self, Error> {
         self.serial = Some(
             settings
-                .get(USB_SERIAL_KEY)
+                .get(SETTINGS_USB_SERIAL_KEY!())
                 .ok_or(Error::BadSettings(format!(
                     "Unable to get \"{}\"",
-                    USB_SERIAL_KEY
+                    SETTINGS_USB_SERIAL_KEY!()
                 )))?
                 .as_str()
                 .ok_or(Error::BadSettings(format!(
                     "\"{}\" not a string",
-                    USB_SERIAL_KEY
+                    SETTINGS_USB_SERIAL_KEY!()
                 )))?
                 .to_string(),
         );
@@ -80,7 +107,7 @@ impl Settings {
         let default_as_value = json!(default);
         self.serial = Some(
             settings
-                .get(USB_SERIAL_KEY)
+                .get(SETTINGS_USB_SERIAL_KEY!())
                 .unwrap_or_else(|| &default_as_value)
                 .as_str()
                 .unwrap_or_else(|| default)
@@ -89,20 +116,21 @@ impl Settings {
         self
     }
 
-    /// Look at json settings
+    /// Look into a json settings object and try to extract usb configuration
+    ///
     ///
     pub fn optional_set_serial_from_json_settings(mut self, settings: &serde_json::Value) -> Self {
-        if let Some(vendor) = settings.get(USB_VID_KEY) {
+        if let Some(vendor) = settings.get(SETTINGS_USB_VID_KEY!()) {
             if let Some(s) = vendor.as_u64() {
-                self.vendor = Some(s as u16);
+                self.vid = Some(s as u16);
             }
         }
-        if let Some(model) = settings.get(USB_PID_KEY) {
+        if let Some(model) = settings.get(SETTINGS_USB_PID_KEY!()) {
             if let Some(s) = model.as_u64() {
-                self.model = Some(s as u16);
+                self.pid = Some(s as u16);
             }
         }
-        self.serial = match settings.get(USB_SERIAL_KEY) {
+        self.serial = match settings.get(SETTINGS_USB_SERIAL_KEY!()) {
             Some(serial) => match serial.as_str() {
                 Some(s) => Some(s.to_string()),
                 None => None,
@@ -110,6 +138,35 @@ impl Settings {
             None => None,
         };
         self
+    }
+
+    /// Look into a json settings object and try to extract usb configuration
+    ///
+    pub fn from_json_settings(json_settings: &serde_json::Value) -> Self {
+        //
+        // Try to extract vid
+        let vid = json_settings
+            .get(SETTINGS_USB_VID_KEY!())
+            .and_then(|vendor| vendor.as_u64())
+            .map(|s| s as u16);
+
+        //
+        // Try to extract pid
+        let pid = json_settings
+            .get(SETTINGS_USB_PID_KEY!())
+            .and_then(|model| model.as_u64())
+            .map(|s| s as u16);
+
+        //
+        // Try to extract serial number
+        let serial = json_settings
+            .get(SETTINGS_USB_PID_KEY!())
+            .and_then(|serial| serial.as_str())
+            .map(|s| s.to_string());
+
+        //
+        // Return Object
+        Self { vid, pid, serial }
     }
 
     ///
@@ -124,14 +181,14 @@ impl Settings {
         for dev in nusb::list_devices().unwrap() {
             //
             //
-            if let Some(v_vid) = self.vendor {
+            if let Some(v_vid) = self.vid {
                 if dev.vendor_id() != v_vid {
                     continue;
                 }
             }
             //
             //
-            if let Some(v_pid) = self.model {
+            if let Some(v_pid) = self.pid {
                 if dev.product_id() != v_pid {
                     continue;
                 }
@@ -145,8 +202,8 @@ impl Settings {
 
 impl std::fmt::Display for Settings {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let vendor = self.vendor.unwrap_or(0);
-        let model = self.model.unwrap_or(0);
+        let vendor = self.vid.unwrap_or(0);
+        let model = self.pid.unwrap_or(0);
         write!(
             f,
             "Settings {{ vendor: {:#02x}, model: {:#02x}, serial: {:?} }}",
