@@ -1,3 +1,7 @@
+use crate::log_trace;
+use crate::log_warn;
+use crate::notification::DeletionNotification;
+use crate::tracing::Logger;
 use crate::AttributeBuilder;
 use crate::AttributeMode;
 use crate::Error;
@@ -20,6 +24,10 @@ use tokio::sync::Notify;
 ///
 #[derive(Clone)]
 pub struct AttServer<TYPE: MessageCodec> {
+    /// Local logger
+    ///
+    logger: Logger,
+
     /// Reactor message dispatcher
     /// (to attach this attribute to the incoming messages)
     message_dispatcher: Weak<Mutex<MessageDispatcher>>,
@@ -29,7 +37,6 @@ pub struct AttServer<TYPE: MessageCodec> {
     ///
     pub message_client: MessageClient,
 
-    ///
     /// The topic of the attribute
     ///
     pub topic: String,
@@ -183,6 +190,26 @@ impl<TYPE: MessageCodec> AttServer<TYPE> {
             .await
             .map_err(|e| Error::MessageAttributePublishError(e.to_string()))
     }
+
+    /// Request attribute server deletion
+    ///
+    pub async fn delete(&self) -> Result<(), Error> {
+        //
+        // TRACE
+        log_trace!(self.logger, "deletion requested !");
+
+        //
+        // Send a notification if possible
+        if let Some(notification_sender) = self.r_notifier.clone() {
+            notification_sender
+                .try_send(DeletionNotification::new(&self.topic).into())
+                .map_err(|e| {
+                    Error::InternalLogic(format!("fail to push platform notification ({:?})", e))
+                })
+        } else {
+            Ok(())
+        }
+    }
 }
 
 #[async_trait]
@@ -205,6 +232,7 @@ impl<TYPE: MessageCodec> From<AttributeBuilder> for AttServer<TYPE> {
     fn from(builder: AttributeBuilder) -> Self {
         let topic = builder.topic.as_ref().unwrap().clone();
         Self {
+            logger: Logger::new_for_attribute_from_topic(topic.clone()),
             message_dispatcher: builder.message_dispatcher,
             message_client: builder.message_client,
             topic: topic.clone(),
@@ -217,4 +245,17 @@ impl<TYPE: MessageCodec> From<AttributeBuilder> for AttServer<TYPE> {
             r_notifier: builder.r_notifier,
         }
     }
+}
+
+#[macro_export]
+// Macro that generate generic function for all att servers
+//
+macro_rules! generic_att_server_methods {
+    () => {
+        /// Request attribute server deletion
+        ///
+        pub async fn delete(self) -> Result<(), Error> {
+            self.inner.lock().await.delete().await
+        }
+    };
 }

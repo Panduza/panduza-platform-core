@@ -1,4 +1,4 @@
-use crate::{log_error, log_info, tracing::GenericLogger};
+use crate::{log_error, log_info, tracing::Logger};
 
 ///
 ///
@@ -6,7 +6,7 @@ use crate::{log_error, log_info, tracing::GenericLogger};
 pub fn list_all(vid: Option<u16>, pid: Option<u16>) {
     //
     //
-    let logger = GenericLogger::new("SDK", "", "", "");
+    let logger = Logger::new("SDK", "", "", "");
 
     //
     //

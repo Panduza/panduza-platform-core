@@ -1,14 +1,16 @@
+use crate::Topic;
+
 /// Generic way to build logs on the platform
 ///
 #[derive(Clone)]
-pub struct GenericLogger {
+pub struct Logger {
     pub class: String,
     pub i1: String,
     pub i2: String,
     pub i3: String,
     pub plugin: String,
 }
-impl GenericLogger {
+impl Logger {
     /// Create a new logger
     ///
     pub fn new<A: Into<String>, B: Into<String>, C: Into<String>, D: Into<String>>(
@@ -16,14 +18,26 @@ impl GenericLogger {
         i1: B,
         i2: C,
         i3: D,
-    ) -> GenericLogger {
-        return GenericLogger {
+    ) -> Logger {
+        return Logger {
             class: class.into(),
             i1: i1.into(),
             i2: i2.into(),
             i3: i3.into(),
             plugin: String::new(),
         };
+    }
+
+    /// Create a logger configured for attribute from its topic
+    ///
+    pub fn new_for_attribute_from_topic<A: Into<String>>(topic: A) -> Self {
+        let topic_obj = Topic::from_string(topic.into());
+        Self::new(
+            "Attribute",
+            topic_obj.instance_name(),
+            "",
+            topic_obj.leaf_name().unwrap_or(&"".to_string()),
+        )
     }
 
     pub fn error<A: Into<String>>(&self, text: A) {
@@ -93,12 +107,12 @@ impl GenericLogger {
 
 #[derive(Clone)]
 pub struct RuntimeLogger {
-    base: GenericLogger,
+    base: Logger,
 }
 impl RuntimeLogger {
     pub fn new() -> RuntimeLogger {
         RuntimeLogger {
-            base: GenericLogger::new("Runtime", "", "", ""),
+            base: Logger::new("Runtime", "", "", ""),
         }
     }
     pub fn error<A: Into<String>>(&self, text: A) {
@@ -130,12 +144,12 @@ impl RuntimeLogger {
 
 #[derive(Clone)]
 pub struct PlatformLogger {
-    base: GenericLogger,
+    base: Logger,
 }
 impl PlatformLogger {
     pub fn new() -> PlatformLogger {
         PlatformLogger {
-            base: GenericLogger::new("Platform", "", "", ""),
+            base: Logger::new("Platform", "", "", ""),
         }
     }
     pub fn error<A: Into<String>>(&self, text: A) {
@@ -167,12 +181,12 @@ impl PlatformLogger {
 
 #[derive(Clone)]
 pub struct FactoryLogger {
-    base: GenericLogger,
+    base: Logger,
 }
 impl FactoryLogger {
     pub fn new() -> FactoryLogger {
         FactoryLogger {
-            base: GenericLogger::new("Factory", "", "", ""),
+            base: Logger::new("Factory", "", "", ""),
         }
     }
     pub fn info<A: Into<String>>(&self, text: A) {
@@ -186,12 +200,12 @@ impl FactoryLogger {
 
 #[derive(Clone)]
 pub struct InstanceLogger {
-    base: GenericLogger,
+    base: Logger,
 }
 impl InstanceLogger {
     pub fn new<A: Into<String>>(name: A) -> InstanceLogger {
         InstanceLogger {
-            base: GenericLogger::new("Instance", name.into(), "", ""),
+            base: Logger::new("Instance", name.into(), "", ""),
         }
     }
     pub fn error<A: Into<String>>(&self, text: A) {
@@ -227,7 +241,7 @@ impl InstanceLogger {
 
 #[derive(Clone)]
 pub struct AttributeLogger {
-    base: GenericLogger,
+    base: Logger,
 }
 impl AttributeLogger {
     pub fn new<A: Into<String>, B: Into<String>, C: Into<String>>(
@@ -236,7 +250,7 @@ impl AttributeLogger {
         name: C,
     ) -> Self {
         Self {
-            base: GenericLogger::new("Attribute", instance.into(), classes.into(), name.into()),
+            base: Logger::new("Attribute", instance.into(), classes.into(), name.into()),
         }
     }
     pub fn error<A: Into<String>>(&self, text: A) {
@@ -265,12 +279,12 @@ impl AttributeLogger {
 
 #[derive(Clone)]
 pub struct DriverLogger {
-    base: GenericLogger,
+    base: Logger,
 }
 impl DriverLogger {
     pub fn new<B: Into<String>, C: Into<String>, D: Into<String>>(i1: B, i2: C, i3: D) -> Self {
         Self {
-            base: GenericLogger::new("Driver", i1.into(), i2.into(), i3.into()),
+            base: Logger::new("Driver", i1.into(), i2.into(), i3.into()),
         }
     }
     pub fn error<A: Into<String>>(&self, text: A) {

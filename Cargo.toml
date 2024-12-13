@@ -2,6 +2,7 @@
 name = "panduza-platform-core"
 edition = "2021"
 version = "0.1.8"
+readme = "README.md"
 
 # =========================================================
 [dependencies]

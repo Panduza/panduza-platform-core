@@ -1,5 +1,5 @@
 use super::server_si::SiAttServer;
-use crate::{notification::structural::attribute::AttributeMode, Notification};
+use crate::{notification::creation::attribute::AttributeMode, Notification};
 use crate::{
     BooleanAttServer, EnumAttServer, Error, JsonAttServer, MemoryCommandAttServer, MessageClient,
     MessageDispatcher, NumberAttServer, StringAttServer,

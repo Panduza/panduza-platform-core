@@ -6,21 +6,21 @@ pub use interface::InterfaceNotification;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum StructuralNotification {
+pub enum CreationNotification {
     Attribute(AttributeNotification),
     Interface(InterfaceNotification),
 }
 
-impl StructuralNotification {
+impl CreationNotification {
     ///
     ///
     ///
     pub fn topic(&self) -> String {
         match self {
-            StructuralNotification::Attribute(attribute_notification) => {
+            CreationNotification::Attribute(attribute_notification) => {
                 attribute_notification.topic()
             }
-            StructuralNotification::Interface(interface_notification) => {
+            CreationNotification::Interface(interface_notification) => {
                 interface_notification.topic()
             }
         }

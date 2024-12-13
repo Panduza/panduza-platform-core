@@ -4,7 +4,7 @@ use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
 use super::server::AttServer;
-use crate::{AttributeBuilder, Error, StringCodec};
+use crate::{generic_att_server_methods, AttributeBuilder, Error, StringCodec};
 
 ///
 ///
@@ -80,4 +80,6 @@ impl StringAttServer {
     pub async fn send_alert<T: Into<String>>(&self, message: T) {
         self.inner.lock().await.send_alert(message.into());
     }
+
+    generic_att_server_methods!();
 }

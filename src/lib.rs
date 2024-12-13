@@ -1,3 +1,8 @@
+//! # Panduza Platform Core
+//!
+//! This crate is the heart of Panduza platform and plugins
+//!
+
 #![deny(
     while_true,
     improper_ctypes,
@@ -15,7 +20,12 @@
 //     unused_parens,
 )]
 
+///
+///
 pub mod pmacro;
+
+pub mod topic;
+pub use topic::Topic;
 
 // Main error crate for Panduza Platform
 mod error;
@@ -35,10 +45,12 @@ pub mod instance;
 pub use instance::monitor::InstanceMonitor;
 pub use instance::Instance;
 pub use instance::InstanceInner;
-//
-mod interface;
-pub use interface::builder::InterfaceBuilder;
-pub use interface::Class;
+///
+///
+///
+mod class;
+pub use class::builder::InterfaceBuilder;
+pub use class::Class;
 
 //
 mod attribute;
@@ -100,15 +112,17 @@ pub use runtime::Runtime;
 
 pub mod env;
 
+/// Notification system allow plugins and instances to send status and structure info to the platform
+///
 mod notification;
+pub use notification::creation::attribute::AttributeMode;
+pub use notification::creation::AttributeNotification;
+pub use notification::creation::InterfaceNotification;
 pub use notification::group::NotificationGroup;
-pub use notification::structural::attribute::AttributeMode;
-pub use notification::structural::AttributeNotification;
-pub use notification::structural::InterfaceNotification;
 pub use notification::AlertNotification;
+pub use notification::CreationNotification;
 pub use notification::Notification;
 pub use notification::StateNotification;
-pub use notification::StructuralNotification;
 
 pub mod settings;
 pub use settings::eenum::EnumSettings;
