@@ -1,10 +1,13 @@
 use super::Settings as SerialSettings;
+use crate::drivers::serial::common;
 use crate::format_driver_error;
-use crate::log_info;
+use crate::log_debug;
+use crate::log_trace;
 use crate::DriverLogger;
 use crate::Error;
 use serial2_tokio::SerialPort;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::time::timeout;
 
@@ -33,22 +36,18 @@ pub struct Driver {
     ///
     ///
     pub logger: DriverLogger,
-
-    ///
-    /// Serial settings
-    ///
-    settings: SerialSettings,
-
     ///
     ///
     ///
     pub port: SerialPort,
-
+    ///
+    /// Read timeout
+    ///
+    read_timeout: Duration,
     ///
     /// Accumulated incoming data buffer
     ///
     in_buf: [u8; 2048],
-
     ///
     /// Keep track of number of data in the buffer
     ///
@@ -63,33 +62,18 @@ impl Driver {
     /// Create a new instance of the driver
     ///
     pub fn open(settings: &SerialSettings) -> Result<Self, Error> {
-        // Get the port name safely
-        let port_name = settings
-            .port_name
-            .as_ref()
-            .map(|val| val.clone())
-            .unwrap_or("undefined".to_string())
-            .clone();
-
         //
-        // Prepare logger
-        let logger = DriverLogger::new("serial", "slip", &port_name);
-        log_info!(logger, "Opening serial driver {:?}...", &port_name);
-
+        // Open the port
+        let (logger, port) = common::open(settings)?;
         //
-        // Open port
-        let port = SerialPort::open(&port_name, settings.baudrate)
-            .map_err(|e| format_driver_error!("Port {:?} {:?}", &port_name, e))?;
-
         //
-        // Info logs
-        log_info!(logger, "Open success !");
-
+        log_debug!(logger, "SLIP !");
+        //
         // Create instance
         Ok(Driver {
             logger: logger,
-            settings: settings.clone(),
             port: port,
+            read_timeout: settings.read_timeout,
             in_buf: [0u8; 2048],
             in_buf_size: 0,
         })
@@ -102,12 +86,11 @@ impl Driver {
         command: &[u8],
         response: &mut [u8],
     ) -> Result<usize, Error> {
-        Ok(timeout(
-            self.settings.read_timeout,
-            self.__write_then_read(command, response),
+        Ok(
+            timeout(self.read_timeout, self.__write_then_read(command, response))
+                .await
+                .map_err(|e| format_driver_error!("Timeout reading {:?}", e))??,
         )
-        .await
-        .map_err(|e| format_driver_error!("Timeout reading {:?}", e))??)
     }
 
     /// This operation is not provided to the public interface
@@ -124,6 +107,10 @@ impl Driver {
         let mut encoded_command = [0u8; 1024];
         let mut slip_encoder = serial_line_ip::Encoder::new();
 
+        //
+        // TRACE
+        log_trace!(self.logger, "command before encoding - {:?}", command);
+
         // Encode the command
         let mut totals = slip_encoder
             .encode(command, &mut encoded_command)
@@ -134,10 +121,20 @@ impl Driver {
             .finish(&mut encoded_command[totals.written..])
             .map_err(|e| format_driver_error!("Unable to finsh command encoding: {:?}", e))?;
 
+        let encoded_command_slice = &encoded_command[..totals.written];
+
+        //
+        // TRACE
+        log_trace!(
+            self.logger,
+            "command after encoding - {:?}",
+            encoded_command_slice
+        );
+
         // Send the command
         let _write_result = self
             .port
-            .write(command)
+            .write(encoded_command_slice)
             .await
             .map_err(|e| format_driver_error!("Unable to write on serial stream: {}", e))?;
 
@@ -150,20 +147,33 @@ impl Driver {
                 .await
                 .map_err(|e| format_driver_error!("Unable to read on serial stream {:?}", e))?;
 
+            //
+            // TRACE
+            log_trace!(
+                self.logger,
+                "response before decoding (size={:?}) - {:?}",
+                self.in_buf_size,
+                &self.in_buf[..self.in_buf_size]
+            );
+
             // Try decoding
             let mut slip_decoder = serial_line_ip::Decoder::new();
             let (total_decoded, out_slice, end) = slip_decoder
                 .decode(&self.in_buf[..self.in_buf_size], response)
                 .map_err(|e| format_driver_error!("Unable to decode response: {:?}", e))?;
 
-            // Reste counter
-            self.in_buf_size -= total_decoded;
+            //
+            // TRACE
+            log_trace!(self.logger, "end of packet - {:?}", end);
 
             // If a valid packet has been found, then we must return the out_slice len
             //      which is the len a the decoded data
             // Not '_total_decoded'
             //      because it is the number of byte processed from the encoded buffer
             if end {
+                // Reset counter
+                self.in_buf_size -= total_decoded;
+
                 return Ok(out_slice.len());
             }
         }
