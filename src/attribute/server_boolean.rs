@@ -4,19 +4,27 @@ use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
 use super::server::AttServer;
-use crate::{AttributeBuilder, BooleanCodec, Error};
+use crate::{generic_att_server_methods, AttributeBuilder, BooleanCodec, Error, Logger};
 
 ///
 ///
 ///
 #[derive(Clone)]
 pub struct BooleanAttServer {
+    /// Local logger
+    ///
+    logger: Logger,
+
     ///
     /// Inner server implementation
     pub inner: Arc<Mutex<AttServer<BooleanCodec>>>,
 }
 
 impl BooleanAttServer {
+    //
+    // Require inner member
+    generic_att_server_methods!();
+
     ///
     ///
     pub fn r#type() -> String {
@@ -25,31 +33,12 @@ impl BooleanAttServer {
 
     ///
     ///
-    ///
     pub fn new(builder: AttributeBuilder) -> Self {
+        let obj = AttServer::<BooleanCodec>::from(builder);
         Self {
-            inner: Arc::new(Mutex::new(AttServer::<BooleanCodec>::from(builder))),
+            logger: obj.logger.clone(),
+            inner: Arc::new(Mutex::new(obj)),
         }
-    }
-
-    ///
-    /// Bloc until at least a command is received
-    ///
-    pub async fn wait_commands(&self) {
-        let in_notifier = self.inner.lock().await.in_notifier();
-        in_notifier.notified().await
-    }
-
-    ///
-    /// Bloc until at least a command is received then execute the 'function'
-    ///
-    pub async fn wait_commands_then<F>(&self, function: F) -> Result<(), Error>
-    where
-        F: Future<Output = Result<(), Error>> + Send + 'static,
-    {
-        let in_notifier = self.inner.lock().await.in_notifier();
-        in_notifier.notified().await;
-        function.await
     }
 
     ///

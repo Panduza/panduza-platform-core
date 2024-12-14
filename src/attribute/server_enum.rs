@@ -1,5 +1,5 @@
 use super::server::AttServer;
-use crate::{AttributeBuilder, Error, StringCodec};
+use crate::{generic_att_server_methods, AttributeBuilder, Error, Logger, StringCodec};
 use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
@@ -8,6 +8,10 @@ use tokio::sync::Mutex;
 ///
 #[derive(Clone)]
 pub struct EnumAttServer {
+    /// Local logger
+    ///
+    logger: Logger,
+
     ///
     /// Inner server implementation
     pub inner: Arc<Mutex<AttServer<StringCodec>>>,
@@ -19,6 +23,10 @@ pub struct EnumAttServer {
 }
 
 impl EnumAttServer {
+    //
+    // Require inner member
+    generic_att_server_methods!();
+
     ///
     ///
     ///
@@ -30,30 +38,12 @@ impl EnumAttServer {
     ///
     ///
     pub fn new(builder: AttributeBuilder, choices: Vec<String>) -> Self {
+        let obj = AttServer::<StringCodec>::from(builder);
         Self {
-            inner: Arc::new(Mutex::new(AttServer::<StringCodec>::from(builder))),
+            logger: obj.logger.clone(),
+            inner: Arc::new(Mutex::new(obj)),
             choices: choices,
         }
-    }
-
-    ///
-    /// Bloc until at least a command is received
-    ///
-    pub async fn wait_commands(&self) {
-        let in_notifier = self.inner.lock().await.in_notifier();
-        in_notifier.notified().await
-    }
-
-    ///
-    /// Bloc until at least a command is received then execute the 'function'
-    ///
-    pub async fn wait_commands_then<F>(&self, function: F) -> Result<(), Error>
-    where
-        F: Future<Output = Result<(), Error>> + Send + 'static,
-    {
-        let in_notifier = self.inner.lock().await.in_notifier();
-        in_notifier.notified().await;
-        function.await
     }
 
     ///
@@ -95,11 +85,5 @@ impl EnumAttServer {
                 value, self.choices
             )))
         }
-    }
-
-    ///
-    ///
-    pub async fn send_alert<T: Into<String>>(&self, message: T) {
-        self.inner.lock().await.send_alert(message.into());
     }
 }

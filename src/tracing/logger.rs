@@ -1,4 +1,4 @@
-use crate::Topic;
+use crate::{attribute, Topic};
 
 /// Generic way to build logs on the platform
 ///
@@ -11,6 +11,12 @@ pub struct Logger {
     pub plugin: String,
 }
 impl Logger {
+    /// Call this if the logger is a for a plugin
+    ///
+    pub fn set_plugin<A: Into<String>>(&mut self, text: A) {
+        self.plugin = text.into();
+    }
+
     /// Create a new logger
     ///
     pub fn new<A: Into<String>, B: Into<String>, C: Into<String>, D: Into<String>>(
@@ -28,6 +34,12 @@ impl Logger {
         };
     }
 
+    ///  Create a logger configured for instance from its name
+    ///
+    pub fn new_for_instance<A: Into<String>>(name: A) -> Self {
+        Self::new("Instance", name.into(), "", "")
+    }
+
     /// Create a logger configured for attribute from its topic
     ///
     pub fn new_for_attribute_from_topic<A: Into<String>>(topic: A) -> Self {
@@ -38,6 +50,33 @@ impl Logger {
             "",
             topic_obj.leaf_name().unwrap_or(&"".to_string()),
         )
+    }
+
+    /// Create a new class logger from this logger (supposed instance logger)
+    ///
+    pub fn new_for_class<B: Into<String>>(&self, topic: B) -> Self {
+        // let topic_obj = Topic::from_string(topic.into());
+        let mut new_logger = Self::new("Class", &self.i1, "", "");
+        new_logger.set_plugin(&self.plugin);
+        new_logger
+    }
+
+    /// Create a new attribute logger from this logger (supposed instance logger)
+    ///
+    pub fn new_for_attribute<B: Into<String>>(&self, class: Option<String>, attribute: B) -> Self {
+        //
+        // Extract class name
+        let class_name = if let Some(c) = class {
+            c.into()
+        } else {
+            "".to_string()
+        };
+
+        //
+        // Create the logger
+        let mut new_logger = Self::new("Attribute", &self.i1, class_name, attribute.into());
+        new_logger.set_plugin(&self.plugin);
+        new_logger
     }
 
     pub fn error<A: Into<String>>(&self, text: A) {

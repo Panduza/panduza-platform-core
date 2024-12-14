@@ -1,4 +1,4 @@
-use crate::{log_debug, spawn_on_command, AttributeLogger, Error, Instance, StringAttServer};
+use crate::{log_debug, spawn_on_command, Container, Error, Instance, Logger, StringAttServer};
 use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -28,7 +28,7 @@ pub async fn mount<A: Into<String>>(
 
     //
     // Create the local logger
-    let logger = instance.logger.new_attribute_logger("", &class_name_string);
+    let logger = instance.logger.new_for_attribute(None, &class_name_string);
     log_debug!(logger, "Mounting...");
 
     //
@@ -52,9 +52,7 @@ pub async fn mount<A: Into<String>>(
 
     //
     // Execute action on each command received
-    let logger_2 = instance
-        .logger
-        .new_attribute_logger(&class_name_string, "command");
+    let logger_2 = instance.logger.new_for_attribute(None, "command");
     let att_command_2 = att_command.clone();
     let att_response_2 = att_response.clone();
     spawn_on_command!(
@@ -79,7 +77,7 @@ pub async fn mount<A: Into<String>>(
 /// On command callback
 ///
 async fn on_command(
-    logger: AttributeLogger,
+    logger: Logger,
     mut att_command: StringAttServer,
     att_response: StringAttServer,
     repl_driver: Arc<Mutex<dyn ReplProtocol>>,

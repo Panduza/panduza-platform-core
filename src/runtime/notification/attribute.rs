@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
+use super::Notification;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AttributeMode {
     #[serde(rename = "RO")]
@@ -65,5 +67,13 @@ impl AttributeNotification {
 
     pub fn settings(&self) -> &Option<JsonValue> {
         &self.settings
+    }
+}
+
+/// Implicit convertion
+///
+impl Into<Notification> for AttributeNotification {
+    fn into(self) -> Notification {
+        Notification::Attribute(self)
     }
 }

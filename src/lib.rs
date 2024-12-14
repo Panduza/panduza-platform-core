@@ -7,7 +7,7 @@
     while_true,
     improper_ctypes,
     non_shorthand_field_patterns,
-//     no_mangle_generic_items,
+    no_mangle_generic_items,
     overflowing_literals,
 //     path_statements,
 //     patterns_in_fns_without_body,
@@ -42,15 +42,12 @@ pub use factory::ScanMachine;
 
 //
 pub mod instance;
+pub use instance::class::Class;
+pub use instance::class_builder::ClassBuilder;
+pub use instance::container::Container;
 pub use instance::monitor::InstanceMonitor;
 pub use instance::Instance;
 pub use instance::InstanceInner;
-///
-///
-///
-mod class;
-pub use class::builder::InterfaceBuilder;
-pub use class::Class;
 
 //
 mod attribute;
@@ -112,18 +109,11 @@ pub use runtime::Runtime;
 
 pub mod env;
 
-pub use runtime::notification::creation::attribute::AttributeMode;
-pub use runtime::notification::creation::AttributeNotification;
-pub use runtime::notification::creation::InterfaceNotification;
 pub use runtime::notification::group::NotificationGroup;
 pub use runtime::notification::AlertNotification;
-pub use runtime::notification::CreationNotification;
+pub use runtime::notification::ClassNotification;
 pub use runtime::notification::Notification;
 pub use runtime::notification::StateNotification;
-
-pub mod settings;
-pub use settings::eenum::EnumSettings;
-pub use settings::si::SiSettings;
 
 /// Module that manage platform traces and logs
 ///
@@ -139,32 +129,31 @@ pub use settings::si::SiSettings;
 /// They must be used only in developpement steps and deep investigations.
 ///
 pub mod tracing;
-pub use tracing::AttributeLogger;
+pub use tracing::Logger; // only this one must stay at the end (others deprecated)
+
 pub use tracing::DriverLogger;
 pub use tracing::FactoryLogger;
 pub use tracing::InstanceLogger;
 pub use tracing::PlatformLogger;
 pub use tracing::RuntimeLogger;
 
-/// Built-in drivers to help coding plugins
+/// Built-in physical drivers to help coding plugins
 ///
-/// TODO = rename into connectors, because drivers is reserved for Panduza driver here
-///
-/// # Enabling
+/// # Enablement
 ///
 /// Specific features need to be activated to enable drivers
 ///
 /// - usb => for usb drivers (also enable usb)
 /// - serial => for serial drivers (also enable usb)
 ///
-pub mod drivers;
+pub mod connector;
 
 /// Currently we put here a trait waiting to see if there is a better use later
 ///
 pub mod protocol;
 
 ///
-///
+/// TODO => put in factory
 ///
 pub mod props;
 pub use props::Prop;

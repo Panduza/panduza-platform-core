@@ -4,19 +4,26 @@ use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
 use super::server::AttServer;
-use crate::{generic_att_server_methods, AttributeBuilder, Error, StringCodec};
+use crate::{generic_att_server_methods, AttributeBuilder, Error, Logger, StringCodec};
 
-///
 ///
 ///
 #[derive(Clone)]
 pub struct StringAttServer {
+    /// Local logger
     ///
+    logger: Logger,
+
     /// Inner server implementation
+    ///
     pub inner: Arc<Mutex<AttServer<StringCodec>>>,
 }
 
 impl StringAttServer {
+    //
+    // Require inner member
+    generic_att_server_methods!();
+
     ///
     ///
     pub fn r#type() -> String {
@@ -25,10 +32,11 @@ impl StringAttServer {
 
     ///
     ///
-    ///
     pub fn new(builder: AttributeBuilder) -> Self {
+        let obj = AttServer::<StringCodec>::from(builder);
         Self {
-            inner: Arc::new(Mutex::new(AttServer::<StringCodec>::from(builder))),
+            logger: obj.logger.clone(),
+            inner: Arc::new(Mutex::new(obj)),
         }
     }
 
@@ -54,6 +62,4 @@ impl StringAttServer {
             .await?;
         Ok(())
     }
-
-    generic_att_server_methods!();
 }

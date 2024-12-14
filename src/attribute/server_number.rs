@@ -4,19 +4,27 @@ use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
 use super::server::AttServer;
-use crate::{AttributeBuilder, Error, NumberCodec};
+use crate::{generic_att_server_methods, AttributeBuilder, Error, Logger, NumberCodec};
 
 ///
 ///
 ///
 #[derive(Clone)]
 pub struct NumberAttServer {
+    /// Local logger
+    ///
+    logger: Logger,
+
     ///
     /// Inner server implementation
     pub inner: Arc<Mutex<AttServer<NumberCodec>>>,
 }
 
 impl NumberAttServer {
+    //
+    // Require inner member
+    generic_att_server_methods!();
+
     ///
     ///
     pub fn r#type() -> String {
@@ -27,29 +35,11 @@ impl NumberAttServer {
     ///
     ///
     pub fn new(builder: AttributeBuilder) -> Self {
+        let obj = AttServer::<NumberCodec>::from(builder);
         Self {
-            inner: Arc::new(Mutex::new(AttServer::<NumberCodec>::from(builder))),
+            logger: obj.logger.clone(),
+            inner: Arc::new(Mutex::new(obj)),
         }
-    }
-
-    ///
-    /// Bloc until at least a command is received
-    ///
-    pub async fn wait_commands(&self) {
-        let in_notifier = self.inner.lock().await.in_notifier();
-        in_notifier.notified().await
-    }
-
-    ///
-    /// Bloc until at least a command is received then execute the 'function'
-    ///
-    pub async fn wait_commands_then<F>(&self, function: F) -> Result<(), Error>
-    where
-        F: Future<Output = Result<(), Error>> + Send + 'static,
-    {
-        let in_notifier = self.inner.lock().await.in_notifier();
-        in_notifier.notified().await;
-        function.await
     }
 
     ///
@@ -69,9 +59,5 @@ impl NumberAttServer {
     pub async fn set_from_i64(&self, value: i64) -> Result<(), Error> {
         self.inner.lock().await.set(value.into()).await?;
         Ok(())
-    }
-
-    pub async fn send_alert<T: Into<String>>(&self, message: T) {
-        self.inner.lock().await.send_alert(message.into());
     }
 }

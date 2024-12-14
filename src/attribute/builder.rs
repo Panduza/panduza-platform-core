@@ -1,5 +1,6 @@
 use super::server_si::SiAttServer;
-use crate::{runtime::notification::creation::attribute::AttributeMode, Notification};
+use crate::runtime::notification::attribute::{AttributeMode, AttributeNotification};
+use crate::Notification;
 use crate::{
     BooleanAttServer, EnumAttServer, Error, JsonAttServer, MemoryCommandAttServer, MessageClient,
     MessageDispatcher, NumberAttServer, StringAttServer,
@@ -188,13 +189,16 @@ impl AttributeBuilder {
         let bis = self.topic.clone().unwrap();
         if let Some(r_notifier) = self.r_notifier.clone() {
             r_notifier
-                .try_send(Notification::new_attribute_element_created_notification(
-                    bis,
-                    self.r#type.clone().unwrap(),
-                    self.mode.clone().unwrap(),
-                    self.info.clone(),
-                    self.settings.clone(),
-                ))
+                .try_send(
+                    AttributeNotification::new(
+                        bis,
+                        self.r#type.clone().unwrap(),
+                        self.mode.clone().unwrap(),
+                        self.info.clone(),
+                        self.settings.clone(),
+                    )
+                    .into(),
+                )
                 .unwrap();
         }
     }

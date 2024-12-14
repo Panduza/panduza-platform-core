@@ -1,8 +1,9 @@
 use crate::log_trace;
+use crate::runtime::notification::attribute::AttributeMode;
 use crate::runtime::notification::EnablementNotification;
 use crate::tracing::Logger;
+use crate::AlertNotification;
 use crate::AttributeBuilder;
-use crate::AttributeMode;
 use crate::Error;
 use crate::MessageClient;
 use crate::MessageCodec;
@@ -25,7 +26,7 @@ use tokio::sync::Notify;
 pub struct AttServer<TYPE: MessageCodec> {
     /// Local logger
     ///
-    logger: Logger,
+    pub logger: Logger,
 
     ///
     ///
@@ -94,10 +95,7 @@ impl<TYPE: MessageCodec> AttServer<TYPE> {
     pub fn send_alert(&self, message: String) {
         if let Some(r_notifier) = self.r_notifier.clone() {
             r_notifier
-                .try_send(Notification::new_alert_notification(
-                    self.topic.clone(),
-                    message,
-                ))
+                .try_send(AlertNotification::new(self.topic.clone(), message).into())
                 .unwrap();
         }
     }
@@ -269,6 +267,12 @@ impl<TYPE: MessageCodec> From<AttributeBuilder> for AttServer<TYPE> {
 //
 macro_rules! generic_att_server_methods {
     () => {
+        /// Logger getter
+        ///
+        pub fn logger(&self) -> &Logger {
+            &self.logger
+        }
+
         /// Bloc until at least a command is received
         ///
         pub async fn wait_commands(&self) {

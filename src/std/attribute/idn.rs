@@ -1,4 +1,4 @@
-use crate::{log_debug, Error, Instance};
+use crate::{log_debug, Container, Error, Instance};
 use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -23,7 +23,7 @@ pub async fn mount(
 ) -> Result<(), Error> {
     //
     // Create the local logger
-    let logger = instance.logger.new_attribute_logger("", "identity");
+    let logger = instance.logger.new_for_attribute(None, "identity");
     log_debug!(logger, "Mounting...");
 
     //

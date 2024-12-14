@@ -1,9 +1,8 @@
-use super::Class;
-use crate::Instance;
-use crate::Notification;
-use crate::Reactor;
+use crate::{Class, ClassNotification, Reactor};
 
-pub struct InterfaceBuilder {
+use super::Instance;
+
+pub struct ClassBuilder {
     //
     pub reactor: Reactor,
     ///
@@ -19,7 +18,7 @@ pub struct InterfaceBuilder {
     pub tags: Vec<String>,
 }
 
-impl InterfaceBuilder {
+impl ClassBuilder {
     pub fn new<N: Into<String>>(
         reactor: Reactor, // deprecated because acces through device
         device: Instance,
@@ -47,10 +46,7 @@ impl InterfaceBuilder {
         let bis = self.topic.clone();
         if let Some(r_notifier) = self.device.r_notifier.clone() {
             r_notifier
-                .try_send(Notification::new_interface_element_created_notification(
-                    bis,
-                    self.tags.clone(),
-                ))
+                .try_send(ClassNotification::new(bis, self.tags.clone()).into())
                 .unwrap();
         }
         // insert in status
