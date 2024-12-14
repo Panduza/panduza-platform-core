@@ -1,3 +1,5 @@
+pub mod notification;
+
 use crate::{log_debug, log_warn, Notification, NotificationGroup};
 use crate::{
     task_channel::create_task_channel, Factory, ProductionOrder, Reactor, RuntimeLogger,
@@ -29,8 +31,7 @@ static PROD_ORDER_CHANNEL_SIZE: usize = 64;
 ///
 static NOTIFICATION_CHANNEL_SIZE: usize = 512;
 
-///
-/// Provide a way to run and managed a pack of devices
+/// Manage the execution instances
 ///
 pub struct Runtime {
     ///

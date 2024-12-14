@@ -33,26 +33,6 @@ impl StringAttServer {
     }
 
     ///
-    /// Bloc until at least a command is received
-    ///
-    pub async fn wait_commands(&self) {
-        let in_notifier = self.inner.lock().await.in_notifier();
-        in_notifier.notified().await
-    }
-
-    ///
-    /// Bloc until at least a command is received then execute the 'function'
-    ///
-    pub async fn wait_commands_then<F>(&self, function: F) -> Result<(), Error>
-    where
-        F: Future<Output = Result<(), Error>> + Send + 'static,
-    {
-        let in_notifier = self.inner.lock().await.in_notifier();
-        in_notifier.notified().await;
-        function.await
-    }
-
-    ///
     /// Get the value of the attribute
     /// If None, the first value is not yet received
     ///
@@ -73,12 +53,6 @@ impl StringAttServer {
             .set(StringCodec { value: value })
             .await?;
         Ok(())
-    }
-
-    ///
-    ///
-    pub async fn send_alert<T: Into<String>>(&self, message: T) {
-        self.inner.lock().await.send_alert(message.into());
     }
 
     generic_att_server_methods!();

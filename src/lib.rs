@@ -112,17 +112,14 @@ pub use runtime::Runtime;
 
 pub mod env;
 
-/// Notification system allow plugins and instances to send status and structure info to the platform
-///
-mod notification;
-pub use notification::creation::attribute::AttributeMode;
-pub use notification::creation::AttributeNotification;
-pub use notification::creation::InterfaceNotification;
-pub use notification::group::NotificationGroup;
-pub use notification::AlertNotification;
-pub use notification::CreationNotification;
-pub use notification::Notification;
-pub use notification::StateNotification;
+pub use runtime::notification::creation::attribute::AttributeMode;
+pub use runtime::notification::creation::AttributeNotification;
+pub use runtime::notification::creation::InterfaceNotification;
+pub use runtime::notification::group::NotificationGroup;
+pub use runtime::notification::AlertNotification;
+pub use runtime::notification::CreationNotification;
+pub use runtime::notification::Notification;
+pub use runtime::notification::StateNotification;
 
 pub mod settings;
 pub use settings::eenum::EnumSettings;
@@ -150,6 +147,8 @@ pub use tracing::PlatformLogger;
 pub use tracing::RuntimeLogger;
 
 /// Built-in drivers to help coding plugins
+///
+/// TODO = rename into connectors, because drivers is reserved for Panduza driver here
 ///
 /// # Enabling
 ///

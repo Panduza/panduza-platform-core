@@ -1,6 +1,5 @@
 use crate::log_trace;
-use crate::log_warn;
-use crate::notification::DeletionNotification;
+use crate::runtime::notification::EnablementNotification;
 use crate::tracing::Logger;
 use crate::AttributeBuilder;
 use crate::AttributeMode;
@@ -27,6 +26,10 @@ pub struct AttServer<TYPE: MessageCodec> {
     /// Local logger
     ///
     logger: Logger,
+
+    ///
+    ///
+    enabled: bool,
 
     /// Reactor message dispatcher
     /// (to attach this attribute to the incoming messages)
@@ -191,18 +194,27 @@ impl<TYPE: MessageCodec> AttServer<TYPE> {
             .map_err(|e| Error::MessageAttributePublishError(e.to_string()))
     }
 
-    /// Request attribute server deletion
+    /// Request attribute server disabling
     ///
-    pub async fn delete(&self) -> Result<(), Error> {
+    pub async fn change_enablement(&mut self, enabled: bool) -> Result<(), Error> {
         //
         // TRACE
-        log_trace!(self.logger, "deletion requested !");
+        log_trace!(
+            self.logger,
+            "enablement change requested ! {:?} -> {:?}",
+            self.enabled,
+            enabled
+        );
+
+        //
+        // Do action
+        self.enabled = enabled;
 
         //
         // Send a notification if possible
         if let Some(notification_sender) = self.r_notifier.clone() {
             notification_sender
-                .try_send(DeletionNotification::new(&self.topic).into())
+                .try_send(EnablementNotification::new(&self.topic, self.enabled).into())
                 .map_err(|e| {
                     Error::InternalLogic(format!("fail to push platform notification ({:?})", e))
                 })
@@ -233,6 +245,7 @@ impl<TYPE: MessageCodec> From<AttributeBuilder> for AttServer<TYPE> {
         let topic = builder.topic.as_ref().unwrap().clone();
         Self {
             logger: Logger::new_for_attribute_from_topic(topic.clone()),
+            enabled: true, // enabled by default
             message_dispatcher: builder.message_dispatcher,
             message_client: builder.message_client,
             topic: topic.clone(),
@@ -247,15 +260,55 @@ impl<TYPE: MessageCodec> From<AttributeBuilder> for AttServer<TYPE> {
     }
 }
 
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 #[macro_export]
 // Macro that generate generic function for all att servers
 //
 macro_rules! generic_att_server_methods {
     () => {
-        /// Request attribute server deletion
+        /// Bloc until at least a command is received
         ///
-        pub async fn delete(self) -> Result<(), Error> {
-            self.inner.lock().await.delete().await
+        pub async fn wait_commands(&self) {
+            let in_notifier = self.inner.lock().await.in_notifier();
+            in_notifier.notified().await
+        }
+
+        /// Bloc until at least a command is received then execute the 'function'
+        ///
+        pub async fn wait_commands_then<F>(&self, function: F) -> Result<(), Error>
+        where
+            F: Future<Output = Result<(), Error>> + Send + 'static,
+        {
+            let in_notifier = self.inner.lock().await.in_notifier();
+            in_notifier.notified().await;
+            function.await
+        }
+
+        ///
+        ///
+        pub async fn send_alert<T: Into<String>>(&self, message: T) {
+            self.inner.lock().await.send_alert(message.into());
+        }
+
+        /// Request attribute server enablement
+        ///
+        pub async fn change_enablement(&mut self, enabled: bool) -> Result<(), Error> {
+            self.inner.lock().await.change_enablement(enabled).await
+        }
+
+        /// Request attribute server enablement
+        ///
+        pub async fn enable(&mut self) -> Result<(), Error> {
+            self.inner.lock().await.change_enablement(true).await
+        }
+
+        /// Request attribute server disablement
+        ///
+        pub async fn disable(&mut self) -> Result<(), Error> {
+            self.inner.lock().await.change_enablement(false).await
         }
     };
 }

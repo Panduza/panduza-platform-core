@@ -1,71 +1,64 @@
-use serde::{Deserialize, Serialize};
 pub mod alert;
 pub mod creation;
-pub mod deletion;
+pub mod enablement;
 pub mod group;
 pub mod state;
-use crate::instance::State;
+
 pub use alert::AlertNotification;
 pub use creation::CreationNotification;
-use creation::{attribute::AttributeMode, AttributeNotification, InterfaceNotification};
-pub use deletion::DeletionNotification;
+pub use enablement::EnablementNotification;
 pub use state::StateNotification;
 
+use crate::instance::State;
+use creation::{attribute::AttributeMode, AttributeNotification, InterfaceNotification};
+use serde::{Deserialize, Serialize};
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
-///
-/// Available Notification Types
+/// Available Runtime Notification Types
 ///
 pub enum Notification {
-    ///
     /// There is a warning message coming from the instance
     ///
     Alert(AlertNotification),
 
-    ///
     /// An instance state has changed
     ///
-    StateChanged(StateNotification),
+    State(StateNotification),
 
-    ///
     /// An attribute or a class has been created
     ///
-    ElementCreated(CreationNotification),
+    /// Deletion does not exist, once created only the instance destruction
+    /// can erase the attribute or the class. Choose Enable/Disable instead.
+    ///
+    Creation(CreationNotification),
 
+    /// An attribute or a class has been enabled or disabled
     ///
-    /// An attribute or a class has been deleted
-    ///
-    ElementDeleted(DeletionNotification),
+    Enablement(EnablementNotification),
 }
 
 impl Notification {
     ///
-    ///
-    ///
-    pub fn new_state_changed_notification(name: String, state: State) -> Notification {
-        Notification::StateChanged(StateNotification::new(name, state))
-    }
-
-    ///
-    ///
+    /// TODO => make it deprecated
     ///
     pub fn new_alert_notification(topic: String, message: String) -> Notification {
         Notification::Alert(AlertNotification::new(topic, message))
     }
 
     ///
-    ///
+    /// TODO => make it deprecated
     ///
     pub fn new_interface_element_created_notification<N: Into<String>>(
         topic: N,
         tags: Vec<String>,
     ) -> Notification {
-        Notification::ElementCreated(CreationNotification::Interface(InterfaceNotification::new(
+        Notification::Creation(CreationNotification::Interface(InterfaceNotification::new(
             topic, tags,
         )))
     }
 
     ///
-    ///
+    /// TODO => make it deprecated
     ///
     pub fn new_attribute_element_created_notification<N: Into<String>, T: Into<String>>(
         topic: N,
@@ -74,7 +67,7 @@ impl Notification {
         info: Option<String>,
         settings: Option<serde_json::Value>,
     ) -> Notification {
-        Notification::ElementCreated(CreationNotification::Attribute(AttributeNotification::new(
+        Notification::Creation(CreationNotification::Attribute(AttributeNotification::new(
             topic, typee, mode, info, settings,
         )))
     }

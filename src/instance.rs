@@ -1,9 +1,9 @@
 mod inner;
-use crate::InterfaceBuilder;
 use crate::{
     reactor::Reactor, AttributeBuilder, DriverOperations, Error, InstanceLogger, InstanceSettings,
     Notification, TaskResult, TaskSender,
 };
+use crate::{InterfaceBuilder, StateNotification};
 use futures::FutureExt;
 pub use inner::InstanceInner;
 use serde::{Deserialize, Serialize};
@@ -271,10 +271,7 @@ impl Instance {
         // Alert monitoring device "_"
         if let Some(r_notifier) = &mut self.r_notifier {
             r_notifier
-                .try_send(Notification::new_state_changed_notification(
-                    self.topic.clone(),
-                    new_state.clone(),
-                ))
+                .try_send(StateNotification::new(self.topic.clone(), new_state.clone()).into())
                 .unwrap();
         }
         // else {
