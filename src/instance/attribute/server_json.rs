@@ -1,13 +1,10 @@
-// use super::AttOnlyMsgAttInner;
-// use crate::{AttributeBuilder, Error, MessageCodec};
-use async_trait::async_trait;
 use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
-use super::server::{AttServer, EnablementDisablement};
+use super::server::AttServer;
 use crate::{
-    enablement_att_server_trait_impl, generic_att_server_methods, AttributeBuilder, Error,
-    JsonCodec, Logger,
+    generic_att_server_methods, instance::element::Element, AttributeBuilder, Error, JsonCodec,
+    Logger,
 };
 
 ///
@@ -19,8 +16,8 @@ pub struct JsonAttServer {
     ///
     logger: Logger,
 
-    ///
     /// Inner server implementation
+    ///
     pub inner: Arc<Mutex<AttServer<JsonCodec>>>,
 }
 
@@ -28,6 +25,12 @@ impl JsonAttServer {
     //
     // Require inner member
     generic_att_server_methods!();
+
+    /// Clone as an element object
+    ///
+    pub fn clone_as_element(&self) -> Element {
+        Element::AsJson(self.clone())
+    }
 
     ///
     ///
@@ -69,7 +72,3 @@ impl JsonAttServer {
         Ok(())
     }
 }
-
-//
-//
-enablement_att_server_trait_impl!(JsonAttServer);

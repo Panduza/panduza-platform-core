@@ -1,12 +1,12 @@
-use async_trait::async_trait;
+use super::server::AttServer;
+
+use crate::{
+    generic_att_server_methods, instance::element::Element, AttributeBuilder, BooleanCodec, Error,
+    Logger,
+};
+
 use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
-
-use super::server::{AttServer, EnablementDisablement};
-use crate::{
-    enablement_att_server_trait_impl, generic_att_server_methods, AttributeBuilder, BooleanCodec,
-    Error, Logger,
-};
 
 ///
 ///
@@ -17,8 +17,8 @@ pub struct BooleanAttServer {
     ///
     logger: Logger,
 
-    ///
     /// Inner server implementation
+    ///
     pub inner: Arc<Mutex<AttServer<BooleanCodec>>>,
 }
 
@@ -26,6 +26,12 @@ impl BooleanAttServer {
     //
     // Require inner member
     generic_att_server_methods!();
+
+    /// Clone as an element object
+    ///
+    pub fn clone_as_element(&self) -> Element {
+        Element::AsBoolean(self.clone())
+    }
 
     ///
     ///
@@ -79,7 +85,3 @@ impl BooleanAttServer {
         Ok(())
     }
 }
-
-//
-//
-enablement_att_server_trait_impl!(BooleanAttServer);

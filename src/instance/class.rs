@@ -34,8 +34,43 @@ pub struct Class {
 }
 
 impl Class {
-    async fn change_enablement(&mut self, enabled: bool) -> Result<(), Error> {
+    ///
+    ///
+    pub fn new(builder: &ClassBuilder) -> Self {
+        Class {
+            logger: builder.device.logger.new_for_class(&builder.topic),
+            instance: builder.device.clone(),
+            topic: builder.topic.clone(),
+            enabled: Arc::new(AtomicBool::new(true)),
+            sub_elements: Arc::new(Mutex::new(Vec::new())),
+        }
+    }
+
+    /// Clone as an element object
+    ///
+    pub fn clone_as_element(&self) -> Element {
+        Element::Class(self.clone())
+    }
+
+    /// Append a new sub element
+    ///
+    pub async fn push_sub_element(&mut self, element: Element) {
+        self.sub_elements.lock().await.push(element);
+    }
+
+    pub async fn change_enablement(&mut self, enabled: bool) -> Result<(), Error> {
+        //
+        // Flag local variable
         self.enabled.store(enabled, Ordering::Relaxed);
+
+        //
+        // Also change sub elements
+        let mut lock = self.sub_elements.lock().await;
+        for i in 0..lock.len() {
+            if let Some(obj) = lock.get_mut(i) {
+                obj.change_enablement(enabled).await?;
+            }
+        }
         Ok(())
     }
 }
@@ -75,17 +110,5 @@ impl Container for Class {
         F: Future<Output = TaskResult> + Send + 'static,
     {
         self.instance.spawn(name, future).await;
-    }
-}
-
-impl From<ClassBuilder> for Class {
-    fn from(builder: ClassBuilder) -> Self {
-        Class {
-            logger: builder.device.logger.new_for_class(&builder.topic),
-            instance: builder.device,
-            topic: builder.topic,
-            enabled: Arc::new(AtomicBool::new(true)),
-            sub_elements: Arc::new(Mutex::new(Vec::new())),
-        }
     }
 }

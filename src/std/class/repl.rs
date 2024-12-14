@@ -36,7 +36,8 @@ pub async fn mount<A: Into<String>>(
     let mut class_repl = instance
         .create_class(&class_name_string)
         .with_tag("REPL")
-        .finish();
+        .finish()
+        .await;
 
     let att_command = class_repl
         .create_attribute("command")

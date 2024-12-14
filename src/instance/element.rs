@@ -1,11 +1,10 @@
-use crate::{BooleanAttServer, Class, Error};
-
-use super::attribute::server::EnablementDisablement;
+use crate::{BooleanAttServer, Class, Error, JsonAttServer};
 
 #[derive(Clone)]
 pub enum Element {
     Class(Class),
     AsBoolean(BooleanAttServer),
+    AsJson(JsonAttServer),
 }
 
 impl Element {
@@ -14,9 +13,8 @@ impl Element {
     pub async fn change_enablement(&mut self, enabled: bool) -> Result<(), Error> {
         match self {
             Element::Class(class) => Ok(()),
-            Element::AsBoolean(boolean_att_server) => {
-                boolean_att_server.change_enablement(enabled).await
-            }
+            Element::AsBoolean(att_server) => att_server.change_enablement(enabled).await,
+            Element::AsJson(att_server) => att_server.change_enablement(enabled).await,
         }
     }
 

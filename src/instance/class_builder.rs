@@ -48,7 +48,7 @@ impl ClassBuilder {
     ///
     ///
     ///
-    pub fn finish(self) -> Class {
+    pub async fn finish(self) -> Class {
         let bis = self.topic.clone();
         if let Some(r_notifier) = self.device.r_notifier.clone() {
             r_notifier
@@ -56,6 +56,16 @@ impl ClassBuilder {
                 .unwrap();
         }
         // insert in status
-        Class::from(self)
+        let class = Class::new(&self);
+
+        //
+        // Attach the attribute to its parent class if exist
+        if let Some(mut parent_class) = self.parent_class {
+            parent_class
+                .push_sub_element(class.clone_as_element())
+                .await;
+        }
+
+        class
     }
 }

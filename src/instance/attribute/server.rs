@@ -299,6 +299,12 @@ macro_rules! generic_att_server_methods {
 
         /// Request attribute server enablement
         ///
+        pub async fn change_enablement(&mut self, enabled: bool) -> Result<(), Error> {
+            self.inner.lock().await.change_enablement(enabled).await
+        }
+
+        /// Request attribute server enablement
+        ///
         pub async fn enable(&mut self) -> Result<(), Error> {
             self.inner.lock().await.change_enablement(true).await
         }
@@ -307,30 +313,6 @@ macro_rules! generic_att_server_methods {
         ///
         pub async fn disable(&mut self) -> Result<(), Error> {
             self.inner.lock().await.change_enablement(false).await
-        }
-    };
-}
-
-#[async_trait]
-///
-/// FINNALY USELESS !!!
-///
-pub trait EnablementDisablement: Clone {
-    /// Request attribute server enablement
-    ///
-    async fn change_enablement(&mut self, enabled: bool) -> Result<(), Error>;
-}
-
-#[macro_export]
-//
-//
-macro_rules! enablement_att_server_trait_impl {
-    ($att_srv_name:ident) => {
-        #[async_trait]
-        impl EnablementDisablement for $att_srv_name {
-            async fn change_enablement(&mut self, enabled: bool) -> Result<(), Error> {
-                self.inner.lock().await.change_enablement(enabled).await
-            }
         }
     };
 }

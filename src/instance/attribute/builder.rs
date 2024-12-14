@@ -130,6 +130,13 @@ impl AttributeBuilder {
         let att = BooleanAttServer::new(self.clone());
         att.inner.lock().await.init(att.inner.clone()).await?;
         self.send_creation_notification();
+
+        //
+        // Attach the attribute to its parent class if exist
+        if let Some(mut parent_class) = self.parent_class {
+            parent_class.push_sub_element(att.clone_as_element()).await;
+        }
+
         Ok(att)
     }
 
@@ -161,8 +168,16 @@ impl AttributeBuilder {
     pub async fn finish_as_json(mut self) -> Result<JsonAttServer, Error> {
         self.r#type = Some(JsonAttServer::r#type());
         let att = JsonAttServer::new(self.clone());
+
         att.inner.lock().await.init(att.inner.clone()).await?;
         self.send_creation_notification();
+
+        //
+        // Attach the attribute to its parent class if exist
+        if let Some(mut parent_class) = self.parent_class {
+            parent_class.push_sub_element(att.clone_as_element()).await;
+        }
+
         Ok(att)
     }
 
