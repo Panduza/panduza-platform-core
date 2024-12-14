@@ -1,26 +1,29 @@
-// use super::AttOnlyMsgAttInner;
-// use crate::{AttributeBuilder, Error, MessageCodec};
+use async_trait::async_trait;
+
 use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
-use super::server::AttServer;
-use crate::{generic_att_server_methods, AttributeBuilder, Error, JsonCodec, Logger};
+use super::server::{AttServer, EnablementDisablement};
+use crate::{
+    enablement_att_server_trait_impl, generic_att_server_methods, AttributeBuilder, Error, Logger,
+    NumberCodec,
+};
 
 ///
 ///
 ///
 #[derive(Clone)]
-pub struct JsonAttServer {
+pub struct NumberAttServer {
     /// Local logger
     ///
     logger: Logger,
 
     ///
     /// Inner server implementation
-    pub inner: Arc<Mutex<AttServer<JsonCodec>>>,
+    pub inner: Arc<Mutex<AttServer<NumberCodec>>>,
 }
 
-impl JsonAttServer {
+impl NumberAttServer {
     //
     // Require inner member
     generic_att_server_methods!();
@@ -28,14 +31,14 @@ impl JsonAttServer {
     ///
     ///
     pub fn r#type() -> String {
-        "json".to_string()
+        "number".to_string()
     }
 
     ///
     ///
     ///
     pub fn new(builder: AttributeBuilder) -> Self {
-        let obj = AttServer::<JsonCodec>::from(builder);
+        let obj = AttServer::<NumberCodec>::from(builder);
         Self {
             logger: obj.logger.clone(),
             inner: Arc::new(Mutex::new(obj)),
@@ -46,22 +49,22 @@ impl JsonAttServer {
     /// Get the value of the attribute
     /// If None, the first value is not yet received
     ///
-    pub async fn pop_cmd(&mut self) -> Option<serde_json::Value> {
+    pub async fn pop_cmd_as_i64(&mut self) -> Option<i64> {
         self.inner
             .lock()
             .await
             .pop_cmd()
-            .and_then(|v| Some(v.value))
+            .and_then(|v| v.value.as_i64())
     }
 
     /// Set the value of the attribute
     ///
-    pub async fn set(&self, value: serde_json::Value) -> Result<(), Error> {
-        self.inner
-            .lock()
-            .await
-            .set(JsonCodec { value: value })
-            .await?;
+    pub async fn set_from_i64(&self, value: i64) -> Result<(), Error> {
+        self.inner.lock().await.set(value.into()).await?;
         Ok(())
     }
 }
+
+//
+//
+enablement_att_server_trait_impl!(NumberAttServer);

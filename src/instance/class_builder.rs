@@ -3,6 +3,10 @@ use crate::{Class, ClassNotification, Reactor};
 use super::Instance;
 
 pub struct ClassBuilder {
+    /// Parent class if any
+    ///
+    parent_class: Option<Class>,
+
     //
     pub reactor: Reactor,
     ///
@@ -20,12 +24,14 @@ pub struct ClassBuilder {
 
 impl ClassBuilder {
     pub fn new<N: Into<String>>(
+        parent_class: Option<Class>,
         reactor: Reactor, // deprecated because acces through device
         device: Instance,
         // device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
         topic: N,
     ) -> Self {
         Self {
+            parent_class: parent_class,
             reactor: reactor,
             device: device,
             // device_dyn_info: device_dyn_info,

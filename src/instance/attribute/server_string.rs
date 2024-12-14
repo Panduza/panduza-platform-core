@@ -1,10 +1,12 @@
-// use super::AttOnlyMsgAttInner;
-// use crate::{AttributeBuilder, Error, MessageCodec};
+use async_trait::async_trait;
 use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
-use super::server::AttServer;
-use crate::{generic_att_server_methods, AttributeBuilder, Error, Logger, StringCodec};
+use super::server::{AttServer, EnablementDisablement};
+use crate::{
+    enablement_att_server_trait_impl, generic_att_server_methods, AttributeBuilder, Error, Logger,
+    StringCodec,
+};
 
 ///
 ///
@@ -63,3 +65,7 @@ impl StringAttServer {
         Ok(())
     }
 }
+
+//
+//
+enablement_att_server_trait_impl!(StringAttServer);

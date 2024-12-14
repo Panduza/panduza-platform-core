@@ -1,8 +1,10 @@
 mod inner;
 
+pub mod attribute;
 pub mod class;
 pub mod class_builder;
 pub mod container;
+pub mod element;
 pub mod monitor;
 
 pub use container::Container;
@@ -271,6 +273,7 @@ impl Container for Instance {
     ///
     fn create_class<N: Into<String>>(&mut self, name: N) -> ClassBuilder {
         ClassBuilder::new(
+            None,
             self.reactor.clone(),
             self.clone(),
             // self.info_dyn_dev_status.clone(),

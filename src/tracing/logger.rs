@@ -1,4 +1,4 @@
-use crate::{attribute, Topic};
+use crate::Topic;
 
 /// Generic way to build logs on the platform
 ///

@@ -1,10 +1,10 @@
 use super::server_si::SiAttServer;
 use crate::runtime::notification::attribute::{AttributeMode, AttributeNotification};
-use crate::Notification;
 use crate::{
     BooleanAttServer, EnumAttServer, Error, JsonAttServer, MemoryCommandAttServer, MessageClient,
     MessageDispatcher, NumberAttServer, StringAttServer,
 };
+use crate::{Class, Notification};
 use serde_json::json;
 use std::sync::Weak;
 use tokio::sync::mpsc::Sender;
@@ -15,6 +15,10 @@ use tokio::sync::Mutex;
 /// Object that allow to build an generic attribute
 ///
 pub struct AttributeBuilder {
+    /// Parent class if any
+    ///
+    parent_class: Option<Class>,
+
     /// The mqtt client
     pub message_client: MessageClient,
 
@@ -43,11 +47,13 @@ pub struct AttributeBuilder {
 impl AttributeBuilder {
     /// Create a new builder
     pub fn new(
+        parent_class: Option<Class>,
         message_client: MessageClient,
         message_dispatcher: Weak<Mutex<MessageDispatcher>>,
         r_notifier: Option<Sender<Notification>>,
     ) -> AttributeBuilder {
         AttributeBuilder {
+            parent_class,
             message_client,
             message_dispatcher,
             r_notifier,

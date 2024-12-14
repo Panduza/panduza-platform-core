@@ -146,6 +146,7 @@ impl Reactor {
         r_notifier: Option<Sender<Notification>>,
     ) -> AttributeBuilder {
         AttributeBuilder::new(
+            None,
             self.message_client.as_ref().unwrap().clone(),
             Arc::downgrade(&self.message_dispatcher),
             r_notifier,
