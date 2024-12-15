@@ -108,6 +108,10 @@ pub fn print_log_line(buf: &[u8], enable_broker_log: bool, debug: bool, trace: b
             let f = format!("[{}] ", data[4]);
             write!(&mut log_message, "{}", f.green()).unwrap();
         }
+        "Class" => {
+            let f = format!("[{}/{}] ", data[4], data[5],);
+            write!(&mut log_message, "{}", f.blue()).unwrap();
+        }
         "Attribute" => {
             let f = format!("[{}/{}/{}] ", data[4], data[5], data[6],);
             write!(&mut log_message, "{}", f.blue()).unwrap();

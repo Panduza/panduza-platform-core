@@ -11,6 +11,10 @@ pub struct Topic {
     /// Sub layers
     ///
     pub layers: Vec<String>,
+
+    /// True if it is an attribute path, false for container
+    ///
+    pub is_attribute: bool,
 }
 
 impl Topic {
@@ -18,6 +22,24 @@ impl Topic {
     ///
     pub fn instance_name(&self) -> &String {
         &self.instance
+    }
+
+    ///
+    ///
+    pub fn class_stack_name(&self) -> String {
+        let mut r = String::new();
+        if self.is_attribute {
+            let mut n = self.layers.clone();
+            n.remove(n.len() - 1);
+            for l in &self.layers {
+                r = format!("{}/{}", r, l);
+            }
+        } else {
+            for l in &self.layers {
+                r = format!("{}/{}", r, l);
+            }
+        }
+        r
     }
 
     /// Attribute of Class name getter
@@ -28,7 +50,7 @@ impl Topic {
         self.layers.last()
     }
 
-    pub fn from_string<A: Into<String>>(topic: A) -> Self {
+    pub fn from_string<A: Into<String>>(topic: A, is_attribute: bool) -> Self {
         // Split the topic
         let topic_string = topic.into();
         let mut layers: Vec<&str> = topic_string.split('/').collect();
@@ -59,6 +81,7 @@ impl Topic {
             _namespace: namespace,
             instance: device,
             layers: layers.into_iter().map(|l| l.to_string()).collect(),
+            is_attribute: is_attribute,
         }
     }
 

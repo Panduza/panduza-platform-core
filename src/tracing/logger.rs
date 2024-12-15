@@ -43,11 +43,11 @@ impl Logger {
     /// Create a logger configured for attribute from its topic
     ///
     pub fn new_for_attribute_from_topic<A: Into<String>>(topic: A) -> Self {
-        let topic_obj = Topic::from_string(topic.into());
+        let topic_obj = Topic::from_string(topic.into(), true);
         Self::new(
             "Attribute",
             topic_obj.instance_name(),
-            "",
+            topic_obj.class_stack_name(),
             topic_obj.leaf_name().unwrap_or(&"".to_string()),
         )
     }
@@ -55,8 +55,8 @@ impl Logger {
     /// Create a new class logger from this logger (supposed instance logger)
     ///
     pub fn new_for_class<B: Into<String>>(&self, topic: B) -> Self {
-        // let topic_obj = Topic::from_string(topic.into());
-        let mut new_logger = Self::new("Class", &self.i1, "", "");
+        let topic_obj = Topic::from_string(topic.into(), false);
+        let mut new_logger = Self::new("Class", &self.i1, topic_obj.class_stack_name(), "");
         new_logger.set_plugin(&self.plugin);
         new_logger
     }

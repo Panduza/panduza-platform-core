@@ -108,8 +108,10 @@ pub use runtime::Runtime;
 
 pub mod env;
 
+pub use runtime::notification::attribute::AttributeMode;
 pub use runtime::notification::group::NotificationGroup;
 pub use runtime::notification::AlertNotification;
+pub use runtime::notification::AttributeNotification;
 pub use runtime::notification::ClassNotification;
 pub use runtime::notification::Notification;
 pub use runtime::notification::StateNotification;
