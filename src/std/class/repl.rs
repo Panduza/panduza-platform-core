@@ -1,43 +1,33 @@
-use crate::{log_debug, spawn_on_command, Container, Error, Instance, Logger, StringAttServer};
+use crate::{log_debug, spawn_on_command, Container, Error, Logger, StringAttServer};
 use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
 #[async_trait]
-///
 /// Protocol in which we send a text command and the device respond with another text
 ///
 pub trait ReplProtocol: Sync + Send {
-    ///
     /// Evaluate the command and return the response
     ///
     async fn eval(&mut self, command: String) -> Result<String, Error>;
 }
 
-///
 /// Mount the identity attribute
 ///
-pub async fn mount<A: Into<String>>(
-    class_name: A,
-    mut instance: Instance,
-    repl_driver: Arc<Mutex<dyn ReplProtocol>>,
+pub async fn mount<A: Into<String>, C: Container, I: ReplProtocol + 'static>(
+    name: A,
+    mut parent: C,
+    connector: Arc<Mutex<I>>,
 ) -> Result<(), Error> {
     //
     //
-    let class_name_string = class_name.into();
-
-    //
-    // Create the local logger
-    let logger = instance.logger.new_for_attribute(None, &class_name_string);
-    log_debug!(logger, "Mounting...");
-
-    //
-    //
-    let mut class_repl = instance
-        .create_class(&class_name_string)
+    let mut class_repl = parent
+        .create_class(&name.into())
         .with_tag("REPL")
         .finish()
         .await;
+    let logger = class_repl.logger().clone();
+    log_debug!(logger, "Mounting...");
 
     let att_command = class_repl
         .create_attribute("command")
@@ -53,18 +43,18 @@ pub async fn mount<A: Into<String>>(
 
     //
     // Execute action on each command received
-    let logger_2 = instance.logger.new_for_attribute(None, "command");
+    let logger_2 = att_command.logger().clone();
     let att_command_2 = att_command.clone();
     let att_response_2 = att_response.clone();
     spawn_on_command!(
         "on_command => relp",
-        instance,
+        parent,
         att_command_2,
         on_command(
             logger_2.clone(),
             att_command_2.clone(),
             att_response_2.clone(),
-            repl_driver.clone()
+            connector.clone()
         )
     );
 
@@ -77,17 +67,17 @@ pub async fn mount<A: Into<String>>(
 ///
 /// On command callback
 ///
-async fn on_command(
+async fn on_command<I: ReplProtocol + 'static>(
     logger: Logger,
     mut att_command: StringAttServer,
     att_response: StringAttServer,
-    repl_driver: Arc<Mutex<dyn ReplProtocol>>,
+    connector: Arc<Mutex<I>>,
 ) -> Result<(), Error> {
     while let Some(command) = att_command.pop_cmd().await {
         //
         // Log
         log_debug!(logger, "Command received '{:?}'", command);
-        let response = repl_driver.lock().await.eval(command).await?;
+        let response = connector.lock().await.eval(command).await?;
         att_response.set(response).await?;
     }
     Ok(())

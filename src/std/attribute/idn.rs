@@ -14,9 +14,9 @@ pub trait IdnReader: Sync + Send {
 
 /// Mount the identity attribute in parent container
 ///
-pub async fn mount<C: Container>(
+pub async fn mount<C: Container, I: IdnReader>(
     mut parent: C,
-    connector: Arc<Mutex<dyn IdnReader>>,
+    connector: Arc<Mutex<I>>,
 ) -> Result<(), Error> {
     //
     // Create attribute
