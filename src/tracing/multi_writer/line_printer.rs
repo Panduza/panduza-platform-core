@@ -113,8 +113,13 @@ pub fn print_log_line(buf: &[u8], enable_broker_log: bool, debug: bool, trace: b
             write!(&mut log_message, "{}", f.blue()).unwrap();
         }
         "Attribute" => {
-            let f = format!("[{}/{}/{}] ", data[4], data[5], data[6],);
-            write!(&mut log_message, "{}", f.blue()).unwrap();
+            if data[5].is_empty() {
+                let f = format!("[{}/{}] ", data[4], data[6],);
+                write!(&mut log_message, "{}", f.blue()).unwrap();
+            } else {
+                let f = format!("[{}/{}/{}] ", data[4], data[5], data[6],);
+                write!(&mut log_message, "{}", f.blue()).unwrap();
+            }
         }
         "Interface" => {
             let f = format!("[{}/{}/{}] ", data[4], data[5], data[6],);

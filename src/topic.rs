@@ -29,14 +29,30 @@ impl Topic {
     pub fn class_stack_name(&self) -> String {
         let mut r = String::new();
         if self.is_attribute {
+            //
+            // Copy layers and remove the last one (which is the name the attribute)
             let mut n = self.layers.clone();
             n.remove(n.len() - 1);
-            for l in &self.layers {
-                r = format!("{}/{}", r, l);
+            // CODE DUPLICATION
+            let mut first = true;
+            for l in &n {
+                if first {
+                    r = format!("{}", l);
+                    first = false;
+                } else {
+                    r = format!("{}/{}", r, l);
+                }
             }
         } else {
+            // CODE DUPLICATION
+            let mut first = true;
             for l in &self.layers {
-                r = format!("{}/{}", r, l);
+                if first {
+                    r = format!("{}", l);
+                    first = false;
+                } else {
+                    r = format!("{}/{}", r, l);
+                }
             }
         }
         r
@@ -95,5 +111,17 @@ impl Topic {
 
     pub fn last_layer(&self) -> String {
         self.layers.last().unwrap().clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Topic;
+
+    #[test]
+    fn test_stack_name() {
+        let topic = Topic::from_string("pza/truc/machin", true);
+
+        assert_eq!(topic.class_stack_name(), "".to_string());
     }
 }
