@@ -1,22 +1,37 @@
-// use super::AttOnlyMsgAttInner;
-// use crate::{AttributeBuilder, Error, MessageCodec};
 use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
 use super::server::AttServer;
-use crate::{AttributeBuilder, Error, JsonCodec};
+use crate::{
+    generic_att_server_methods, instance::element::Element, AttributeBuilder, Error, JsonCodec,
+    Logger,
+};
 
 ///
 ///
 ///
 #[derive(Clone)]
 pub struct JsonAttServer {
+    /// Local logger
     ///
+    logger: Logger,
+
     /// Inner server implementation
+    ///
     pub inner: Arc<Mutex<AttServer<JsonCodec>>>,
 }
 
 impl JsonAttServer {
+    //
+    // Require inner member
+    generic_att_server_methods!();
+
+    /// Clone as an element object
+    ///
+    pub fn clone_as_element(&self) -> Element {
+        Element::AsJson(self.clone())
+    }
+
     ///
     ///
     pub fn r#type() -> String {
@@ -27,29 +42,11 @@ impl JsonAttServer {
     ///
     ///
     pub fn new(builder: AttributeBuilder) -> Self {
+        let obj = AttServer::<JsonCodec>::from(builder);
         Self {
-            inner: Arc::new(Mutex::new(AttServer::<JsonCodec>::from(builder))),
+            logger: obj.logger.clone(),
+            inner: Arc::new(Mutex::new(obj)),
         }
-    }
-
-    ///
-    /// Bloc until at least a command is received
-    ///
-    pub async fn wait_commands(&self) {
-        let in_notifier = self.inner.lock().await.in_notifier();
-        in_notifier.notified().await
-    }
-
-    ///
-    /// Bloc until at least a command is received then execute the 'function'
-    ///
-    pub async fn wait_commands_then<F>(&self, function: F) -> Result<(), Error>
-    where
-        F: Future<Output = Result<(), Error>> + Send + 'static,
-    {
-        let in_notifier = self.inner.lock().await.in_notifier();
-        in_notifier.notified().await;
-        function.await
     }
 
     ///
@@ -73,11 +70,5 @@ impl JsonAttServer {
             .set(JsonCodec { value: value })
             .await?;
         Ok(())
-    }
-
-    ///
-    ///
-    pub async fn send_alert<T: Into<String>>(&self, message: T) {
-        self.inner.lock().await.send_alert(message.into());
     }
 }

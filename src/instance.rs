@@ -1,18 +1,29 @@
 mod inner;
-use crate::InterfaceBuilder;
+
+pub mod attribute;
+pub mod class;
+pub mod class_builder;
+pub mod container;
+pub mod element;
+pub mod monitor;
+
+pub use container::Container;
+
 use crate::{
-    reactor::Reactor, AttributeBuilder, DriverOperations, Error, InstanceLogger, InstanceSettings,
-    Notification, TaskResult, TaskSender,
+    reactor::Reactor, AttributeBuilder, DriverOperations, Error, InstanceSettings, Notification,
+    TaskResult, TaskSender,
 };
+use crate::{Logger, StateNotification};
+use class_builder::ClassBuilder;
 use futures::FutureExt;
 pub use inner::InstanceInner;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, future::Future, sync::Arc};
 use tokio::sync::Mutex;
 use tokio::sync::{mpsc::Sender, Notify};
-pub mod monitor;
 
 use crate::log_error;
+use async_trait::async_trait;
 
 /// States of the main Interface FSM
 ///
@@ -51,10 +62,9 @@ impl Display for State {
 ///
 #[derive(Clone)]
 pub struct Instance {
+    /// Logger for instance
     ///
-    /// Logger for driver instance
-    ///
-    pub logger: InstanceLogger,
+    pub logger: Logger,
 
     ///
     /// Manage all MQTT communications
@@ -102,7 +112,7 @@ impl Instance {
     ) -> Instance {
         // Create the object
         Instance {
-            logger: InstanceLogger::new(name.clone()),
+            logger: Logger::new_for_instance(name.clone()),
             reactor: reactor.clone(),
             // info_pack: info_pack,
             // info_dyn_dev_status: None,
@@ -129,45 +139,12 @@ impl Instance {
         &self.reactor
     }
 
-    pub async fn spawn<F>(&mut self, future: F)
-    where
-        F: Future<Output = TaskResult> + Send + 'static,
-    {
-        self.spawner.spawn(future.boxed()).unwrap();
-    }
-
-    ///
-    /// Spawn a new task and attach a name to it into logs
-    ///
-    pub async fn spawn_with_name<N: Into<String>, F>(&mut self, name: N, future: F)
-    where
-        F: Future<Output = TaskResult> + Send + 'static,
-    {
-        self.spawner.spawn_with_name(name, future.boxed()).unwrap();
-    }
-
-    ///
-    /// Create a new interface from this device
-    ///
-    pub fn create_class<N: Into<String>>(&mut self, name: N) -> InterfaceBuilder {
-        InterfaceBuilder::new(
-            self.reactor.clone(),
-            self.clone(),
-            // self.info_dyn_dev_status.clone(),
-            format!("{}/{}", self.topic, name.into()), // take the device topic as root
-        )
-    }
-
-    ///
-    /// Device can directly create some attribute on its root
-    ///
-    pub fn create_attribute<N: Into<String>>(&mut self, name: N) -> AttributeBuilder {
-        self.reactor
-            .create_new_attribute(self.r_notifier.clone())
-            .with_topic(format!("{}/{}", self.topic, name.into())) // take the device topic as root
-    }
-
-    // pub async fn run(&mut self) {}
+    // pub async fn spawn<F>(&mut self, future: F)
+    // where
+    //     F: Future<Output = TaskResult> + Send + 'static,
+    // {
+    //     self.spawner.spawn(future.boxed()).unwrap();
+    // }
 
     ///
     /// Run the FSM of the device
@@ -271,10 +248,7 @@ impl Instance {
         // Alert monitoring device "_"
         if let Some(r_notifier) = &mut self.r_notifier {
             r_notifier
-                .try_send(Notification::new_state_changed_notification(
-                    self.topic.clone(),
-                    new_state.clone(),
-                ))
+                .try_send(StateNotification::new(self.topic.clone(), new_state.clone()).into())
                 .unwrap();
         }
         // else {
@@ -284,5 +258,43 @@ impl Instance {
 
         // Notify FSM
         self.state_change_notifier.notify_one();
+    }
+}
+
+#[async_trait]
+impl Container for Instance {
+    /// Get for the container logger
+    ///
+    fn logger(&self) -> &Logger {
+        &self.logger
+    }
+
+    /// Override
+    ///
+    fn create_class<N: Into<String>>(&mut self, name: N) -> ClassBuilder {
+        ClassBuilder::new(
+            None,
+            self.reactor.clone(),
+            self.clone(),
+            // self.info_dyn_dev_status.clone(),
+            format!("{}/{}", self.topic, name.into()), // take the device topic as root
+        )
+    }
+
+    /// Override
+    ///
+    fn create_attribute<N: Into<String>>(&mut self, name: N) -> AttributeBuilder {
+        self.reactor
+            .create_new_attribute(self.r_notifier.clone())
+            .with_topic(format!("{}/{}", self.topic, name.into())) // take the device topic as root
+    }
+
+    /// Override
+    ///
+    async fn spawn<N: Send + Into<String>, F>(&mut self, name: N, future: F)
+    where
+        F: Future<Output = TaskResult> + Send + 'static,
+    {
+        self.spawner.spawn_with_name(name, future.boxed()).unwrap();
     }
 }

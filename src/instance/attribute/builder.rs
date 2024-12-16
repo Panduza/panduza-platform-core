@@ -1,9 +1,10 @@
 use super::server_si::SiAttServer;
-use crate::{notification::structural::attribute::AttributeMode, Notification};
+use crate::runtime::notification::attribute::{AttributeMode, AttributeNotification};
 use crate::{
     BooleanAttServer, EnumAttServer, Error, JsonAttServer, MemoryCommandAttServer, MessageClient,
     MessageDispatcher, NumberAttServer, StringAttServer,
 };
+use crate::{Class, Notification};
 use serde_json::json;
 use std::sync::Weak;
 use tokio::sync::mpsc::Sender;
@@ -14,6 +15,10 @@ use tokio::sync::Mutex;
 /// Object that allow to build an generic attribute
 ///
 pub struct AttributeBuilder {
+    /// Parent class if any
+    ///
+    parent_class: Option<Class>,
+
     /// The mqtt client
     pub message_client: MessageClient,
 
@@ -42,11 +47,13 @@ pub struct AttributeBuilder {
 impl AttributeBuilder {
     /// Create a new builder
     pub fn new(
+        parent_class: Option<Class>,
         message_client: MessageClient,
         message_dispatcher: Weak<Mutex<MessageDispatcher>>,
         r_notifier: Option<Sender<Notification>>,
     ) -> AttributeBuilder {
         AttributeBuilder {
+            parent_class,
             message_client,
             message_dispatcher,
             r_notifier,
@@ -123,6 +130,13 @@ impl AttributeBuilder {
         let att = BooleanAttServer::new(self.clone());
         att.inner.lock().await.init(att.inner.clone()).await?;
         self.send_creation_notification();
+
+        //
+        // Attach the attribute to its parent class if exist
+        if let Some(mut parent_class) = self.parent_class {
+            parent_class.push_sub_element(att.clone_as_element()).await;
+        }
+
         Ok(att)
     }
 
@@ -154,8 +168,16 @@ impl AttributeBuilder {
     pub async fn finish_as_json(mut self) -> Result<JsonAttServer, Error> {
         self.r#type = Some(JsonAttServer::r#type());
         let att = JsonAttServer::new(self.clone());
+
         att.inner.lock().await.init(att.inner.clone()).await?;
         self.send_creation_notification();
+
+        //
+        // Attach the attribute to its parent class if exist
+        if let Some(mut parent_class) = self.parent_class {
+            parent_class.push_sub_element(att.clone_as_element()).await;
+        }
+
         Ok(att)
     }
 
@@ -188,13 +210,16 @@ impl AttributeBuilder {
         let bis = self.topic.clone().unwrap();
         if let Some(r_notifier) = self.r_notifier.clone() {
             r_notifier
-                .try_send(Notification::new_attribute_element_created_notification(
-                    bis,
-                    self.r#type.clone().unwrap(),
-                    self.mode.clone().unwrap(),
-                    self.info.clone(),
-                    self.settings.clone(),
-                ))
+                .try_send(
+                    AttributeNotification::new(
+                        bis,
+                        self.r#type.clone().unwrap(),
+                        self.mode.clone().unwrap(),
+                        self.info.clone(),
+                        self.settings.clone(),
+                    )
+                    .into(),
+                )
                 .unwrap();
         }
     }

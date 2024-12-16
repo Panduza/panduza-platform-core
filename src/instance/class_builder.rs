@@ -1,9 +1,12 @@
-use super::Class;
-use crate::Instance;
-use crate::Notification;
-use crate::Reactor;
+use crate::{Class, ClassNotification, Reactor};
 
-pub struct InterfaceBuilder {
+use super::Instance;
+
+pub struct ClassBuilder {
+    /// Parent class if any
+    ///
+    parent_class: Option<Class>,
+
     //
     pub reactor: Reactor,
     ///
@@ -19,14 +22,16 @@ pub struct InterfaceBuilder {
     pub tags: Vec<String>,
 }
 
-impl InterfaceBuilder {
+impl ClassBuilder {
     pub fn new<N: Into<String>>(
+        parent_class: Option<Class>,
         reactor: Reactor, // deprecated because acces through device
         device: Instance,
         // device_dyn_info: Option<ThreadSafeInfoDynamicDeviceStatus>,
         topic: N,
     ) -> Self {
         Self {
+            parent_class: parent_class,
             reactor: reactor,
             device: device,
             // device_dyn_info: device_dyn_info,
@@ -43,17 +48,24 @@ impl InterfaceBuilder {
     ///
     ///
     ///
-    pub fn finish(self) -> Class {
+    pub async fn finish(self) -> Class {
         let bis = self.topic.clone();
         if let Some(r_notifier) = self.device.r_notifier.clone() {
             r_notifier
-                .try_send(Notification::new_interface_element_created_notification(
-                    bis,
-                    self.tags.clone(),
-                ))
+                .try_send(ClassNotification::new(bis, self.tags.clone()).into())
                 .unwrap();
         }
         // insert in status
-        Class::from(self)
+        let class = Class::new(&self);
+
+        //
+        // Attach the attribute to its parent class if exist
+        if let Some(mut parent_class) = self.parent_class {
+            parent_class
+                .push_sub_element(class.clone_as_element())
+                .await;
+        }
+
+        class
     }
 }

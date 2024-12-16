@@ -1,21 +1,31 @@
+//! # Panduza Platform Core
+//!
+//! This crate is the heart of Panduza platform and plugins
+//!
+
 #![deny(
     while_true,
     improper_ctypes,
     non_shorthand_field_patterns,
-//     no_mangle_generic_items,
+    no_mangle_generic_items,
     overflowing_literals,
-//     path_statements,
-//     patterns_in_fns_without_body,
-//     unconditional_recursion,
-//     bad_style,
-//     dead_code,
-//     unused,
-//     unused_allocation,
-//     unused_comparisons,
-//     unused_parens,
+    path_statements,
+    patterns_in_fns_without_body,
+    unconditional_recursion,
+    bad_style,
+    dead_code,
+    unused,
+    unused_allocation,
+    unused_comparisons,
+    unused_parens
 )]
 
+///
+///
 pub mod pmacro;
+
+pub mod topic;
+pub use topic::Topic;
 
 // Main error crate for Panduza Platform
 mod error;
@@ -32,24 +42,22 @@ pub use factory::ScanMachine;
 
 //
 pub mod instance;
+pub use instance::class::Class;
+pub use instance::class_builder::ClassBuilder;
+pub use instance::container::Container;
 pub use instance::monitor::InstanceMonitor;
 pub use instance::Instance;
 pub use instance::InstanceInner;
-//
-mod interface;
-pub use interface::builder::InterfaceBuilder;
-pub use interface::Class;
 
 //
-mod attribute;
-pub use attribute::builder::AttributeBuilder;
-pub use attribute::server_boolean::BooleanAttServer;
-pub use attribute::server_enum::EnumAttServer;
-pub use attribute::server_json::JsonAttServer;
-pub use attribute::server_mem_cmd::MemoryCommandAttServer;
-pub use attribute::server_number::NumberAttServer;
-pub use attribute::server_si::SiAttServer;
-pub use attribute::server_string::StringAttServer;
+pub use instance::attribute::builder::AttributeBuilder;
+pub use instance::attribute::server_boolean::BooleanAttServer;
+pub use instance::attribute::server_enum::EnumAttServer;
+pub use instance::attribute::server_json::JsonAttServer;
+pub use instance::attribute::server_mem_cmd::MemoryCommandAttServer;
+pub use instance::attribute::server_number::NumberAttServer;
+pub use instance::attribute::server_si::SiAttServer;
+pub use instance::attribute::server_string::StringAttServer;
 
 // public traits
 mod traits;
@@ -100,19 +108,13 @@ pub use runtime::Runtime;
 
 pub mod env;
 
-mod notification;
-pub use notification::group::NotificationGroup;
-pub use notification::structural::attribute::AttributeMode;
-pub use notification::structural::AttributeNotification;
-pub use notification::structural::InterfaceNotification;
-pub use notification::AlertNotification;
-pub use notification::Notification;
-pub use notification::StateNotification;
-pub use notification::StructuralNotification;
-
-pub mod settings;
-pub use settings::eenum::EnumSettings;
-pub use settings::si::SiSettings;
+pub use runtime::notification::attribute::AttributeMode;
+pub use runtime::notification::group::NotificationGroup;
+pub use runtime::notification::AlertNotification;
+pub use runtime::notification::AttributeNotification;
+pub use runtime::notification::ClassNotification;
+pub use runtime::notification::Notification;
+pub use runtime::notification::StateNotification;
 
 /// Module that manage platform traces and logs
 ///
@@ -128,30 +130,31 @@ pub use settings::si::SiSettings;
 /// They must be used only in developpement steps and deep investigations.
 ///
 pub mod tracing;
-pub use tracing::AttributeLogger;
+pub use tracing::Logger; // only this one must stay at the end (others deprecated)
+
 pub use tracing::DriverLogger;
 pub use tracing::FactoryLogger;
 pub use tracing::InstanceLogger;
 pub use tracing::PlatformLogger;
 pub use tracing::RuntimeLogger;
 
-/// Built-in drivers to help coding plugins
+/// Built-in physical drivers to help coding plugins
 ///
-/// # Enabling
+/// # Enablement
 ///
 /// Specific features need to be activated to enable drivers
 ///
 /// - usb => for usb drivers (also enable usb)
 /// - serial => for serial drivers (also enable usb)
 ///
-pub mod drivers;
+pub mod connector;
 
 /// Currently we put here a trait waiting to see if there is a better use later
 ///
 pub mod protocol;
 
 ///
-///
+/// TODO => put in factory
 ///
 pub mod props;
 pub use props::Prop;

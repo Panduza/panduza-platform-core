@@ -1,5 +1,9 @@
+use crate::log_trace;
+use crate::runtime::notification::attribute::AttributeMode;
+use crate::runtime::notification::EnablementNotification;
+use crate::tracing::Logger;
+use crate::AlertNotification;
 use crate::AttributeBuilder;
-use crate::AttributeMode;
 use crate::Error;
 use crate::MessageClient;
 use crate::MessageCodec;
@@ -20,6 +24,14 @@ use tokio::sync::Notify;
 ///
 #[derive(Clone)]
 pub struct AttServer<TYPE: MessageCodec> {
+    /// Local logger
+    ///
+    pub logger: Logger,
+
+    ///
+    ///
+    enabled: bool,
+
     /// Reactor message dispatcher
     /// (to attach this attribute to the incoming messages)
     message_dispatcher: Weak<Mutex<MessageDispatcher>>,
@@ -29,7 +41,6 @@ pub struct AttServer<TYPE: MessageCodec> {
     ///
     pub message_client: MessageClient,
 
-    ///
     /// The topic of the attribute
     ///
     pub topic: String,
@@ -84,10 +95,7 @@ impl<TYPE: MessageCodec> AttServer<TYPE> {
     pub fn send_alert(&self, message: String) {
         if let Some(r_notifier) = self.r_notifier.clone() {
             r_notifier
-                .try_send(Notification::new_alert_notification(
-                    self.topic.clone(),
-                    message,
-                ))
+                .try_send(AlertNotification::new(self.topic.clone(), message).into())
                 .unwrap();
         }
     }
@@ -183,6 +191,35 @@ impl<TYPE: MessageCodec> AttServer<TYPE> {
             .await
             .map_err(|e| Error::MessageAttributePublishError(e.to_string()))
     }
+
+    /// Request attribute server disabling
+    ///
+    pub async fn change_enablement(&mut self, enabled: bool) -> Result<(), Error> {
+        //
+        // TRACE
+        log_trace!(
+            self.logger,
+            "enablement change requested ! {:?} -> {:?}",
+            self.enabled,
+            enabled
+        );
+
+        //
+        // Do action
+        self.enabled = enabled;
+
+        //
+        // Send a notification if possible
+        if let Some(notification_sender) = self.r_notifier.clone() {
+            notification_sender
+                .try_send(EnablementNotification::new(&self.topic, self.enabled).into())
+                .map_err(|e| {
+                    Error::InternalLogic(format!("fail to push platform notification ({:?})", e))
+                })
+        } else {
+            Ok(())
+        }
+    }
 }
 
 #[async_trait]
@@ -205,6 +242,8 @@ impl<TYPE: MessageCodec> From<AttributeBuilder> for AttServer<TYPE> {
     fn from(builder: AttributeBuilder) -> Self {
         let topic = builder.topic.as_ref().unwrap().clone();
         Self {
+            logger: Logger::new_for_attribute_from_topic(topic.clone()),
+            enabled: true, // enabled by default
             message_dispatcher: builder.message_dispatcher,
             message_client: builder.message_client,
             topic: topic.clone(),
@@ -217,4 +256,63 @@ impl<TYPE: MessageCodec> From<AttributeBuilder> for AttServer<TYPE> {
             r_notifier: builder.r_notifier,
         }
     }
+}
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+#[macro_export]
+// Macro that generate generic function for all att servers
+//
+macro_rules! generic_att_server_methods {
+    () => {
+        /// Logger getter
+        ///
+        pub fn logger(&self) -> &Logger {
+            &self.logger
+        }
+
+        /// Bloc until at least a command is received
+        ///
+        pub async fn wait_commands(&self) {
+            let in_notifier = self.inner.lock().await.in_notifier();
+            in_notifier.notified().await
+        }
+
+        /// Bloc until at least a command is received then execute the 'function'
+        ///
+        pub async fn wait_commands_then<F>(&self, function: F) -> Result<(), Error>
+        where
+            F: Future<Output = Result<(), Error>> + Send + 'static,
+        {
+            let in_notifier = self.inner.lock().await.in_notifier();
+            in_notifier.notified().await;
+            function.await
+        }
+
+        ///
+        ///
+        pub async fn send_alert<T: Into<String>>(&self, message: T) {
+            self.inner.lock().await.send_alert(message.into());
+        }
+
+        /// Request attribute server enablement
+        ///
+        pub async fn change_enablement(&mut self, enabled: bool) -> Result<(), Error> {
+            self.inner.lock().await.change_enablement(enabled).await
+        }
+
+        /// Request attribute server enablement
+        ///
+        pub async fn enable(&mut self) -> Result<(), Error> {
+            self.inner.lock().await.change_enablement(true).await
+        }
+
+        /// Request attribute server disablement
+        ///
+        pub async fn disable(&mut self) -> Result<(), Error> {
+            self.inner.lock().await.change_enablement(false).await
+        }
+    };
 }

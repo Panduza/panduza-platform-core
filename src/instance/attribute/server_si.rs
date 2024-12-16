@@ -1,16 +1,18 @@
-// use super::AttOnlyMsgAttInner;
-// use crate::{AttributeBuilder, Error, MessageCodec};
 use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
 use super::server::AttServer;
-use crate::{AttributeBuilder, Error, SiCodec};
+use crate::{generic_att_server_methods, AttributeBuilder, Error, Logger, SiCodec};
 
 ///
 ///
 ///
 #[derive(Clone)]
 pub struct SiAttServer {
+    /// Local logger
+    ///
+    logger: Logger,
+
     ///
     /// Inner server implementation
     pub inner: Arc<Mutex<AttServer<SiCodec>>>,
@@ -23,6 +25,10 @@ pub struct SiAttServer {
 }
 
 impl SiAttServer {
+    //
+    // Require inner member
+    generic_att_server_methods!();
+
     ///
     ///
     pub fn r#type() -> String {
@@ -39,33 +45,15 @@ impl SiAttServer {
         max: i32,
         decimals: u32,
     ) -> Self {
+        let obj = AttServer::<SiCodec>::from(builder);
         Self {
-            inner: Arc::new(Mutex::new(AttServer::<SiCodec>::from(builder))),
+            logger: obj.logger.clone(),
+            inner: Arc::new(Mutex::new(obj)),
             _unit: unit.into(),
             _min: min,
             _max: max,
             decimals: decimals,
         }
-    }
-
-    ///
-    /// Bloc until at least a command is received
-    ///
-    pub async fn wait_commands(&self) {
-        let in_notifier = self.inner.lock().await.in_notifier();
-        in_notifier.notified().await
-    }
-
-    ///
-    /// Bloc until at least a command is received then execute the 'function'
-    ///
-    pub async fn wait_commands_then<F>(&self, function: F) -> Result<(), Error>
-    where
-        F: Future<Output = Result<(), Error>> + Send + 'static,
-    {
-        let in_notifier = self.inner.lock().await.in_notifier();
-        in_notifier.notified().await;
-        function.await
     }
 
     ///
@@ -89,9 +77,5 @@ impl SiAttServer {
             .set(SiCodec::from_f32(value, self.decimals))
             .await?;
         Ok(())
-    }
-
-    pub async fn send_alert<T: Into<String>>(&self, message: T) {
-        self.inner.lock().await.send_alert(message.into());
     }
 }

@@ -1,16 +1,16 @@
 use super::Settings as UsbSettings;
 use crate::protocol::AsciiCmdRespProtocol;
 use crate::std::class::repl::ReplProtocol;
-use crate::{format_driver_error, log_debug, log_trace, DriverLogger, Error};
+use crate::{format_driver_error, DriverLogger, Error};
 use async_trait::async_trait;
 use futures::executor::block_on;
 use nusb::Interface as UsbInterface;
-use nusb::{transfer::Direction, transfer::EndpointType, Interface};
-use serial2_tokio::SerialPort;
+// use nusb::{transfer::Direction, transfer::EndpointType, Interface};
+// use serial2_tokio::SerialPort;
 use std::sync::Arc;
-use std::time::Duration;
+// use std::time::Duration;
 use tokio::sync::Mutex;
-use tokio::time::timeout;
+// use tokio::time::timeout;
 use usbtmc_message::Sequencer;
 
 ///
@@ -19,7 +19,7 @@ pub struct Driver {
     ///
     /// To help data logging inside the driver
     ///
-    logger: DriverLogger,
+    _logger: DriverLogger,
 
     usb_interface: UsbInterface,
 
@@ -65,7 +65,7 @@ impl Driver {
         };
 
         Ok(Self {
-            logger: logger,
+            _logger: logger,
             usb_interface: interface.unwrap(),
             endpoint_in: endpoint_in,
             endpoint_out: endpoint_out,
@@ -122,7 +122,7 @@ impl AsciiCmdRespProtocol for Driver {
     ///
     ///
     ///
-    async fn send(&mut self, command: &String) -> Result<(), Error> {
+    async fn send(&mut self, _command: &String) -> Result<(), Error> {
         // //
         // // Append EOL to the command
         // let mut command_buffer = command.clone().into_bytes();
