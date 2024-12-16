@@ -1,4 +1,4 @@
-name: test_tag
+name: Check Builds
 
 on:
     push:
