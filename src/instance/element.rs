@@ -12,7 +12,7 @@ impl Element {
     ///
     pub async fn change_enablement(&mut self, enabled: bool) -> Result<(), Error> {
         match self {
-            Element::Class(class) => Ok(()),
+            Element::Class(_class) => Ok(()),
             Element::AsBoolean(att_server) => att_server.change_enablement(enabled).await,
             Element::AsJson(att_server) => att_server.change_enablement(enabled).await,
         }
