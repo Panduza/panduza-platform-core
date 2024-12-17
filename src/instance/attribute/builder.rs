@@ -157,11 +157,21 @@ impl AttributeBuilder {
         Ok(att)
     }
 
-    ///
     /// Finish attribute building and configure it with 'enum' type.
     ///
     pub async fn finish_as_enum(mut self, choices: Vec<String>) -> Result<EnumAttServer, Error> {
         self.r#type = Some(EnumAttServer::r#type());
+
+        //
+        // Provide enum settings
+        self.settings = Some(json!(
+            {
+                "choices": choices.clone(),
+            }
+        ));
+
+        //
+        // Create server object
         let att = EnumAttServer::new(self.clone(), choices);
         att.inner.lock().await.init(att.inner.clone()).await?;
         self.send_creation_notification();
