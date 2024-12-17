@@ -6,11 +6,11 @@ use super::Notification;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AttributeMode {
     #[serde(rename = "RO")]
-    AttOnly,
+    ReadOnly,
     #[serde(rename = "WO")]
-    CmdOnly,
+    WriteOnly,
     #[serde(rename = "RW")]
-    Bidir,
+    ReadWrite,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
