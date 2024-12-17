@@ -78,16 +78,22 @@ impl AttributeBuilder {
         self
     }
 
+    /// Set the Read Only mode to this attribute
+    ///
     pub fn with_ro(mut self) -> Self {
-        self.mode = Some(AttributeMode::AttOnly);
+        self.mode = Some(AttributeMode::ReadOnly);
         self
     }
+    /// Set the Write Only mode to this attribute
+    ///
     pub fn with_wo(mut self) -> Self {
-        self.mode = Some(AttributeMode::CmdOnly);
+        self.mode = Some(AttributeMode::WriteOnly);
         self
     }
+    /// Set the Write Read mode to this attribute
+    ///
     pub fn with_rw(mut self) -> Self {
-        self.mode = Some(AttributeMode::Bidir);
+        self.mode = Some(AttributeMode::ReadWrite);
         self
     }
 
