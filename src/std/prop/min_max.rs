@@ -1,5 +1,8 @@
-use crate::{log_error, log_warn, InstanceSettings, Logger, Props};
+use std::fmt::Debug;
 
+use crate::{format_settings_error, log_error, log_warn, Error, InstanceSettings, Logger, Props};
+
+#[derive(Clone)]
 pub struct Settings {
     pub logger: Option<Logger>,
     pub name: String,
@@ -40,7 +43,10 @@ impl Settings {
 
     ///
     ///
-    pub fn override_with_instance_settings(&mut self, settings: Option<InstanceSettings>) {
+    pub fn override_with_instance_settings(
+        &mut self,
+        settings: &Option<InstanceSettings>,
+    ) -> Result<(), Error> {
         //
         //
         if let Some(value) = settings {
@@ -68,6 +74,12 @@ impl Settings {
                                     self.default_min
                                 );
                             }
+                            return Err(format_settings_error!(
+                                "{} is lower than default {} < {}",
+                                &self.min_key,
+                                v,
+                                self.default_min
+                            ));
                         }
                     } else {
                         if let Some(logger) = &self.logger {
@@ -98,6 +110,12 @@ impl Settings {
                                     self.default_max
                                 );
                             }
+                            return Err(format_settings_error!(
+                                "{} is bigger than default {} > {}",
+                                &self.max_key,
+                                v,
+                                self.default_max
+                            ));
                         }
                     } else {
                         if let Some(logger) = &self.logger {
@@ -130,6 +148,8 @@ impl Settings {
                 );
             }
         }
+
+        Ok(())
     }
 
     /// Add props to props
@@ -145,5 +165,20 @@ impl Settings {
             format!("Maximal {}", self.desc),
             self.default_max,
         );
+    }
+}
+
+impl Debug for Settings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Settings")
+            .field("name", &self.name)
+            .field("desc", &self.desc)
+            .field("default_min", &self.default_min)
+            .field("default_max", &self.default_max)
+            .field("min", &self.min)
+            .field("max", &self.max)
+            .field("min_key", &self.min_key)
+            .field("max_key", &self.max_key)
+            .finish()
     }
 }
