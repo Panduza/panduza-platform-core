@@ -132,11 +132,13 @@ impl<TYPE: MessageCodec> AttServer<TYPE> {
     /// If None, the first value is not yet received
     ///
     pub fn pop_cmd(&mut self) -> Option<TYPE> {
-        let next = self.in_queue.pop();
-        if next.is_some() {
-            self.last_popped_value = next.clone();
+        if self.in_queue.is_empty() {
+            None
+        } else {
+            let element = Some(self.in_queue.remove(0));
+            self.last_popped_value = element.clone();
+            element
         }
-        return next;
     }
 
     ///
