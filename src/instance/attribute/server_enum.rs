@@ -70,20 +70,24 @@ impl EnumAttServer {
 
     /// Set the value of the attribute
     ///
-    pub async fn set(&self, value: String) -> Result<(), Error> {
+    pub async fn set<S: Into<String>>(&self, value: S) -> Result<(), Error> {
+        let value_string = value.into();
+
         //
         //
-        if self.choices.contains(&value) {
+        if self.choices.contains(&value_string) {
             self.inner
                 .lock()
                 .await
-                .set(StringCodec { value: value })
+                .set(StringCodec {
+                    value: value_string,
+                })
                 .await?;
             Ok(())
         } else {
             Err(Error::EnumOutOfChoices(format!(
                 "{:?} is not in {:?}",
-                value, self.choices
+                &value_string, self.choices
             )))
         }
     }

@@ -138,7 +138,16 @@ pub use tracing::InstanceLogger;
 pub use tracing::PlatformLogger;
 pub use tracing::RuntimeLogger;
 
-/// Built-in physical drivers to help coding plugins
+/// Built-in Protocols & Interfaces to help coding plugins
+///
+/// # Protocols & Interfaces
+///
+/// Protocols are the way to communicate with the drivers.
+/// You can stack them to create a chain of protocols.
+///
+/// Interfaces are implementations of the protocols.
+///
+/// Stack terms are lower (to physical layers) and upper (to user layers).
 ///
 /// # Enablement
 ///
