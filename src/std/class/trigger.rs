@@ -98,7 +98,7 @@ pub async fn mount<C: Container, T: Triggerable + 'static>(
                 } else {
                     Duration::from_secs(0xFFFFFFFF)
                 };
-                log_debug!(att_cyclic_logger, "cycle changed {:?}Hz => {:?}s", freq, cycle_step);
+                log_debug!(att_cyclic_logger, "cycle changed {:?}Hz => {:?}", freq, cycle_step);
             }
             _ = sleep(cycle_step) => {
                 log_trace!(att_cyclic_logger, "auto trig !");
