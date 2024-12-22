@@ -29,7 +29,7 @@ pub struct SiCodec {
 }
 
 impl SiCodec {
-    pub fn from_f32(value: f32, decimals: u32) -> Self {
+    pub fn from_f32(value: f32, decimals: usize) -> Self {
         Self {
             value: format_number(value, decimals as usize),
         }

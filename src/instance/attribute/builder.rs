@@ -108,9 +108,9 @@ impl AttributeBuilder {
     pub async fn finish_as_si<N: Into<String>>(
         mut self,
         unit: N,
-        min: i32,
-        max: i32,
-        decimals: u32,
+        min: f64,
+        max: f64,
+        decimals: usize,
     ) -> Result<SiAttServer, Error> {
         self.r#type = Some(SiAttServer::r#type());
         let unit_string = unit.into();
