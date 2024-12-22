@@ -18,10 +18,10 @@ pub struct SiAttServer {
     pub inner: Arc<Mutex<AttServer<SiCodec>>>,
 
     _unit: String,
-    _min: i32,
-    _max: i32,
+    _min: f64,
+    _max: f64,
 
-    decimals: u32,
+    decimals: usize,
 }
 
 impl SiAttServer {
@@ -41,9 +41,9 @@ impl SiAttServer {
     pub fn new<N: Into<String>>(
         builder: AttributeBuilder,
         unit: N,
-        min: i32,
-        max: i32,
-        decimals: u32,
+        min: f64,
+        max: f64,
+        decimals: usize,
     ) -> Self {
         let obj = AttServer::<SiCodec>::from(builder);
         Self {

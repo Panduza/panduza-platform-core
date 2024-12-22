@@ -108,9 +108,9 @@ impl AttributeBuilder {
     pub async fn finish_as_si<N: Into<String>>(
         mut self,
         unit: N,
-        min: i32,
-        max: i32,
-        decimals: u32,
+        min: f64,
+        max: f64,
+        decimals: usize,
     ) -> Result<SiAttServer, Error> {
         self.r#type = Some(SiAttServer::r#type());
         let unit_string = unit.into();
@@ -159,8 +159,15 @@ impl AttributeBuilder {
 
     /// Finish attribute building and configure it with 'enum' type.
     ///
-    pub async fn finish_as_enum(mut self, choices: Vec<String>) -> Result<EnumAttServer, Error> {
+    pub async fn finish_as_enum<S: Into<String>>(
+        mut self,
+        choices: Vec<S>,
+    ) -> Result<EnumAttServer, Error> {
         self.r#type = Some(EnumAttServer::r#type());
+
+        //
+        // Convert choices to Vec<String>
+        let choices: Vec<String> = choices.into_iter().map(Into::into).collect();
 
         //
         // Provide enum settings

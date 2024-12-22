@@ -1,4 +1,7 @@
-use crate::{log_debug, spawn_on_command, Container, Error, Logger, StringAttServer};
+use crate::{
+    log_debug, log_debug_mount_end, log_debug_mount_start, spawn_on_command, Container, Error,
+    Logger, StringAttServer,
+};
 use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -27,7 +30,7 @@ pub async fn mount<A: Into<String>, C: Container, I: ReplProtocol + 'static>(
         .finish()
         .await;
     let logger = class_repl.logger().clone();
-    log_debug!(logger, "Mounting...");
+    log_debug_mount_start!(logger);
 
     let att_command = class_repl
         .create_attribute("command")
@@ -60,11 +63,10 @@ pub async fn mount<A: Into<String>, C: Container, I: ReplProtocol + 'static>(
 
     //
     // End
-    log_debug!(logger, "Mounting => OK");
+    log_debug_mount_end!(logger);
     Ok(())
 }
 
-///
 /// On command callback
 ///
 async fn on_command<I: ReplProtocol + 'static>(

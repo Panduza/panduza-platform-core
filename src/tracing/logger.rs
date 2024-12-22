@@ -380,3 +380,31 @@ macro_rules! log_trace {
         $logger.trace(format!($($arg)*))
     };
 }
+
+#[macro_export]
+macro_rules! log_info_mount_start {
+    ($logger:expr) => {
+        $logger.info("Mounting...")
+    };
+}
+
+#[macro_export]
+macro_rules! log_info_mount_end {
+    ($logger:expr) => {
+        $logger.info("Mounting -> OK")
+    };
+}
+
+#[macro_export]
+macro_rules! log_debug_mount_start {
+    ($logger:expr) => {
+        $logger.debug("Mounting...")
+    };
+}
+
+#[macro_export]
+macro_rules! log_debug_mount_end {
+    ($logger:expr) => {
+        $logger.debug("Mounting -> OK")
+    };
+}

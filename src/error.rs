@@ -39,6 +39,13 @@ pub enum Error {
 }
 
 #[macro_export]
+macro_rules! format_settings_error {
+    ($($arg:tt)*) => {
+        Error::BadSettings(format!($($arg)*))
+    };
+}
+
+#[macro_export]
 macro_rules! format_driver_error {
     ($($arg:tt)*) => {
         Error::DriverError(format!($($arg)*))
