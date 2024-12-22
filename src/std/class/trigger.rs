@@ -44,12 +44,13 @@ pub async fn mount<C: Container, T: Triggerable + 'static>(
 
     //
     // Execute action on each command received
+    let triggered_3 = triggered.clone();
     let att_single_2 = att_single.clone();
     spawn_on_command!(
         "on_command => trigger/single",
         parent,
         att_single,
-        on_single_command(att_single_2.clone(), triggered.clone())
+        on_single_command(att_single_2.clone(), triggered_3.clone())
     );
 
     //
@@ -68,34 +69,40 @@ pub async fn mount<C: Container, T: Triggerable + 'static>(
 
     //
     //
+
+    let cycle_freq_3 = cycle_freq.clone();
+    let att_cyclic_logger = att_cyclic.logger().clone();
     let att_cyclic_2 = att_cyclic.clone();
+    let cycle_changed_2 = cycle_changed.clone();
     spawn_on_command!(
         "on_command => trigger/cyclic",
         parent,
         att_cyclic,
         on_cyclic_command(
             att_cyclic_2.clone(),
-            cycle_freq.clone(),
-            cycle_changed.clone()
+            cycle_freq_3.clone(),
+            cycle_changed_2.clone()
         )
     );
 
     //
     //
+    let cycle_freq_2 = cycle_freq.clone();
+    let triggered_2 = triggered.clone();
     spawn_loop!("loop => trigger ", parent, {
         tokio::select! {
             _ = cycle_changed.notified() => {
-                let freq = *cycle_freq.lock().await;
+                let freq = *cycle_freq_2.lock().await;
                 cycle_step = if freq > 0.0 {
                     Duration::from_secs_f64(1.0 / freq as f64)
                 } else {
                     Duration::from_secs(0xFFFFFFFF)
                 };
-                log_debug!(att_cyclic.logger(), "cycle changed {:?}Hz => {:?}s", freq, cycle_step);
+                log_debug!(att_cyclic_logger, "cycle changed {:?}Hz => {:?}s", freq, cycle_step);
             }
             _ = sleep(cycle_step) => {
-                log_trace!(att_cyclic.logger(), "auto trig !");
-                triggered.lock().await.on_trigger().await?;
+                log_trace!(att_cyclic_logger, "auto trig !");
+                triggered_2.lock().await.on_trigger().await?;
             }
         }
     });

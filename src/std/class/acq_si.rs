@@ -26,8 +26,8 @@ struct TriggerableSi<I: SiDataReader> {
 #[async_trait]
 impl<I: SiDataReader> Triggerable for TriggerableSi<I> {
     async fn on_trigger(&mut self) -> Result<(), Error> {
-        // let mut interface = self.interface.lock().await;
-        // interface.read_data(0).await?;
+        let value = self.interface.lock().await.read_data(self.channel).await?;
+        self.att.set_from_f32(value as f32).await?;
         Ok(())
     }
 }
