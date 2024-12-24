@@ -17,6 +17,12 @@ impl Logger {
         self.plugin = text.into();
     }
 
+    /// Get the plugin name
+    ///
+    pub fn get_plugin(&self) -> String {
+        self.plugin.clone()
+    }
+
     /// Create a new logger
     ///
     pub fn new<A: Into<String>, B: Into<String>, C: Into<String>, D: Into<String>>(
@@ -32,6 +38,18 @@ impl Logger {
             i3: i3.into(),
             plugin: String::new(),
         };
+    }
+
+    ///  Create a logger configured for platform from its name
+    ///
+    pub fn new_for_platform() -> Self {
+        Self::new("Platform", "", "", "")
+    }
+
+    ///  Create a logger configured for runtime from its name
+    ///
+    pub fn new_for_runtime() -> Self {
+        Self::new("Runtime", "", "", "")
     }
 
     ///  Create a logger configured for instance from its name
@@ -137,80 +155,6 @@ impl Logger {
             "{}",
             text.into()
         );
-    }
-}
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-#[derive(Clone)]
-pub struct RuntimeLogger {
-    base: Logger,
-}
-impl RuntimeLogger {
-    pub fn new() -> RuntimeLogger {
-        RuntimeLogger {
-            base: Logger::new("Runtime", "", "", ""),
-        }
-    }
-    pub fn error<A: Into<String>>(&self, text: A) {
-        self.base.error(text);
-    }
-    pub fn warn<A: Into<String>>(&self, text: A) {
-        self.base.warn(text);
-    }
-    pub fn info<A: Into<String>>(&self, text: A) {
-        self.base.info(text);
-    }
-    pub fn debug<A: Into<String>>(&self, text: A) {
-        self.base.debug(text);
-    }
-    pub fn trace<A: Into<String>>(&self, text: A) {
-        self.base.trace(text);
-    }
-    pub fn set_plugin<A: Into<String>>(&mut self, text: A) {
-        self.base.plugin = text.into();
-    }
-    pub fn get_plugin(&self) -> String {
-        self.base.plugin.clone()
-    }
-}
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-#[derive(Clone)]
-pub struct PlatformLogger {
-    base: Logger,
-}
-impl PlatformLogger {
-    pub fn new() -> PlatformLogger {
-        PlatformLogger {
-            base: Logger::new("Platform", "", "", ""),
-        }
-    }
-    pub fn error<A: Into<String>>(&self, text: A) {
-        self.base.error(text);
-    }
-    pub fn warn<A: Into<String>>(&self, text: A) {
-        self.base.warn(text);
-    }
-    pub fn info<A: Into<String>>(&self, text: A) {
-        self.base.info(text);
-    }
-    pub fn debug<A: Into<String>>(&self, text: A) {
-        self.base.debug(text);
-    }
-    pub fn trace<A: Into<String>>(&self, text: A) {
-        self.base.trace(text);
-    }
-    pub fn set_plugin<A: Into<String>>(&mut self, text: A) {
-        self.base.plugin = text.into();
-    }
-    pub fn get_plugin(&self) -> String {
-        self.base.plugin.clone()
     }
 }
 

@@ -135,8 +135,6 @@ pub use tracing::Logger; // only this one must stay at the end (others deprecate
 pub use tracing::DriverLogger;
 pub use tracing::FactoryLogger;
 pub use tracing::InstanceLogger;
-pub use tracing::PlatformLogger;
-pub use tracing::RuntimeLogger;
 
 /// Built-in Protocols & Interfaces to help coding plugins
 ///
