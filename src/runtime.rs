@@ -1,9 +1,9 @@
 pub mod notification;
 
-use crate::{log_debug, log_warn, Notification, NotificationGroup};
+use crate::{log_debug, log_warn, Logger, Notification, NotificationGroup};
 use crate::{
-    task_channel::create_task_channel, Factory, ProductionOrder, Reactor, RuntimeLogger,
-    TaskReceiver, TaskResult, TaskSender,
+    task_channel::create_task_channel, Factory, ProductionOrder, Reactor, TaskReceiver, TaskResult,
+    TaskSender,
 };
 // use futures::lock::Mutex;
 use futures::FutureExt;
@@ -37,7 +37,7 @@ pub struct Runtime {
     ///
     /// Logger dedicated to runtime activity
     ///
-    logger: RuntimeLogger,
+    logger: Logger,
     ///
     ///
     factory: Factory,
@@ -91,7 +91,7 @@ impl Runtime {
         let (not_tx, not_rx) = channel::<Notification>(NOTIFICATION_CHANNEL_SIZE);
 
         Self {
-            logger: RuntimeLogger::new(),
+            logger: Logger::new_for_runtime(),
             factory: factory,
             reactor: reactor,
             keep_alive: Arc::new(AtomicBool::new(true)),

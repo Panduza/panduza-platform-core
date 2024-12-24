@@ -7,8 +7,6 @@ pub use logger::DriverLogger;
 pub use logger::FactoryLogger;
 pub use logger::InstanceLogger;
 pub use logger::Logger;
-pub use logger::PlatformLogger;
-pub use logger::RuntimeLogger;
 
 use csv_formatter::CSVFormatter;
 use multi_writer::MultiWriter;
