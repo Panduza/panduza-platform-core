@@ -3,7 +3,7 @@ macro_rules! plugin_interface {
     ($plg_name:literal) => {
         use panduza_platform_core::NotificationGroup;
         use panduza_platform_core::{
-            Factory, PlatformLogger, Plugin, ProductionOrder, Reactor, ReactorSettings, Runtime,
+            Factory, Logger, Plugin, ProductionOrder, Reactor, ReactorSettings, Runtime,
             ScanMachine,
         };
         use serde_json::Result;
@@ -25,7 +25,7 @@ macro_rules! plugin_interface {
         ///
         ///
         ///
-        static mut LOGGER: Option<PlatformLogger> = None;
+        static mut LOGGER: Option<Logger> = None;
 
         ///
         ///
@@ -186,7 +186,7 @@ macro_rules! plugin_interface {
             //
             // Init logging system on the plugin
             panduza_platform_core::tracing::init(enable_stdout, false, debug, trace);
-            let mut logger = PlatformLogger::new();
+            let mut logger = Logger::new_for_platform();
             logger.set_plugin($plg_name);
             logger.info("plugin_entry_point");
             LOGGER = Some(logger);
