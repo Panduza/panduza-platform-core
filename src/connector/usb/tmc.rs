@@ -179,41 +179,50 @@ impl ReplProtocol for Driver {
             };
         }
 
-        let response = nusb::transfer::RequestBuffer::new(self.max_packet_size_in);
+        let mut complete_data = Vec::new();
+        let mut is_eom = false;
 
-        // log
-        log_trace!(self.logger, "Wait for builk_in data...");
+        while !is_eom {
+            let response = nusb::transfer::RequestBuffer::new(self.max_packet_size_in);
 
-        // TODO => use queue instead
-        // bulk_in_queue
+            // log
+            log_trace!(self.logger, "Wait for bulk_in data...");
 
-        // Receive data form the usb
-        match tokio::time::timeout(
-            std::time::Duration::from_secs(1),
-            self.usb_interface.bulk_in(self.endpoint_in, response),
-        )
-        .await
-        {
-            Ok(val) => match val.into_result() {
-                Ok(data) => {
-                    // log
-                    log_trace!(self.logger, "Data received: {:?}", data);
+            // Receive data from the usb
+            match tokio::time::timeout(
+                std::time::Duration::from_secs(1),
+                self.usb_interface.bulk_in(self.endpoint_in, response),
+            )
+            .await
+            {
+                Ok(val) => match val.into_result() {
+                    Ok(data) => {
+                        // log
+                        log_trace!(self.logger, "Data received: {:?}", data);
 
-                    // Parse the received data
-                    let msg = usbtmc_message::BulkInMessage::from_u8_array(&data);
+                        // Parse the received data
+                        let msg = usbtmc_message::BulkInMessage::from_u8_array(&data);
 
-                    log_trace!(
-                        self.logger,
-                        "Data received: {:?}",
-                        msg.bulk_in_header().transfer_size()
-                    );
+                        log_trace!(
+                            self.logger,
+                            "Data {:?}: {:?}",
+                            msg.bulk_in_header().is_eom(),
+                            msg.bulk_in_header().transfer_size()
+                        );
 
-                    return Ok(msg.payload_as_string());
-                }
-                Err(_e) => return Err(format_driver_error!("Unable to read on USB")),
-            },
-            Err(_) => return Err(format_driver_error!("Timeout while reading from USB")),
-        };
+                        // Append the payload to the complete data
+                        complete_data.extend_from_slice(msg.payload());
+
+                        // Check if this is the end of the message
+                        is_eom = msg.bulk_in_header().is_eom();
+                    }
+                    Err(_e) => return Err(format_driver_error!("Unable to read on USB")),
+                },
+                Err(_) => return Err(format_driver_error!("Timeout while reading from USB")),
+            };
+        }
+
+        Ok(String::from_utf8(complete_data).unwrap())
     }
 }
 
