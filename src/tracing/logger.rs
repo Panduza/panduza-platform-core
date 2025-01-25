@@ -58,6 +58,12 @@ impl Logger {
         Self::new("Instance", name.into(), "", "")
     }
 
+    ///
+    ///
+    pub fn new_for_driver<A: Into<String>, B: Into<String>>(phy: A, prot: B) -> Self {
+        Self::new("Driver", phy.into(), prot.into(), "")
+    }
+
     /// Create a logger configured for attribute from its topic
     ///
     pub fn new_for_attribute_from_topic<A: Into<String>>(topic: A) -> Self {

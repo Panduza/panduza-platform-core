@@ -58,7 +58,8 @@ colored = "2.0.0"
 nusb = "0.1.9"
 #
 # 
-usbtmc-message = { git = "https://github.com/Panduza/pza-rust-usbtmc-message", tag = "0.0.0" }
+# usbtmc-message = { git = "https://github.com/Panduza/pza-rust-usbtmc-message", tag = "0.0.0" }
+usbtmc-message = { path = "C:/Users/xavie/workspace/pza-rust-usbtmc-message" }
 
 # === feature => serial
 # 
