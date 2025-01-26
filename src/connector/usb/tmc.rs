@@ -158,8 +158,11 @@ impl ReplProtocol for Driver {
         // log
         log_trace!(self.logger, "Eval: {}", command);
 
+
+        let factor = 4;
+
         // Create a sequencer with a max_sequence_length of 64 (depend on your device)
-        let mut sequencer = Sequencer::new(self.max_packet_size_out as u32);
+        let mut sequencer = Sequencer::new((self.max_packet_size_out * factor) as u32);
 
         // Create a message sequence from a command
         let sequence = sequencer.command_to_message_sequence(command.clone());
@@ -183,7 +186,7 @@ impl ReplProtocol for Driver {
         let mut is_eom = false;
 
         while !is_eom {
-            let response = nusb::transfer::RequestBuffer::new(self.max_packet_size_in);
+            let response = nusb::transfer::RequestBuffer::new(self.max_packet_size_in * factor);
 
             // log
             log_trace!(self.logger, "Wait for bulk_in data...");
@@ -195,34 +198,52 @@ impl ReplProtocol for Driver {
             )
             .await
             {
+
+                // TODO
+                // Read the header first time then read until all data is received
+
                 Ok(val) => match val.into_result() {
                     Ok(data) => {
                         // log
-                        log_trace!(self.logger, "Data received: {:?}", data);
-
-                        // Parse the received data
-                        let msg = usbtmc_message::BulkInMessage::from_u8_array(&data);
-
                         log_trace!(
                             self.logger,
-                            "Data {:?}: {:?}",
-                            msg.bulk_in_header().is_eom(),
-                            msg.bulk_in_header().transfer_size()
+                            "Data received (len:{:?}): {:?}",
+                            data.len(),
+                            data
                         );
 
-                        // Append the payload to the complete data
-                        complete_data.extend_from_slice(msg.payload());
-
                         // Check if this is the end of the message
-                        is_eom = msg.bulk_in_header().is_eom();
+                        if data.len() >= self.max_packet_size_in * 8  {
+                            is_eom = false;
+                        }
+                        else {
+                            is_eom = true;
+                        }
+
+                        // Append the payload to the complete data
+                        complete_data.extend(data);
                     }
                     Err(_e) => return Err(format_driver_error!("Unable to read on USB")),
                 },
-                Err(_) => return Err(format_driver_error!("Timeout while reading from USB")),
+                Err(_) => {
+                    log_trace!(self.logger, "Timeout while reading from USB");
+                    return Ok("Timeout while reading from USB".to_string());
+                }
             };
         }
 
-        Ok(String::from_utf8(complete_data).unwrap())
+        // Parse the received data
+        let msg = usbtmc_message::BulkInMessage::from_u8_array(&complete_data);
+
+        log_trace!(
+            self.logger,
+            "end Data {:?}: {:?}",
+            msg.bulk_in_header().is_eom(),
+            msg.bulk_in_header().transfer_size()
+        );
+
+        // Return the payload as a string no matter what
+        Ok(msg.payload_as_string())
     }
 }
 
