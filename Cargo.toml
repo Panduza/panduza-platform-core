@@ -33,6 +33,9 @@ bitflags = "2.6.0"
 chrono = "0.4"
 # 
 rand = "0.8.5"
+# 
+byteorder = "1.5.0"
+
 
 # === 
 # Trace instrumentation at disabled levels will be skipped and will not even be present
@@ -59,7 +62,8 @@ nusb = "0.1.9"
 #
 # 
 # usbtmc-message = { git = "https://github.com/Panduza/pza-rust-usbtmc-message", tag = "0.0.0" }
-usbtmc-message = { path = "C:/Users/xavie/workspace/pza-rust-usbtmc-message" }
+usbtmc-message = { path = "C:/Users/rodriguez.NET/Documents/workspace/50-PROJET/XX-XXXX-PZA/pza-rust-usbtmc-message" }
+
 
 # === feature => serial
 # 

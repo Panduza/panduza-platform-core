@@ -3,6 +3,8 @@ use crate::protocol::AsciiCmdRespProtocol;
 use crate::std::class::repl::ReplProtocol;
 use crate::{format_driver_error, log_trace, log_warn, Error, Logger};
 use async_trait::async_trait;
+use byteorder::{ByteOrder, LittleEndian};
+
 use futures::executor::block_on;
 use nusb::Interface as UsbInterface;
 // use nusb::{transfer::Direction, transfer::EndpointType, Interface};
@@ -12,6 +14,38 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 // use tokio::time::timeout;
 use usbtmc_message::Sequencer;
+
+///
+///
+#[derive(Copy, Clone)]
+pub enum MsgID {
+    DevDepMsgOut = 1,
+    DevDepMsgIn = 2,
+    VendorSpecificOut = 126,
+    VendorSpecificIn = 127,
+}
+
+impl MsgID {
+    pub const DEV_DEP_MSG_OUT: MsgID = MsgID::DevDepMsgOut;
+
+    pub const REQUEST_DEV_DEP_MSG_IN: MsgID = MsgID::DevDepMsgIn;
+    pub const DEV_DEP_MSG_IN: MsgID = MsgID::DevDepMsgIn;
+
+    pub const VENDOR_SPECIFIC_OUT: MsgID = MsgID::VendorSpecificOut;
+
+    pub const REQUEST_VENDOR_SPECIFIC_IN: MsgID = MsgID::VendorSpecificIn;
+    pub const VENDOR_SPECIFIC_IN: MsgID = MsgID::VendorSpecificIn;
+
+    pub fn from_u8_array(value: u8) -> Option<MsgID> {
+        match value {
+            1 => Some(MsgID::DevDepMsgOut),
+            2 => Some(MsgID::DevDepMsgIn),
+            126 => Some(MsgID::VendorSpecificOut),
+            127 => Some(MsgID::VendorSpecificIn),
+            _ => None,
+        }
+    }
+}
 
 ///
 ///
@@ -147,6 +181,17 @@ impl Driver {
             "Unable to find the OUT endpoint in the USB device configuration"
         ))
     }
+
+    ///
+    ///
+    fn parse_bulk_in_header(&self, data: &Vec<u8>) -> Result<usize, Error> {
+        // log
+        log_trace!(self.logger, "msg id: {}", data[0]);
+
+        let transfer_size = LittleEndian::read_u32(&data[4..8]) as usize;
+
+        Ok(transfer_size)
+    }
 }
 
 #[async_trait]
@@ -158,11 +203,10 @@ impl ReplProtocol for Driver {
         // log
         log_trace!(self.logger, "Eval: {}", command);
 
-
-        let factor = 4;
+        // let factor = 4;
 
         // Create a sequencer with a max_sequence_length of 64 (depend on your device)
-        let mut sequencer = Sequencer::new((self.max_packet_size_out * factor) as u32);
+        let mut sequencer = Sequencer::new(self.max_packet_size_out as u32);
 
         // Create a message sequence from a command
         let sequence = sequencer.command_to_message_sequence(command.clone());
@@ -182,11 +226,13 @@ impl ReplProtocol for Driver {
             };
         }
 
+        let mut is_first: bool = true;
+        let mut remaining_data = 0;
         let mut complete_data = Vec::new();
         let mut is_eom = false;
 
         while !is_eom {
-            let response = nusb::transfer::RequestBuffer::new(self.max_packet_size_in * factor);
+            let response = nusb::transfer::RequestBuffer::new(self.max_packet_size_in);
 
             // log
             log_trace!(self.logger, "Wait for bulk_in data...");
@@ -198,30 +244,49 @@ impl ReplProtocol for Driver {
             )
             .await
             {
-
                 // TODO
                 // Read the header first time then read until all data is received
-
                 Ok(val) => match val.into_result() {
                     Ok(data) => {
+                        //
+                        //
+                        if is_first {
+                            // Parse the received data
+                            let transfer_size = self.parse_bulk_in_header(&data).unwrap();
+
+                            log_trace!(self.logger, "FIRST !!!! Data {:?}", transfer_size);
+
+                            is_first = false;
+                            remaining_data = transfer_size + 12; // 12 => bulkin usbtmc header size
+                        }
+
+                        // log
+                        log_trace!(self.logger, "Data received (pack len:{:?}): ", data.len());
+
                         // log
                         log_trace!(
                             self.logger,
                             "Data received (len:{:?}): {:?}",
-                            data.len(),
+                            remaining_data,
                             data
                         );
 
-                        // Check if this is the end of the message
-                        if data.len() >= self.max_packet_size_in * 8  {
-                            is_eom = false;
-                        }
-                        else {
-                            is_eom = true;
+                        if remaining_data >= data.len() {
+                            remaining_data -= data.len();
+
+                            // Append the payload to the complete data
+                            complete_data.extend(data);
+                        } else {
+                            complete_data.extend(&data[..remaining_data]);
+                            remaining_data = 0;
                         }
 
-                        // Append the payload to the complete data
-                        complete_data.extend(data);
+                        // Check if this is the end of the message
+                        if remaining_data > 0 {
+                            is_eom = false;
+                        } else {
+                            is_eom = true;
+                        }
                     }
                     Err(_e) => return Err(format_driver_error!("Unable to read on USB")),
                 },
