@@ -59,11 +59,6 @@ colored = "2.0.0"
 # Usb driver library
 # 
 nusb = "0.1.9"
-#
-# 
-# usbtmc-message = { git = "https://github.com/Panduza/pza-rust-usbtmc-message", tag = "0.0.0" }
-usbtmc-message = { path = "C:/Users/rodriguez.NET/Documents/workspace/50-PROJET/XX-XXXX-PZA/pza-rust-usbtmc-message" }
-
 
 # === feature => serial
 # 
@@ -92,3 +87,8 @@ usb = []
 # Build serial drivers
 # 
 serial = ["tokio-serial", "serial2-tokio", "serial-line-ip", "usb"]
+
+# Display perf mesurement on log info
+# Allow perf measurement when the code is built in release
+# 
+measure = []

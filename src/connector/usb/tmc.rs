@@ -1,51 +1,12 @@
 use super::Settings as UsbSettings;
-use crate::protocol::AsciiCmdRespProtocol;
 use crate::std::class::repl::ReplProtocol;
 use crate::{format_driver_error, log_trace, log_warn, Error, Logger};
 use async_trait::async_trait;
 use byteorder::{ByteOrder, LittleEndian};
 
-use futures::executor::block_on;
 use nusb::Interface as UsbInterface;
-// use nusb::{transfer::Direction, transfer::EndpointType, Interface};
-// use serial2_tokio::SerialPort;
 use std::sync::Arc;
-// use std::time::Duration;
 use tokio::sync::Mutex;
-// use tokio::time::timeout;
-use usbtmc_message::Sequencer;
-
-///
-///
-#[derive(Copy, Clone)]
-pub enum MsgID {
-    DevDepMsgOut = 1,
-    DevDepMsgIn = 2,
-    VendorSpecificOut = 126,
-    VendorSpecificIn = 127,
-}
-
-impl MsgID {
-    pub const DEV_DEP_MSG_OUT: MsgID = MsgID::DevDepMsgOut;
-
-    pub const REQUEST_DEV_DEP_MSG_IN: MsgID = MsgID::DevDepMsgIn;
-    pub const DEV_DEP_MSG_IN: MsgID = MsgID::DevDepMsgIn;
-
-    pub const VENDOR_SPECIFIC_OUT: MsgID = MsgID::VendorSpecificOut;
-
-    pub const REQUEST_VENDOR_SPECIFIC_IN: MsgID = MsgID::VendorSpecificIn;
-    pub const VENDOR_SPECIFIC_IN: MsgID = MsgID::VendorSpecificIn;
-
-    pub fn from_u8_array(value: u8) -> Option<MsgID> {
-        match value {
-            1 => Some(MsgID::DevDepMsgOut),
-            2 => Some(MsgID::DevDepMsgIn),
-            126 => Some(MsgID::VendorSpecificOut),
-            127 => Some(MsgID::VendorSpecificIn),
-            _ => None,
-        }
-    }
-}
 
 ///
 ///
@@ -60,7 +21,7 @@ pub struct Driver {
     endpoint_in: u8,
     endpoint_out: u8,
     max_packet_size_in: usize,
-    max_packet_size_out: usize,
+
     /// Index of the next out request
     b_tag_index: u8,
 
@@ -116,7 +77,6 @@ impl Driver {
             endpoint_in: endpoint_in,
             endpoint_out: endpoint_out,
             max_packet_size_in: max_packet_size_in,
-            max_packet_size_out: max_packet_size_out,
             b_tag_index: 0,
             out_buffers: vec![
                 (0, vec![0; max_packet_size_out]),
@@ -214,15 +174,29 @@ impl Driver {
         self.out_buffers_count = 2;
     }
 
-    ///
+    /// Prepare the first bulk_out message
     ///
     fn prepare_first_bulk_out_request_message(
         out_buffer: &mut (usize, Vec<u8>),
         b_tag: u8,
         data: &[u8],
     ) {
+        //
+        // Prepare logger
+        let logger = Logger::new_isolated("prepare_first_bulk_out_request_message");
+        log_trace!(
+            logger,
+            "Prepare first bulk out (max size ={:?} Bytes) for (len={:?} Bytes) message={:?}",
+            out_buffer.1.len(),
+            data.len(),
+            data
+        );
+
+        //
+        // Initialize attributes
         let mut bm_transfer_attributes = 0x00;
 
+        //
         // out_buffer big enough
         if out_buffer.1.len() >= (data.len() + 12) {
             bm_transfer_attributes = 0x01; // EOM (end of message)
@@ -292,7 +266,7 @@ impl Driver {
         Ok(transfer_size)
     }
 
-    ///
+    /// Perform echanges with the device
     ///
     pub async fn execute_command(
         &mut self,
@@ -324,16 +298,20 @@ impl Driver {
                 .await
                 .into_result()
             {
-                Ok(val) => val,
+                Ok(val) => {
+                    log_trace!(self.logger, "BULK_OUT response {:?}", &val);
+                }
                 Err(_e) => return Err(format_driver_error!("Unable to write on USB")),
             };
         }
 
+        //
+        // Prepare bulk_in reception
         let mut is_first: bool = true;
         let mut remaining_data = 0;
         let mut is_eom = false;
-
         while !is_eom {
+            // Prepare a new buffer
             let response_buffer = nusb::transfer::RequestBuffer::new(self.max_packet_size_in);
 
             // log
@@ -425,81 +403,83 @@ impl Driver {
 
 #[async_trait]
 impl ReplProtocol for Driver {
-    ///
-    /// Send a command and return the response
+    /// Send a command and return the response as a string
     ///
     async fn eval(&mut self, command: String) -> Result<String, Error> {
-        // log
-        log_trace!(self.logger, "Eval: {}", command);
+        // Log
+        log_trace!(self.logger, "Eval: {:?}", command);
 
+        // Execute command
         let mut response = Vec::new();
         self.execute_command(command.as_bytes(), &mut response)
             .await?;
 
-        log_trace!(self.logger, "pppppp {:?}", response);
-
-        Ok("top".to_string())
-    }
-}
-
-#[async_trait]
-impl AsciiCmdRespProtocol for Driver {
-    ///
-    ///
-    ///
-    async fn send(&mut self, _command: &String) -> Result<(), Error> {
-        // //
-        // // Append EOL to the command
-        // let mut command_buffer = command.clone().into_bytes();
-        // command_buffer.extend(&self.eol);
-
-        // //
-        // // Write
-        // self.port
-        //     .write(command_buffer.as_slice())
-        //     .await
-        //     .map_err(|e| format_driver_error!("Unable to write on serial port: {:?}", e))?;
-
-        Ok(())
-    }
-
-    ///
-    ///
-    ///
-    async fn ask(&mut self, command: &String) -> Result<String, Error> {
-        // Create a sequencer with a max_sequence_length of 64 (depend on your device)
-        let mut sequencer = Sequencer::new(self.max_packet_size_out as u32);
-
-        // Create a message sequence from a command
-        let sequence = sequencer.command_to_message_sequence(command.clone());
-
-        // Send the sequence on the usb
-        for i in 0..sequence.len() {
-            let message = sequence[i].to_vec();
-            // SEND TO USB
-            match block_on(
-                self.usb_interface
-                    .bulk_out(self.endpoint_out, message.to_vec()),
-            )
-            .into_result()
-            {
-                Ok(val) => val,
-                Err(_e) => return Err(format_driver_error!("Unable to write on USB")),
-            };
+        // Prepare
+        match String::from_utf8(response) {
+            Ok(s) => Ok(s),
+            Err(_) => Ok("Cannot convert the payload into string".to_string()),
         }
-
-        let response = nusb::transfer::RequestBuffer::new(self.max_packet_size_in);
-
-        // Receive data form the usb
-        let data =
-            match block_on(self.usb_interface.bulk_in(self.endpoint_in, response)).into_result() {
-                Ok(val) => val,
-                Err(_e) => return Err(format_driver_error!("Unable to read on USB")),
-            };
-
-        // Parse the received data
-        let msg = usbtmc_message::BulkInMessage::from_u8_array(&data);
-
-        Ok(msg.payload_as_string())
     }
 }
+
+// #[async_trait]
+// impl AsciiCmdRespProtocol for Driver {
+//     ///
+//     ///
+//     ///
+//     async fn send(&mut self, _command: &String) -> Result<(), Error> {
+//         // //
+//         // // Append EOL to the command
+//         // let mut command_buffer = command.clone().into_bytes();
+//         // command_buffer.extend(&self.eol);
+
+//         // //
+//         // // Write
+//         // self.port
+//         //     .write(command_buffer.as_slice())
+//         //     .await
+//         //     .map_err(|e| format_driver_error!("Unable to write on serial port: {:?}", e))?;
+
+//         Ok(())
+//     }
+
+//     ///
+//     ///
+//     ///
+//     async fn ask(&mut self, command: &String) -> Result<String, Error> {
+//         // Create a sequencer with a max_sequence_length of 64 (depend on your device)
+//         let mut sequencer = Sequencer::new(self.max_packet_size_out as u32);
+
+//         // Create a message sequence from a command
+//         let sequence = sequencer.command_to_message_sequence(command.clone());
+
+//         // Send the sequence on the usb
+//         for i in 0..sequence.len() {
+//             let message = sequence[i].to_vec();
+//             // SEND TO USB
+//             match block_on(
+//                 self.usb_interface
+//                     .bulk_out(self.endpoint_out, message.to_vec()),
+//             )
+//             .into_result()
+//             {
+//                 Ok(val) => val,
+//                 Err(_e) => return Err(format_driver_error!("Unable to write on USB")),
+//             };
+//         }
+
+//         let response = nusb::transfer::RequestBuffer::new(self.max_packet_size_in);
+
+//         // Receive data form the usb
+//         let data =
+//             match block_on(self.usb_interface.bulk_in(self.endpoint_in, response)).into_result() {
+//                 Ok(val) => val,
+//                 Err(_e) => return Err(format_driver_error!("Unable to read on USB")),
+//             };
+
+//         // Parse the received data
+//         let msg = usbtmc_message::BulkInMessage::from_u8_array(&data);
+
+//         Ok(msg.payload_as_string())
+//     }
+// }
