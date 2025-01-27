@@ -61,6 +61,12 @@ pub struct Driver {
     endpoint_out: u8,
     max_packet_size_in: usize,
     max_packet_size_out: usize,
+    /// Index of the next out request
+    b_tag_index: u8,
+
+    ///
+    out_buffers: Vec<(usize, Vec<u8>)>,
+    out_buffers_count: usize,
 }
 
 impl Driver {
@@ -111,6 +117,13 @@ impl Driver {
             endpoint_out: endpoint_out,
             max_packet_size_in: max_packet_size_in,
             max_packet_size_out: max_packet_size_out,
+            b_tag_index: 0,
+            out_buffers: vec![
+                (0, vec![0; max_packet_size_out]),
+                (0, vec![0; max_packet_size_out]),
+                (0, vec![0; max_packet_size_out]),
+            ],
+            out_buffers_count: 0,
         })
     }
 
@@ -182,6 +195,82 @@ impl Driver {
         ))
     }
 
+    /// Increment b_tag and return the new value
+    ///
+    fn next_b_tag(&mut self) -> u8 {
+        self.b_tag_index = (self.b_tag_index % 255) + 1;
+        self.b_tag_index
+    }
+
+    /// Prepare the sequence of bulk_out requests
+    ///
+    fn prepare_request_sequence(&mut self, data: &[u8]) {
+        //
+        let b_tag = self.next_b_tag();
+        Self::prepare_first_bulk_out_request_message(&mut self.out_buffers[0], b_tag, data);
+
+        Self::prepare_bulk_in_request_message(&mut self.out_buffers[1], b_tag);
+
+        self.out_buffers_count = 2;
+    }
+
+    ///
+    ///
+    fn prepare_first_bulk_out_request_message(
+        out_buffer: &mut (usize, Vec<u8>),
+        b_tag: u8,
+        data: &[u8],
+    ) {
+        let mut bm_transfer_attributes = 0x00;
+
+        // out_buffer big enough
+        if out_buffer.1.len() >= (data.len() + 12) {
+            bm_transfer_attributes = 0x01; // EOM (end of message)
+            out_buffer.1[12..12 + data.len()].copy_from_slice(data);
+            out_buffer.0 = 12 + data.len();
+        }
+        // out_buffer not big enough
+        else {
+            let last_index = out_buffer.1.len() - 12;
+            out_buffer.1[12..&data[..last_index].len() + 12].copy_from_slice(&data[..last_index]);
+            out_buffer.0 = out_buffer.1.len();
+        }
+
+        // TMC Header
+        out_buffer.1[0] = 1; // DevDepMsgOut
+        out_buffer.1[1] = b_tag;
+        out_buffer.1[2] = !b_tag & 0xFF; // b_tag_inverse
+        out_buffer.1[3] = 0x00;
+
+        // Out Header
+        let transfer_size: usize = data.len();
+        LittleEndian::write_u32(&mut out_buffer.1[4..8], transfer_size as u32);
+        out_buffer.1[8] = bm_transfer_attributes;
+        out_buffer.1[9] = 0x00;
+        out_buffer.1[10] = 0x00;
+        out_buffer.1[11] = 0x00;
+    }
+
+    ///
+    ///
+    fn prepare_bulk_in_request_message(out_buffer: &mut (usize, Vec<u8>), b_tag: u8) {
+        // TMC Header
+        out_buffer.1[0] = 2; // DevDepMsgIn
+        out_buffer.1[1] = b_tag;
+        out_buffer.1[2] = !b_tag & 0xFF; // b_tag_inverse
+        out_buffer.1[3] = 0x00;
+
+        // Out Header
+        let transfer_size: usize = out_buffer.1.len();
+        LittleEndian::write_u32(&mut out_buffer.1[4..8], transfer_size as u32);
+        out_buffer.1[8] = 0x00;
+        out_buffer.1[9] = 0x00;
+        out_buffer.1[10] = 0x00;
+        out_buffer.1[11] = 0x00;
+
+        out_buffer.0 = 12;
+    }
+
     ///
     ///
     fn parse_bulk_in_header(&self, data: &Vec<u8>) -> Result<usize, Error> {
@@ -192,34 +281,38 @@ impl Driver {
 
         Ok(transfer_size)
     }
-}
 
-#[async_trait]
-impl ReplProtocol for Driver {
     ///
-    /// Send a command and return the response
     ///
-    async fn eval(&mut self, command: String) -> Result<String, Error> {
-        // log
-        log_trace!(self.logger, "Eval: {}", command);
+    pub async fn execute_command(
+        &mut self,
+        command: &[u8],
+        response: &mut Vec<u8>,
+    ) -> Result<(), Error> {
+        //
+        // Prepare Request Sequence
+        self.prepare_request_sequence(command);
 
-        // let factor = 4;
-
-        // Create a sequencer with a max_sequence_length of 64 (depend on your device)
-        let mut sequencer = Sequencer::new(self.max_packet_size_out as u32);
-
-        // Create a message sequence from a command
-        let sequence = sequencer.command_to_message_sequence(command.clone());
-
+        //
         // Send the sequence on the usb
-        for i in 0..sequence.len() {
-            let message = sequence[i].to_vec();
+        for i in 0..self.out_buffers_count {
+            // Prepare data to be send
+            let packet_size = self.out_buffers[i].0;
+            let message = self.out_buffers[i].1[..packet_size].to_vec();
+            log_trace!(
+                self.logger,
+                "BULK_OUT {:?} ({:?} Bytes) > {:?}",
+                i,
+                packet_size,
+                &message
+            );
+
             // SEND TO USB
-            match block_on(
-                self.usb_interface
-                    .bulk_out(self.endpoint_out, message.to_vec()),
-            )
-            .into_result()
+            match self
+                .usb_interface
+                .bulk_out(self.endpoint_out, message)
+                .await
+                .into_result()
             {
                 Ok(val) => val,
                 Err(_e) => return Err(format_driver_error!("Unable to write on USB")),
@@ -228,24 +321,22 @@ impl ReplProtocol for Driver {
 
         let mut is_first: bool = true;
         let mut remaining_data = 0;
-        let mut complete_data = Vec::new();
         let mut is_eom = false;
 
         while !is_eom {
-            let response = nusb::transfer::RequestBuffer::new(self.max_packet_size_in);
+            let response_buffer = nusb::transfer::RequestBuffer::new(self.max_packet_size_in);
 
             // log
-            log_trace!(self.logger, "Wait for bulk_in data...");
+            log_trace!(self.logger, "BULK_IN wait...");
 
             // Receive data from the usb
             match tokio::time::timeout(
                 std::time::Duration::from_secs(1),
-                self.usb_interface.bulk_in(self.endpoint_in, response),
+                self.usb_interface
+                    .bulk_in(self.endpoint_in, response_buffer),
             )
             .await
             {
-                // TODO
-                // Read the header first time then read until all data is received
                 Ok(val) => match val.into_result() {
                     Ok(data) => {
                         //
@@ -254,31 +345,53 @@ impl ReplProtocol for Driver {
                             // Parse the received data
                             let transfer_size = self.parse_bulk_in_header(&data).unwrap();
 
-                            log_trace!(self.logger, "FIRST !!!! Data {:?}", transfer_size);
+                            //
+                            log_trace!(
+                                self.logger,
+                                "FIRST packet received transfert_total = {:?}",
+                                transfer_size
+                            );
 
                             is_first = false;
                             remaining_data = transfer_size + 12; // 12 => bulkin usbtmc header size
+
+                            //
+                            log_trace!(
+                                self.logger,
+                                "Remains = {:?} vs Data.len = {:?}",
+                                remaining_data,
+                                data.len()
+                            );
+
+                            if remaining_data >= data.len() {
+                                remaining_data -= data.len();
+                                response.extend(&data[12..]);
+                            } else {
+                                response.extend(&data[12..remaining_data]);
+                                remaining_data = 0;
+                            }
                         }
+                        //
+                        //
+                        else {
+                            // log
+                            log_trace!(
+                                self.logger,
+                                "Data received (len:{:?}): {:?}",
+                                data.len(),
+                                data
+                            );
+                            log_trace!(self.logger, "Remaining data {:?}", remaining_data);
 
-                        // log
-                        log_trace!(self.logger, "Data received (pack len:{:?}): ", data.len());
+                            if remaining_data >= data.len() {
+                                remaining_data -= data.len();
 
-                        // log
-                        log_trace!(
-                            self.logger,
-                            "Data received (len:{:?}): {:?}",
-                            remaining_data,
-                            data
-                        );
-
-                        if remaining_data >= data.len() {
-                            remaining_data -= data.len();
-
-                            // Append the payload to the complete data
-                            complete_data.extend(data);
-                        } else {
-                            complete_data.extend(&data[..remaining_data]);
-                            remaining_data = 0;
+                                // Append the payload to the complete data
+                                response.extend(data);
+                            } else {
+                                response.extend(&data[..remaining_data]);
+                                remaining_data = 0;
+                            }
                         }
 
                         // Check if this is the end of the message
@@ -291,24 +404,31 @@ impl ReplProtocol for Driver {
                     Err(_e) => return Err(format_driver_error!("Unable to read on USB")),
                 },
                 Err(_) => {
-                    log_trace!(self.logger, "Timeout while reading from USB");
-                    return Ok("Timeout while reading from USB".to_string());
+                    return Err(format_driver_error!("Timeout while reading from USB"));
                 }
             };
         }
 
-        // Parse the received data
-        let msg = usbtmc_message::BulkInMessage::from_u8_array(&complete_data);
+        Ok(())
+    }
+}
 
-        log_trace!(
-            self.logger,
-            "end Data {:?}: {:?}",
-            msg.bulk_in_header().is_eom(),
-            msg.bulk_in_header().transfer_size()
-        );
+#[async_trait]
+impl ReplProtocol for Driver {
+    ///
+    /// Send a command and return the response
+    ///
+    async fn eval(&mut self, command: String) -> Result<String, Error> {
+        // log
+        log_trace!(self.logger, "Eval: {}", command);
 
-        // Return the payload as a string no matter what
-        Ok(msg.payload_as_string())
+        let mut response = Vec::new();
+        self.execute_command(command.as_bytes(), &mut response)
+            .await?;
+
+        log_trace!(self.logger, "pppppp {:?}", response);
+
+        Ok("top".to_string())
     }
 }
 
