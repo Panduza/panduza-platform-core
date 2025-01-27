@@ -227,7 +227,17 @@ impl Driver {
         if out_buffer.1.len() >= (data.len() + 12) {
             bm_transfer_attributes = 0x01; // EOM (end of message)
             out_buffer.1[12..12 + data.len()].copy_from_slice(data);
+
             out_buffer.0 = 12 + data.len();
+
+            // Manage padding on 32bits
+            let need_padding = 4 - (out_buffer.0 % 4);
+            if need_padding > 0 {
+                for i in 0..need_padding {
+                    out_buffer.1[out_buffer.0 + i] = 0;
+                }
+                out_buffer.0 += need_padding;
+            }
         }
         // out_buffer not big enough
         else {
@@ -261,7 +271,7 @@ impl Driver {
         out_buffer.1[3] = 0x00;
 
         // Out Header
-        let transfer_size: usize = out_buffer.1.len();
+        let transfer_size: usize = 1024 * 50;
         LittleEndian::write_u32(&mut out_buffer.1[4..8], transfer_size as u32);
         out_buffer.1[8] = 0x00;
         out_buffer.1[9] = 0x00;
