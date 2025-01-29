@@ -1,4 +1,5 @@
 use super::Settings as UsbSettings;
+// use crate::protocol::BinaryCmdRespProtocol;
 use crate::std::class::repl::ReplProtocol;
 use crate::{format_driver_error, log_trace, log_warn, Error, Logger};
 use async_trait::async_trait;
@@ -270,6 +271,44 @@ impl Driver {
 
     /// Perform echanges with the device
     ///
+    pub async fn send_command(&mut self, command: &[u8]) -> Result<(), Error> {
+        //
+        // Prepare Request Sequence
+        self.prepare_request_sequence(command);
+
+        //
+        // Send the sequence on the usb
+        for i in 0..self.out_buffers_count {
+            // Prepare data to be send
+            let packet_size = self.out_buffers[i].0;
+            let message = self.out_buffers[i].1[..packet_size].to_vec();
+            log_trace!(
+                self.logger,
+                "BULK_OUT {:?} ({:?} Bytes) > {:?}",
+                i,
+                packet_size,
+                &message
+            );
+
+            // SEND TO USB
+            match self
+                .usb_interface
+                .bulk_out(self.endpoint_out, message)
+                .await
+                .into_result()
+            {
+                Ok(val) => {
+                    log_trace!(self.logger, "BULK_OUT response {:?}", &val);
+                }
+                Err(_e) => return Err(format_driver_error!("Unable to write on USB")),
+            };
+        }
+
+        Ok(())
+    }
+
+    /// Perform echanges with the device
+    ///
     pub async fn execute_command(
         &mut self,
         command: &[u8],
@@ -423,6 +462,19 @@ impl ReplProtocol for Driver {
         }
     }
 }
+
+// #[async_trait]
+// ///
+// ///
+// impl BinaryCmdRespProtocol for Driver {
+//     /// Just send a command and does not expect any response
+//     ///
+//     async fn send(&mut self, command: &[u8]) -> Result<(), Error> {}
+
+//     /// Send a command and return the response
+//     ///
+//     async fn ask(&mut self, command: &[u8], response: &mut [u8]) -> Result<usize, Error> {}
+// }
 
 // #[async_trait]
 // impl AsciiCmdRespProtocol for Driver {
