@@ -45,9 +45,11 @@ impl Driver {
         let logger = Logger::new_for_driver("usb", "tmc");
 
         // Find the USB device
-        let dev = settings.find_usb_device();
+        let dev = settings.find_usb_device().ok_or(Error::DriverError(
+            "Unable to find the USB device".to_string(),
+        ))?;
 
-        let device: nusb::Device = match dev.unwrap().open() {
+        let device: nusb::Device = match dev.open() {
             Ok(val) => val,
             Err(_e) => return Err(format_driver_error!("Unable to open USB device")),
         };
