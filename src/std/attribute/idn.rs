@@ -16,7 +16,7 @@ pub trait IdnReader: Sync + Send {
 ///
 pub async fn mount<C: Container, I: IdnReader>(
     mut parent: C,
-    connector: Arc<Mutex<I>>,
+    interface: Arc<Mutex<I>>,
 ) -> Result<(), Error> {
     //
     // Create attribute
@@ -34,7 +34,7 @@ pub async fn mount<C: Container, I: IdnReader>(
 
     //
     // Just init
-    let idn = connector.lock().await.read_idn().await?;
+    let idn = interface.lock().await.read_idn().await?;
     log_debug!(logger, "IDN ({:?})", &idn);
     att_identity.set(idn).await?;
 
