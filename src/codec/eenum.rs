@@ -74,12 +74,12 @@ impl MessageCodec for EnumCodec {
     ///
     fn from_message_payload(data: &bytes::Bytes) -> Result<EnumCodec, Error> {
         // Convert incoming bytes into a str
-        let data_as_string = String::from_utf8(data.to_vec())
-            .map_err(|e| Error::DeserializeFailure(e.to_string()))?;
+        let data_as_string =
+            String::from_utf8(data.to_vec()).map_err(|e| Error::DeserializeError(e.to_string()))?;
 
         // Deserialize the string
         let p: EnumCodec = serde_json::from_str(data_as_string.as_str()).map_err(|e| {
-            Error::DeserializeFailure(format!("serde_json fail on : {}", e.to_string()))
+            Error::DeserializeError(format!("serde_json fail on : {}", e.to_string()))
         })?;
 
         // Return

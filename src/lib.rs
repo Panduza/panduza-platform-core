@@ -172,3 +172,6 @@ pub use props::Props;
 ///
 ///
 pub mod std;
+
+pub mod stable_number;
+pub use stable_number::StableNumber;

@@ -1,6 +1,6 @@
 // use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::{Error, MessageCodec};
+use crate::{Error, MessageCodec, StableNumber};
 
 use std::fmt::Write;
 
@@ -38,7 +38,13 @@ impl SiCodec {
     pub fn into_f32(&self) -> Result<f32, Error> {
         self.value
             .parse()
-            .map_err(|e| Error::DeserializeFailure(format!("{:?}", e)))
+            .map_err(|e| Error::DeserializeError(format!("{:?}", e)))
+    }
+
+    pub fn into_stable_number(&self) -> StableNumber {
+        StableNumber {
+            value: self.value.clone(),
+        }
     }
 }
 

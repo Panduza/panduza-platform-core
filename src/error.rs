@@ -19,7 +19,7 @@ pub enum Error {
     #[error("Error during serialization")]
     SerializeFailure(String),
     #[error("Error during deserialization")]
-    DeserializeFailure(String),
+    DeserializeError(String),
     #[error("Error related to plugin management")]
     PluginError(String),
     #[error("Error managing a cross task channel")]
