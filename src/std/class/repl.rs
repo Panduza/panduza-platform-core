@@ -78,7 +78,7 @@ async fn on_command<I: ReplProtocol + 'static>(
     while let Some(command) = att_command.pop_cmd().await {
         //
         // Log
-        log_debug!(logger, "Command received '{:?}'", command);
+        log_debug!(logger, "Command received {:?}", command);
         let response = connector.lock().await.eval(command).await?;
         att_response.set(response).await?;
     }

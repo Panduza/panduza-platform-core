@@ -40,22 +40,34 @@ impl Logger {
         };
     }
 
-    ///  Create a logger configured for platform from its name
+    /// Create a logger configured for platform from its name
     ///
     pub fn new_for_platform() -> Self {
         Self::new("Platform", "", "", "")
     }
 
-    ///  Create a logger configured for runtime from its name
+    /// Create a logger configured for runtime from its name
     ///
     pub fn new_for_runtime() -> Self {
         Self::new("Runtime", "", "", "")
     }
 
-    ///  Create a logger configured for instance from its name
+    /// Create a logger configured for instance from its name
     ///
     pub fn new_for_instance<A: Into<String>>(name: A) -> Self {
         Self::new("Instance", name.into(), "", "")
+    }
+
+    /// Create a logger configured for drivers
+    ///
+    pub fn new_for_driver<A: Into<String>, B: Into<String>>(phy: A, prot: B) -> Self {
+        Self::new("Driver", phy.into(), prot.into(), "")
+    }
+
+    /// Create a logger configured for isolated instance (ex: function without object)
+    ///
+    pub fn new_isolated<A: Into<String>>(name: A) -> Self {
+        Self::new("Isolated", name.into(), "", "")
     }
 
     /// Create a logger configured for attribute from its topic
