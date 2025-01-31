@@ -3,12 +3,12 @@ use std::time::Duration;
 use crate::format_driver_error;
 use crate::Error;
 
+use serial2_tokio::CharSize;
+use serial2_tokio::FlowControl;
+use serial2_tokio::Parity;
+use serial2_tokio::StopBits;
 use tokio_serial::available_ports as available_serial_ports;
-use tokio_serial::DataBits;
-use tokio_serial::FlowControl;
-use tokio_serial::Parity;
 use tokio_serial::SerialPortInfo;
-use tokio_serial::StopBits;
 use tokio_serial::UsbPortInfo;
 
 use crate::connector::usb::Settings as UsbSettings;
@@ -25,7 +25,7 @@ pub struct Settings {
     /// The baud rate in symbols-per-second
     pub baudrate: u32,
     /// Number of bits used to represent a character sent on the line
-    pub data_bits: DataBits,
+    pub data_bits: CharSize,
     /// The type of signalling to use for controlling data transfer
     pub flow_control: FlowControl,
     /// The type of parity to use for error checking
@@ -44,7 +44,7 @@ impl Settings {
         Settings {
             port_name: None,
             baudrate: 9600,
-            data_bits: DataBits::Eight,
+            data_bits: CharSize::Bits8,
             flow_control: FlowControl::None,
             parity: Parity::None,
             stop_bits: StopBits::One,
@@ -118,6 +118,20 @@ impl Settings {
     ///
     pub fn set_baudrate(mut self, baudrate: u32) -> Self {
         self.baudrate = baudrate;
+        self
+    }
+
+    /// Set one stop bit
+    ///
+    pub fn set_one_stop_bit(mut self) -> Self {
+        self.stop_bits = StopBits::One;
+        self
+    }
+
+    /// Set two stop bits
+    ///
+    pub fn set_two_stop_bits(mut self) -> Self {
+        self.stop_bits = StopBits::Two;
         self
     }
 
@@ -278,12 +292,12 @@ impl Settings {
         return matchhh;
     }
 
-    /// Set the flow control
-    ///
-    pub fn set_data_bits(mut self, data_bits: DataBits) -> Self {
-        self.data_bits = data_bits;
-        self
-    }
+    // /// Set the flow control
+    // ///
+    // pub fn set_data_bits(mut self, data_bits: DataBits) -> Self {
+    //     self.data_bits = data_bits;
+    //     self
+    // }
 
     /// Set the read timeout
     ///
