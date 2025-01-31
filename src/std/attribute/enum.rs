@@ -7,20 +7,20 @@ use tokio::sync::Mutex;
 #[async_trait]
 ///
 ///
-pub trait BooleanAccessorModel: Sync + Send {
+pub trait StringAccessorModel: Sync + Send {
     ///
     ///
-    async fn get_enum_value_at(&mut self, index: usize) -> Result<String, Error>;
+    async fn get_string_at(&mut self, index: usize) -> Result<String, Error>;
     ///
     ///
-    async fn set_enum_value_at(&mut self, index: usize, value: &String) -> Result<(), Error>;
+    async fn set_string_at(&mut self, index: usize, value: &String) -> Result<(), Error>;
 }
 
 /// Mount the identity attribute in parent container
 ///
 pub async fn mount<
     C: Container,
-    I: BooleanAccessorModel + 'static,
+    I: StringAccessorModel + 'static,
     N: Into<String>,
     F: Into<String>,
     S: Into<String>,
@@ -48,7 +48,7 @@ pub async fn mount<
 
     //
     // Just init
-    let value = interface.lock().await.get_enum_value_at(index).await?;
+    let value = interface.lock().await.get_string_at(index).await?;
     log_debug!(logger, "Initial value ({:?})", &value);
     att_boolean_rw.set(value).await?;
 
@@ -69,7 +69,7 @@ pub async fn mount<
 
 ///
 ///
-async fn on_command<I: BooleanAccessorModel + 'static>(
+async fn on_command<I: StringAccessorModel + 'static>(
     mut att: EnumAttServer,
     interface: Arc<Mutex<I>>,
     index: usize,
@@ -83,11 +83,11 @@ async fn on_command<I: BooleanAccessorModel + 'static>(
             Ok(v) => {
                 //
                 //
-                interface.lock().await.set_enum_value_at(index, &v).await?;
+                interface.lock().await.set_string_at(index, &v).await?;
 
                 //
                 // Read back
-                let read_back_value = interface.lock().await.get_enum_value_at(index).await?;
+                let read_back_value = interface.lock().await.get_string_at(index).await?;
                 att.set(read_back_value).await?;
             }
             Err(_) => {}
