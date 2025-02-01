@@ -171,8 +171,7 @@ impl<TYPE: MessageCodec> AttServer<TYPE> {
         match self.requested_value.clone() {
             Some(requested_value) => {
                 self.publish(requested_value.into_message_payload()?)
-                    .await
-                    .unwrap();
+                    .await?;
             }
             None => {
                 return Err(Error::Wtf);
@@ -188,10 +187,17 @@ impl<TYPE: MessageCodec> AttServer<TYPE> {
     where
         V: Into<Vec<u8>>,
     {
+        let value = value.into();
+        let pyl_size = value.len();
+
         self.message_client
             .publish(&self.topic_att, QoS::AtMostOnce, true, value)
             .await
-            .map_err(|e| Error::MessageAttributePublishError(e.to_string()))
+            .map_err(|e| Error::PublishError {
+                topic: self.topic_att.clone(),
+                pyl_size: pyl_size,
+                cause: e.to_string(),
+            })
     }
 
     /// Request attribute server disabling
