@@ -3,6 +3,7 @@ use crate::format_driver_error;
 use crate::log_debug;
 use crate::{DriverLogger, Error};
 use serial2_tokio::SerialPort;
+use serial2_tokio::Settings;
 
 /// Create a new instance of the driver
 ///
@@ -23,8 +24,18 @@ pub fn open(settings: &SerialSettings) -> Result<(DriverLogger, SerialPort), Err
 
     //
     // Open port
-    let port = SerialPort::open(&port_name, settings.baudrate)
-        .map_err(|e| format_driver_error!("Port {:?} {:?}", &port_name, e))?;
+    let port = SerialPort::open(&port_name, |mut serial2_settings: Settings| {
+        serial2_settings.set_baud_rate(settings.baudrate)?;
+        serial2_settings.set_char_size(settings.data_bits);
+        serial2_settings.set_stop_bits(settings.stop_bits);
+        serial2_settings.set_parity(settings.parity);
+        serial2_settings.set_flow_control(settings.flow_control);
+
+        log_debug!(logger, "Settings used : {:?}", &serial2_settings);
+
+        Ok(serial2_settings)
+    })
+    .map_err(|e| format_driver_error!("Port {:?} {:?}", &port_name, e))?;
 
     //
     // Debug logs
