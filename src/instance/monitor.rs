@@ -124,7 +124,7 @@ impl InstanceMonitor {
                         // Debug log when the sub task crash
                         self.device
                             .logger
-                            .error(format!("Instance sub task crash: {:?}", e));
+                            .error(format!("Instance sub task crash: {}", e));
 
                         self.subtask_pool.abort_all();
 

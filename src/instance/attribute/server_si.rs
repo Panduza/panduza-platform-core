@@ -2,7 +2,7 @@ use std::{future::Future, sync::Arc};
 use tokio::sync::Mutex;
 
 use super::server::AttServer;
-use crate::{generic_att_server_methods, AttributeBuilder, Error, Logger, SiCodec};
+use crate::{generic_att_server_methods, AttributeBuilder, Error, Logger, SiCodec, StableNumber};
 
 ///
 ///
@@ -56,6 +56,17 @@ impl SiAttServer {
         }
     }
 
+    /// Get the value of the attribute
+    /// If None, the first value is not yet received
+    ///
+    pub async fn pop_cmd(&mut self) -> Option<StableNumber> {
+        self.inner
+            .lock()
+            .await
+            .pop_cmd()
+            .and_then(|v| Some(v.into_stable_number()))
+    }
+
     ///
     /// Get the value of the attribute
     /// If None, the first value is not yet received
@@ -66,6 +77,18 @@ impl SiAttServer {
             .await
             .pop_cmd()
             .and_then(|v| Some(v.into_f32()))
+    }
+
+    /// Set the value of the attribute
+    ///
+    pub async fn set(&self, value: &StableNumber) -> Result<(), Error> {
+        let v = value.try_into_f32()?;
+        self.inner
+            .lock()
+            .await
+            .set(SiCodec::from_f32(v, self.decimals))
+            .await?;
+        Ok(())
     }
 
     /// Set the value of the attribute

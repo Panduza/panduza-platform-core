@@ -36,7 +36,11 @@ impl MessageHandler for PzaScanMessageHandler {
                 format!("{}", now.timestamp_millis()),
             )
             .await
-            .map_err(|e| Error::MessageAttributePublishError(e.to_string()))?;
+            .map_err(|e| Error::PublishError {
+                topic: "pza".to_string(),
+                pyl_size: now.timestamp_millis().to_string().len(),
+                cause: e.to_string(),
+            })?;
         Ok(())
     }
 }

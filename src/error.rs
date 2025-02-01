@@ -2,8 +2,12 @@ use thiserror::Error as ThisError;
 
 #[derive(ThisError, Debug, Clone)]
 pub enum Error {
-    #[error("Cannot publish to the message attribute topic")]
-    MessageAttributePublishError(String),
+    #[error("Cannot publish message ({pyl_size:?} bytes) on topic {topic:?} because {cause:?}")]
+    PublishError {
+        topic: String,
+        pyl_size: usize,
+        cause: String,
+    },
     #[error("Cannot subscribe to the message attribute topic")]
     MessageAttributeSubscribeError(String),
     #[error("Internal weak pointer cannot be upgraded")]
@@ -19,7 +23,7 @@ pub enum Error {
     #[error("Error during serialization")]
     SerializeFailure(String),
     #[error("Error during deserialization")]
-    DeserializeFailure(String),
+    DeserializeError(String),
     #[error("Error related to plugin management")]
     PluginError(String),
     #[error("Error managing a cross task channel")]

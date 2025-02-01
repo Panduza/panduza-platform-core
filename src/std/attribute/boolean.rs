@@ -1,14 +1,32 @@
-use super::accessor_model::AccessorModel;
+use crate::Error;
 use crate::{
     log_debug, log_debug_mount_end, log_debug_mount_start, spawn_on_command, BooleanAttServer,
-    Container, Error,
+    Container,
 };
+use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
+#[async_trait]
+///
+///
+pub trait BooleanAccessorModel: Sync + Send {
+    ///
+    ///
+    async fn get_boolean_at(&mut self, index: usize) -> Result<bool, Error>;
+    ///
+    ///
+    async fn set_boolean_at(&mut self, index: usize, value: bool) -> Result<(), Error>;
+}
+
 /// Mount the identity attribute in parent container
 ///
-pub async fn mount<C: Container, I: AccessorModel + 'static, N: Into<String>, F: Into<String>>(
+pub async fn mount<
+    C: Container,
+    I: BooleanAccessorModel + 'static,
+    N: Into<String>,
+    F: Into<String>,
+>(
     mut parent: C,
     interface: Arc<Mutex<I>>,
     index: usize,
@@ -52,7 +70,7 @@ pub async fn mount<C: Container, I: AccessorModel + 'static, N: Into<String>, F:
 
 ///
 ///
-async fn on_command<I: AccessorModel + 'static>(
+async fn on_command<I: BooleanAccessorModel + 'static>(
     mut att: BooleanAttServer,
     interface: Arc<Mutex<I>>,
     index: usize,
