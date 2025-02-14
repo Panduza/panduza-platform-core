@@ -5,9 +5,9 @@ use flatbuffers::FlatBufferBuilder;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::Display;
 
+use super::sample_generated::Sample;
 use super::sample_generated::SampleArgs;
 use super::sample_generated::SampleBuilder;
-use super::sample_generated::Sample;
 
 ///
 /// Codec for a simple Boolean
@@ -15,35 +15,32 @@ use super::sample_generated::Sample;
 #[derive(Clone, PartialEq, Debug)]
 pub struct SampleCodec {
     pub value: bytes::Bytes,
-
 }
 
-
-
-impl SampleCodec 
-{
-
+impl SampleCodec {
     pub fn from_values(value: &Vec<f32>) -> Self {
-
         let mut builder = flatbuffers::FlatBufferBuilder::new();
-        
+
         // https://github.com/google/flatbuffers/blob/master/samples/sample_binary.rs
 
         let inventory = builder.create_vector(value);
 
-        let orc = Sample::create(&mut builder, &SampleArgs{
-            values: Some(inventory)
-        });
-      
+        let orc = Sample::create(
+            &mut builder,
+            &SampleArgs {
+                values: Some(inventory),
+            },
+        );
+
         builder.finish(orc, None);
 
+        let bbb = Bytes::from(builder.finished_data().to_vec());
+        println!("bbbb size {:?}", bbb.len());
+
         // Here we copy into the buffer
-        Self {
-            value: Bytes::from(builder.finished_data().to_vec())
-        }
+        Self { value: bbb }
     }
 }
-
 
 ///
 /// To ease display
@@ -54,7 +51,6 @@ impl Display for SampleCodec {
         // self.value))
     }
 }
-
 
 ///
 /// To apply all the required trait
@@ -77,19 +73,18 @@ impl MessageCodec for SampleCodec {
 
         // let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(data.len());
         // builder.
-        
+
         // Get access to the root:
         // let monster = flatbuffers::root::<Sample>(data).unwrap();
         // let ff = monster.values();
 
-        
         // let bufff = builder.finished_data();
 
         // let bbb = Bytes::from(bufff);
 
         // Return
         Ok(Self {
-            value: data.clone()
+            value: data.clone(),
         })
     }
 
