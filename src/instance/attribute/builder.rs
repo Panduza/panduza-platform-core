@@ -1,3 +1,4 @@
+use super::server_sample::SampleAttServer;
 use super::server_si::SiAttServer;
 use crate::runtime::notification::attribute::{AttributeMode, AttributeNotification};
 use crate::{
@@ -219,6 +220,16 @@ impl AttributeBuilder {
     pub async fn finish_as_memory_command(mut self) -> Result<MemoryCommandAttServer, Error> {
         self.r#type = Some(MemoryCommandAttServer::r#type());
         let att = MemoryCommandAttServer::new(self.clone());
+        att.inner.lock().await.init(att.inner.clone()).await?;
+        self.send_creation_notification();
+        Ok(att)
+    }
+
+    ///
+    ///
+    pub async fn finish_as_sample(mut self) -> Result<SampleAttServer, Error> {
+        self.r#type = Some(SampleAttServer::r#type());
+        let att = SampleAttServer::new(self.clone());
         att.inner.lock().await.init(att.inner.clone()).await?;
         self.send_creation_notification();
         Ok(att)

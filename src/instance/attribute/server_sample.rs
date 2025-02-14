@@ -16,11 +16,6 @@ pub struct SampleAttServer {
     ///
     /// Inner server implementation
     pub inner: Arc<Mutex<AttServer<SampleCodec>>>,
-
-    ///
-    ///
-    ///
-    choices: Vec<String>,
 }
 
 impl SampleAttServer {
@@ -38,12 +33,11 @@ impl SampleAttServer {
     ///
     ///
     ///
-    pub fn new(builder: AttributeBuilder, choices: Vec<String>) -> Self {
+    pub fn new(builder: AttributeBuilder) -> Self {
         let obj = AttServer::<SampleCodec>::from(builder);
         Self {
             logger: obj.logger.clone(),
             inner: Arc::new(Mutex::new(obj)),
-            choices: choices,
         }
     }
 
