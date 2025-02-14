@@ -5,6 +5,8 @@ pub mod memory_command;
 pub mod number;
 pub mod number_list;
 pub mod raw;
+pub mod sample_codec;
+pub mod sample_generated;
 pub mod si;
 pub mod string;
 pub mod string_list;

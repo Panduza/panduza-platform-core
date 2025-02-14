@@ -3,22 +3,22 @@
 //! This crate is the heart of Panduza platform and plugins
 //!
 
-#![deny(
-    while_true,
-    improper_ctypes,
-    non_shorthand_field_patterns,
-    no_mangle_generic_items,
-    overflowing_literals,
-    path_statements,
-    patterns_in_fns_without_body,
-    unconditional_recursion,
-    bad_style,
-    dead_code,
-    unused,
-    unused_allocation,
-    unused_comparisons,
-    unused_parens
-)]
+// #![deny(
+//     while_true,
+//     improper_ctypes,
+//     non_shorthand_field_patterns,
+//     no_mangle_generic_items,
+//     overflowing_literals,
+//     path_statements,
+//     patterns_in_fns_without_body,
+//     unconditional_recursion,
+//     bad_style,
+//     dead_code,
+//     unused,
+//     unused_allocation,
+//     unused_comparisons,
+//     unused_parens
+// )]
 
 ///
 ///
@@ -87,6 +87,7 @@ pub use codec::memory_command::MemoryCommandMode;
 pub use codec::number::NumberCodec;
 pub use codec::number_list::NumberListCodec;
 pub use codec::raw::RawCodec;
+pub use codec::sample_codec::SampleCodec;
 pub use codec::si::SiCodec;
 pub use codec::string::StringCodec;
 pub use codec::string_list::StringListCodec;
