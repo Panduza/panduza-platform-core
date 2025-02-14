@@ -114,6 +114,8 @@ impl Reactor {
         );
         mqttoptions.set_keep_alive(Duration::from_secs(3));
 
+        mqttoptions.set_max_packet_size(1000 * 1024, 1000 * 1024);
+
         let (client, event_loop) = AsyncClient::new(mqttoptions, 100);
 
         self.message_client = Some(client.clone());
